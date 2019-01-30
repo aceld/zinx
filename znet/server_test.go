@@ -5,6 +5,7 @@ import (
 	"net"
 	"testing"
 	"time"
+	"zinx/ziface"
 )
 
 /*
@@ -23,7 +24,7 @@ import (
 	}
 
  	for {
- 		_, err := conn.Write([]byte("hahaha"))
+ 		_, err := conn.Write([]byte("Zinx V0.2 test"))
  		if err !=nil {
  			fmt.Println("write error err ", err)
  			return
@@ -42,18 +43,61 @@ import (
 	}
  }
 
+ /*
 //Server 模块的测试函数
 func TestServer(t *testing.T) {
 
-	/*
-		服务端测试
-	*/
+
+	//	服务端测试
 	//1 创建一个server 句柄 s
 	s := NewServer("[zinx V0.1]")
 
-	/*
-		客户端测试
-	*/
+	//	客户端测试
+	go ClientTest()
+
+	//2 开启服务
+	s.Serve()
+}
+*/
+
+//ping test 自定义路由
+type PingRouter struct {
+	BaseRouter
+}
+
+//Test PreHandle
+func (this *PingRouter) PreHandle(request ziface.IRequest) {
+	fmt.Println("Call Router PreHandle")
+	_, err := request.GetConnection().GetTCPConnection().Write([]byte("before ping ....\n"))
+	if err !=nil {
+		fmt.Println("call back ping ping ping error")
+	}
+}
+//Test Handle
+func (this *PingRouter) Handle(request ziface.IRequest) {
+	fmt.Println("Call PingRouter Handle")
+	_, err := request.GetConnection().GetTCPConnection().Write([]byte("ping...ping...ping\n"))
+	if err !=nil {
+		fmt.Println("call back ping ping ping error")
+	}
+}
+
+//Test PostHandle
+func (this *PingRouter) PostHandle(request ziface.IRequest) {
+	fmt.Println("Call Router PostHandle")
+	_, err := request.GetConnection().GetTCPConnection().Write([]byte("After ping .....\n"))
+	if err !=nil {
+		fmt.Println("call back ping ping ping error")
+	}
+}
+
+func TestServerV0_3(t *testing.T){
+	//创建一个server句柄
+	s := NewServer("[zinx V0.3]")
+
+	s.AddRouter(&PingRouter{})
+
+	//	客户端测试
 	go ClientTest()
 
 	//2 开启服务
