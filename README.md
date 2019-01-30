@@ -32,3 +32,10 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 `原创书籍gitbook`:
 [http://legacy.gitbook.com/@aceld](http://legacy.gitbook.com/@aceld)
 
+###Zinx技术讨论社区
+
+QQ技术讨论群:
+
+![gopool5.jpeg](https://upload-images.jianshu.io/upload_images/11093205-6cdfd381e8ffa127.jpeg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+欢迎大家加入，获取更多相关学习资料
