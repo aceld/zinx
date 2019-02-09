@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"zinx/utils"
 	"zinx/ziface"
 )
 
@@ -21,10 +22,6 @@ type Connection struct {
 	ExitBuffChan chan bool
 	//无缓冲管道，用于读、写两个goroutine之间的消息通信
 	msgChan		chan []byte
-	//给缓冲队列发送数据的channel，
-	// 如果向缓冲队列发送数据，那么把数据发送到这个channel下
-//	SendBuffChan chan []byte
-
 }
 
 
@@ -112,8 +109,14 @@ func (c *Connection) StartReader() {
 			conn:c,
 			msg:msg,
 		}
-		//从绑定好的消息和对应的处理方法中执行对应的Handle方法
-		go c.MsgHandler.DoMsgHandler(&req)
+
+		if utils.GlobalObject.WorkerPoolSize > 0 {
+			//已经启动工作池机制，将消息交给Worker处理
+			c.MsgHandler.SendMsgToTaskQueue(&req)
+		} else {
+			//从绑定好的消息和对应的处理方法中执行对应的Handle方法
+			go c.MsgHandler.DoMsgHandler(&req)
+		}
 	}
 }
 
@@ -188,8 +191,3 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 
 	return nil
 }
-
-//将数据发送给缓冲队列，通过专门从缓冲队列读数据的go写给客户端
-//func (c *Connection) SendBuff(data []byte) error {
-//	return nil
-//}

@@ -23,14 +23,16 @@ type GlobalObj struct {
 	/*
 		Zinx
 	*/
-	Version       string //当前Zinx版本号
-	MaxPacketSize uint32 //都需数据包的最大值
-	MaxConn       int    //当前服务器主机允许的最大链接个数
+	Version          string //当前Zinx版本号
+	MaxPacketSize    uint32 //都需数据包的最大值
+	MaxConn          int    //当前服务器主机允许的最大链接个数
+	WorkerPoolSize   uint32 //业务工作Worker池的数量
+	MaxWorkerTaskLen uint32 //业务工作Worker对应负责的任务队列最大任务存储数量
 
 	/*
 		config file path
-	 */
-	 ConfFilePath string
+	*/
+	ConfFilePath string
 }
 
 /*
@@ -53,7 +55,7 @@ func PathExists(path string) (bool, error) {
 //读取用户的配置文件
 func (g *GlobalObj) Reload() {
 
-	if confFileExists, _ := PathExists(g.ConfFilePath) ; confFileExists != true {
+	if confFileExists, _ := PathExists(g.ConfFilePath); confFileExists != true {
 		//fmt.Println("Config File ", g.ConfFilePath , " is not exist!!")
 		return
 	}
@@ -82,7 +84,9 @@ func init() {
 		Host:          "0.0.0.0",
 		MaxConn:       12000,
 		MaxPacketSize: 4096,
-		ConfFilePath: "conf/zinx.json",
+		ConfFilePath:  "conf/zinx.json",
+		WorkerPoolSize: 10,
+		MaxWorkerTaskLen: 1024,
 	}
 
 	//从配置文件中加载一些用户配置的参数
