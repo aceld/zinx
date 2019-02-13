@@ -28,7 +28,7 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 `mail`:
 [danbing.at@gmail.com](mailto:danbing.at@gmail.com)
 `github`:
-[https://github.com/aceld/zinx](https://github.com/aceld/zinx)
+[https://github.com/aceld](https://github.com/aceld)
 `原创书籍gitbook`:
 [http://legacy.gitbook.com/@aceld](http://legacy.gitbook.com/@aceld)
 
