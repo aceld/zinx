@@ -107,7 +107,8 @@ func (s *Server) Start() {
 func (s *Server) Stop() {
 	fmt.Println("[STOP] Zinx server , name " , s.Name)
 
-	//TODO  Server.Stop() 将其他需要清理的连接信息或者其他信息 也要一并停止或者清理
+	//将其他需要清理的连接信息或者其他信息 也要一并停止或者清理
+	s.ConnMgr.ClearConn()
 }
 
 func (s *Server) Serve() {
@@ -142,6 +143,7 @@ func (s *Server) SetOnConnStop(hookFunc func (ziface.IConnection)) {
 //调用连接OnConnStart Hook函数
 func (s *Server) CallOnConnStart(conn ziface.IConnection) {
 	if s.OnConnStart != nil {
+		fmt.Println("---> CallOnConnStart....")
 		s.OnConnStart(conn)
 	}
 }
@@ -149,13 +151,10 @@ func (s *Server) CallOnConnStart(conn ziface.IConnection) {
 //调用连接OnConnStop Hook函数
 func (s *Server) CallOnConnStop(conn ziface.IConnection) {
 	if s.OnConnStop != nil {
+		fmt.Println("---> CallOnConnStop....")
 		s.OnConnStop(conn)
 	}
 }
 
-//捕捉信号处理函数，对服务器退出平滑处理
-func (s *Server) WaitSignal() {
-
-}
 
 

@@ -71,10 +71,10 @@ func NewConntion(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHan
 						return
 					}
 				} else {
+					break
 					fmt.Println("msgBuffChan is Closed")
 				}
- 			case <- c.ExitBuffChan:
- 				//conn已经关闭
+ 			case <-c.ExitBuffChan:
  				return
 		}
 	}
@@ -87,8 +87,9 @@ func NewConntion(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHan
 func (c *Connection) StartReader() {
 	fmt.Println("[Reader Goroutine is running]")
 	defer fmt.Println(c.RemoteAddr().String(), "[conn Reader exit!]")
+	defer c.Stop()
 
-	for  {
+	for {
 		// 创建拆包解包的对象
 		dp := NewDataPack()
 
@@ -131,37 +132,22 @@ func (c *Connection) StartReader() {
 			go c.MsgHandler.DoMsgHandler(&req)
 		}
 	}
-
-	c.ExitBuffChan <- true
 }
 
 //启动连接，让当前连接开始工作
 func (c *Connection) Start() {
-	//Start()函数结束的时候就应该调用Stop处理善后业务
-	defer c.Stop()
-
 	//1 开启用户从客户端读取数据流程的Goroutine
 	go c.StartReader()
 	//2 开启用于写回客户端数据流程的Goroutine
 	go c.StartWriter()
-
 	//按照用户传递进来的创建连接时需要处理的业务，执行钩子方法
 	c.TcpServer.CallOnConnStart(c)
-
-	for {
-		select {
-		case <- c.ExitBuffChan:
-			//得到退出消息，不再阻塞
-			fmt.Println("Start recv ExitBuffChan...")
-			return
-		}
-	}
 }
 
 //停止连接，结束当前连接状态M
 func (c *Connection) Stop() {
 	fmt.Println("Conn Stop()...ConnID = ", c.ConnID)
-	//1. 如果当前链接已经关闭
+	//如果当前链接已经关闭
 	if c.isClosed == true {
 		return
 	}
@@ -172,6 +158,8 @@ func (c *Connection) Stop() {
 
 	// 关闭socket链接
 	c.Conn.Close()
+	//关闭Writer
+	c.ExitBuffChan <- true
 
 	//将链接从连接管理器中删除
 	c.TcpServer.GetConnMgr().Remove(c)
