@@ -1,0 +1,7 @@
+{
+  "Name":"Zinx Game",
+  "Host":"0.0.0.0",
+  "TcpPort":8999,
+  "MaxConn":3000,
+  "WorkerPoolSize":10
+}

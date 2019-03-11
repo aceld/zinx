@@ -1,0 +1,27 @@
+syntax="proto3";                //Proto协议
+package pb;                     //当前包名
+option csharp_namespace="Pb";   //给C#提供的选项
+
+//同步客户端玩家ID
+message SyncPid{
+	int32 Pid=1;
+}
+
+//玩家位置
+message Position{
+	float X=1;
+	float Y=2;
+	float Z=3;
+	float V=4;
+}
+
+//玩家广播数据
+message BroadCast{
+	int32 Pid=1;
+	int32 Tp=2;
+	oneof Data {
+        string Content=3;
+        Position P=4;
+		int32 ActionData=5;
+        }
+}
