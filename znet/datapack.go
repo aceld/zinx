@@ -26,13 +26,13 @@ func(dp *DataPack) Pack(msg ziface.IMessage)([]byte, error) {
 	//创建一个存放bytes字节的缓冲
 	dataBuff := bytes.NewBuffer([]byte{})
 
-	//写msgID
-	if err := binary.Write(dataBuff, binary.LittleEndian, msg.GetMsgId()); err != nil {
+	//写dataLen
+	if err := binary.Write(dataBuff, binary.LittleEndian, msg.GetDataLen()); err != nil {
 		return nil, err
 	}
 
-	//写dataLen
-	if err := binary.Write(dataBuff, binary.LittleEndian, msg.GetDataLen()); err != nil {
+	//写msgID
+	if err := binary.Write(dataBuff, binary.LittleEndian, msg.GetMsgId()); err != nil {
 		return nil, err
 	}
 
@@ -51,13 +51,13 @@ func(dp *DataPack) Unpack(binaryData []byte)(ziface.IMessage, error) {
 	//只解压head的信息，得到dataLen和msgID
 	msg := &Message{}
 
-	//读msgID
-	if err := binary.Read(dataBuff, binary.LittleEndian, &msg.Id); err != nil {
+	//读dataLen
+	if err := binary.Read(dataBuff, binary.LittleEndian, &msg.DataLen); err != nil {
 		return nil, err
 	}
 
-	//读dataLen
-	if err := binary.Read(dataBuff, binary.LittleEndian, &msg.DataLen); err != nil {
+	//读msgID
+	if err := binary.Read(dataBuff, binary.LittleEndian, &msg.Id); err != nil {
 		return nil, err
 	}
 
