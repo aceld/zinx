@@ -2,6 +2,15 @@ package core
 
 import "fmt"
 
+const (
+	AOI_MIN_X  int = 85
+	AOI_MAX_X  int = 410
+	AOI_CNTS_X int = 10
+	AOI_MIN_Y  int = 75
+	AOI_MAX_Y  int = 400
+	AOI_CNTS_Y int = 20
+)
+
 /*
    AOI管理模块
 */
@@ -38,9 +47,9 @@ func NewAOIManager(minX, maxX, cntsX, minY, maxY, cntsY int) *AOIManager {
 
 			//初始化一个格子放在AOI中的map里，key是当前格子的ID
 			aoiMgr.grids[gid] = NewGrid(gid,
-				aoiMgr.MinX+ x*aoiMgr.gridWidth(),
+				aoiMgr.MinX+x*aoiMgr.gridWidth(),
 				aoiMgr.MinX+(x+1)*aoiMgr.gridWidth(),
-				aoiMgr.MinY+ y*aoiMgr.gridLength(),
+				aoiMgr.MinY+y*aoiMgr.gridLength(),
 				aoiMgr.MinY+(y+1)*aoiMgr.gridLength())
 		}
 	}
@@ -62,7 +71,7 @@ func (m *AOIManager) gridLength() int {
 func (m *AOIManager) String() string {
 	s := fmt.Sprintf("AOIManagr:\nminX:%d, maxX:%d, cntsX:%d, minY:%d, maxY:%d, cntsY:%d\n Grids in AOI Manager:\n",
 		m.MinX, m.MaxX, m.CntsX, m.MinY, m.MaxY, m.CntsY)
-	for _,grid := range m.grids {
+	for _, grid := range m.grids {
 		s += fmt.Sprintln(grid)
 	}
 
@@ -72,12 +81,12 @@ func (m *AOIManager) String() string {
 //根据格子的gID得到当前周边的九宫格信息
 func (m *AOIManager) GetSurroundGridsByGid(gID int) (grids []*Grid) {
 	//判断gID是否存在
-	if _, ok := m.grids[gID]; !ok  {
+	if _, ok := m.grids[gID]; !ok {
 		return
 	}
 
 	//将当前gid添加到九宫格中
-	grids  = append(grids, m.grids[gID])
+	grids = append(grids, m.grids[gID])
 
 	//根据gid得到当前格子所在的X轴编号
 	idx := gID % m.CntsX
@@ -87,7 +96,7 @@ func (m *AOIManager) GetSurroundGridsByGid(gID int) (grids []*Grid) {
 		grids = append(grids, m.grids[gID-1])
 	}
 	//判断当前的idx右边是否还有格子
-	if idx < m.CntsX - 1 {
+	if idx < m.CntsX-1 {
 		grids = append(grids, m.grids[gID+1])
 	}
 
@@ -109,7 +118,7 @@ func (m *AOIManager) GetSurroundGridsByGid(gID int) (grids []*Grid) {
 			grids = append(grids, m.grids[v-m.CntsX])
 		}
 		//判断当前的idy下边是否还有格子
-		if idy < m.CntsY - 1 {
+		if idy < m.CntsY-1 {
 			grids = append(grids, m.grids[v+m.CntsX])
 		}
 	}
@@ -122,7 +131,7 @@ func (m *AOIManager) GetGidByPos(x, y float32) int {
 	gx := (int(x) - m.MinX) / m.gridWidth()
 	gy := (int(x) - m.MinY) / m.gridLength()
 
-	return gy * m.CntsX + gx
+	return gy*m.CntsX + gx
 }
 
 //通过横纵坐标得到周边九宫格内的全部PlayerIDs

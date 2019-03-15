@@ -18,10 +18,26 @@ message Position{
 //玩家广播数据
 message BroadCast{
 	int32 Pid=1;
-	int32 Tp=2;
+	int32 Tp=2;              //1-世界聊天  2-玩家位置
 	oneof Data {
-        string Content=3;
-        Position P=4;
+        string Content=3;    //聊天的信息
+        Position P=4;        //广播用户的位置
 		int32 ActionData=5;
         }
+}
+
+//玩家聊天数据
+message Talk{
+	string Content=1;    //聊天内容
+}
+
+//玩家信息
+message Player{
+	int32 Pid=1;
+	Position P=2;
+}
+
+//同步玩家显示数据
+message SyncPlayers{
+	repeated Player ps=1;
 }
