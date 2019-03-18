@@ -105,6 +105,7 @@ func (s *Server) Start() {
 	}()
 }
 
+//停止服务
 func (s *Server) Stop() {
 	fmt.Println("[STOP] Zinx server , name " , s.Name)
 
@@ -112,6 +113,7 @@ func (s *Server) Stop() {
 	s.ConnMgr.ClearConn()
 }
 
+//运行服务
 func (s *Server) Serve() {
 	s.Start()
 
