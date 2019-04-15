@@ -1,0 +1,53 @@
+Initialize engine version: 5.4.1f1 (649f48bbbf0f)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 10.0]
+    Renderer: VMware SVGA 3D (ID=0x405)
+    Vendor:   VMWare
+    VRAM:     516 MB
+Begin MonoManager ReloadAssembly
+Platform assembly: C:\Users\Ace\Desktop\mmo_game\client_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading C:\Users\Ace\Desktop\mmo_game\client_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: C:\Users\Ace\Desktop\mmo_game\client_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading C:\Users\Ace\Desktop\mmo_game\client_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: C:\Users\Ace\Desktop\mmo_game\client_Data\Managed\UnityEngine.UI.dll (this message is harmless)
+Loading C:\Users\Ace\Desktop\mmo_game\client_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
+Platform assembly: C:\Users\Ace\Desktop\mmo_game\client_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
+Loading C:\Users\Ace\Desktop\mmo_game\client_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
+Platform assembly: C:\Users\Ace\Desktop\mmo_game\client_Data\Managed\Google.Protobuf.dll (this message is harmless)
+Loading C:\Users\Ace\Desktop\mmo_game\client_Data\Managed\Google.Protobuf.dll into Unity Child Domain
+Platform assembly: C:\Users\Ace\Desktop\mmo_game\client_Data\Managed\protobuf-net.dll (this message is harmless)
+Loading C:\Users\Ace\Desktop\mmo_game\client_Data\Managed\protobuf-net.dll into Unity Child Domain
+- Completed reload, in  0.157 seconds
+Platform assembly: C:\Users\Ace\Desktop\mmo_game\client_Data\Managed\System.Core.dll (this message is harmless)
+Platform assembly: C:\Users\Ace\Desktop\mmo_game\client_Data\Managed\System.dll (this message is harmless)
+desktop: 1280x800 60Hz; virtual: 1280x800 at 0,0
+<RI> Initializing input.
+XInput1_3.dll not found. Trying XInput9_1_0.dll instead...
+<RI> Input initialized.
+<RI> Initialized touch support.
+UnloadTime: 0.629496 ms
+Setting up 1 worker threads for Enlighten.
+  Thread -> id: 1af8 -> priority: 1 
+Unloading 6 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 5.108131 ms
+
+Unloading 11 unused Assets to reduce memory usage. Loaded Objects now: 368.
+Total: 0.445997 ms (FindLiveObjects: 0.020527 ms CreateObjectMapping: 0.010885 ms MarkObjects: 0.227041 ms  DeleteObjects: 0.186609 ms)
+
+Parent of RectTransform is being set with parent property. Consider using the SetParent method instead, with the worldPositionStays argument set to false. This will retain local orientation and scale rather than world orientation and scale, which can prevent common UI scaling issues.
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 42)
+
+Connect: 192.168.1.107:8999
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 42)
+
+PlayerController singleton already created!
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 42)
+
+Connect Suc
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 42)
+
