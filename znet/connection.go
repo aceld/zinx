@@ -29,7 +29,7 @@ type Connection struct {
 	msgBuffChan chan []byte
 
 	//链接属性
-	property     map[string]interface{}
+	property map[string]interface{}
 	//保护链接属性修改的锁
 	propertyLock sync.RWMutex
 }
@@ -69,7 +69,7 @@ func (c *Connection) StartWriter() {
 				fmt.Println("Send Data error:, ", err, " Conn Writer exit")
 				return
 			}
-			fmt.Printf("Send data succ! data = %+v\n", data)
+			//fmt.Printf("Send data succ! data = %+v\n", data)
 		case data, ok := <-c.msgBuffChan:
 			if ok {
 				//有数据要写给客户端
@@ -241,7 +241,7 @@ func (c *Connection) GetProperty(key string) (interface{}, error) {
 	c.propertyLock.RLock()
 	defer c.propertyLock.RUnlock()
 
-	if value, ok := c.property[key]; ok  {
+	if value, ok := c.property[key]; ok {
 		return value, nil
 	} else {
 		return nil, errors.New("no property found")

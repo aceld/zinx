@@ -11,35 +11,35 @@ import (
 
 //玩家对象
 type Player struct {
-	Pid int32  	//玩家ID
+	Pid  int32              //玩家ID
 	Conn ziface.IConnection //当前玩家的连接
-	X 	float32 //平面x坐标
-	Y   float32 //高度
-	Z   float32 //平面y坐标 (注意不是Y)
-	V   float32 //旋转0-360度
+	X    float32            //平面x坐标
+	Y    float32            //高度
+	Z    float32            //平面y坐标 (注意不是Y)
+	V    float32            //旋转0-360度
 }
 
 /*
 	Player ID 生成器
- */
-var PidGen int32 = 1   //用来生成玩家ID的计数器
-var IdLock sync.Mutex   //保护PidGen的互斥机制
+*/
+var PidGen int32 = 1  //用来生成玩家ID的计数器
+var IdLock sync.Mutex //保护PidGen的互斥机制
 
 //创建一个玩家对象
 func NewPlayer(conn ziface.IConnection) *Player {
 	//生成一个PID
 	IdLock.Lock()
 	id := PidGen
-	PidGen ++
+	PidGen++
 	IdLock.Unlock()
 
 	p := &Player{
-		Pid : id,
-		Conn:conn,
-		X:float32(160 + rand.Intn(10)),//随机在160坐标点 基于X轴偏移若干坐标
-		Y:0, //高度为0
-		Z:float32(134 + rand.Intn(17)), //随机在134坐标点 基于Y轴偏移若干坐标
-		V:0, //角度为0，尚未实现
+		Pid:  id,
+		Conn: conn,
+		X:    float32(160 + rand.Intn(10)), //随机在160坐标点 基于X轴偏移若干坐标
+		Y:    0,                            //高度为0
+		Z:    float32(134 + rand.Intn(17)), //随机在134坐标点 基于Y轴偏移若干坐标
+		V:    0,                            //角度为0，尚未实现
 	}
 
 	return p
@@ -49,7 +49,7 @@ func NewPlayer(conn ziface.IConnection) *Player {
 func (p *Player) SyncPid() {
 	//组建MsgId0 proto数据
 	data := &pb.SyncPid{
-		Pid:p.Pid,
+		Pid: p.Pid,
 	}
 
 	//发送数据给客户端
@@ -61,14 +61,14 @@ func (p *Player) BroadCastStartPosition() {
 
 	//组建MsgId200 proto数据
 	msg := &pb.BroadCast{
-		Pid:p.Pid,
-		Tp:2,//TP2 代表广播坐标
+		Pid: p.Pid,
+		Tp:  2, //TP2 代表广播坐标
 		Data: &pb.BroadCast_P{
-			P:&pb.Position{
-				X:p.X,
-				Y:p.Y,
-				Z:p.Z,
-				V:p.V,
+			P: &pb.Position{
+				X: p.X,
+				Y: p.Y,
+				Z: p.Z,
+				V: p.V,
 			},
 		},
 	}
@@ -89,14 +89,14 @@ func (p *Player) SyncSurrounding() {
 	}
 	//3.1 组建MsgId200 proto数据
 	msg := &pb.BroadCast{
-		Pid:p.Pid,
-		Tp:2,//TP2 代表广播坐标
+		Pid: p.Pid,
+		Tp:  2, //TP2 代表广播坐标
 		Data: &pb.BroadCast_P{
-			P:&pb.Position{
-				X:p.X,
-				Y:p.Y,
-				Z:p.Z,
-				V:p.V,
+			P: &pb.Position{
+				X: p.X,
+				Y: p.Y,
+				Z: p.Z,
+				V: p.V,
 			},
 		},
 	}
@@ -109,12 +109,12 @@ func (p *Player) SyncSurrounding() {
 	playersData := make([]*pb.Player, 0, len(players))
 	for _, player := range players {
 		p := &pb.Player{
-			Pid:player.Pid,
-			P:&pb.Position{
-				X:player.X,
-				Y:player.Y,
-				Z:player.Z,
-				V:player.V,
+			Pid: player.Pid,
+			P: &pb.Position{
+				X: player.X,
+				Y: player.Y,
+				Z: player.Z,
+				V: player.V,
 			},
 		}
 		playersData = append(playersData, p)
@@ -122,7 +122,7 @@ func (p *Player) SyncSurrounding() {
 
 	//4.2 封装SyncPlayer protobuf数据
 	SyncPlayersMsg := &pb.SyncPlayers{
-		Ps:playersData[:],
+		Ps: playersData[:],
 	}
 
 	//4.3 给当前玩家发送需要显示周围的全部玩家数据
@@ -133,8 +133,8 @@ func (p *Player) SyncSurrounding() {
 func (p *Player) Talk(content string) {
 	//1. 组建MsgId200 proto数据
 	msg := &pb.BroadCast{
-		Pid:p.Pid,
-		Tp:1,//TP 1 代表聊天广播
+		Pid: p.Pid,
+		Tp:  1, //TP 1 代表聊天广播
 		Data: &pb.BroadCast_Content{
 			Content: content,
 		},
@@ -149,7 +149,6 @@ func (p *Player) Talk(content string) {
 	}
 }
 
-
 //广播玩家位置移动
 func (p *Player) UpdatePos(x float32, y float32, z float32, v float32) {
 	//更新玩家的位置信息
@@ -160,14 +159,14 @@ func (p *Player) UpdatePos(x float32, y float32, z float32, v float32) {
 
 	//组装protobuf协议，发送位置给周围玩家
 	msg := &pb.BroadCast{
-		Pid:p.Pid,
-		Tp:4,     //4- 移动之后的坐标信息
+		Pid: p.Pid,
+		Tp:  4, //4- 移动之后的坐标信息
 		Data: &pb.BroadCast_P{
-			P:&pb.Position{
-				X:p.X,
-				Y:p.Y,
-				Z:p.Z,
-				V:p.V,
+			P: &pb.Position{
+				X: p.X,
+				Y: p.Y,
+				Z: p.Z,
+				V: p.V,
 			},
 		},
 	}
@@ -201,7 +200,7 @@ func (p *Player) LostConnection() {
 
 	//2 封装MsgID:201消息
 	msg := &pb.SyncPid{
-		Pid:p.Pid,
+		Pid: p.Pid,
 	}
 
 	//3 向周围玩家发送消息
@@ -214,20 +213,19 @@ func (p *Player) LostConnection() {
 	WorldMgrObj.RemovePlayerByPid(p.Pid)
 }
 
-
 /*
 	发送消息给客户端，
 	主要是将pb的protobuf数据序列化之后发送
- */
+*/
 func (p *Player) SendMsg(msgId uint32, data proto.Message) {
-	fmt.Printf("before Marshal data = %+v\n", data)
+	//fmt.Printf("before Marshal data = %+v\n", data)
 	//将proto Message结构体序列化
 	msg, err := proto.Marshal(data)
 	if err != nil {
 		fmt.Println("marshal msg err: ", err)
 		return
 	}
-	fmt.Printf("after Marshal data = %+v\n", msg)
+	//fmt.Printf("after Marshal data = %+v\n", msg)
 
 	if p.Conn == nil {
 		fmt.Println("connection in player is nil")

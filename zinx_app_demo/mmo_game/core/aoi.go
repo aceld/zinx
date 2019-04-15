@@ -143,7 +143,7 @@ func (m *AOIManager) GetPidsByPos(x, y float32) (playerIDs []int) {
 	grids := m.GetSurroundGridsByGid(gID)
 	for _, v := range grids {
 		playerIDs = append(playerIDs, v.GetPlyerIDs()...)
-		fmt.Printf("===> grid ID : %d, pids : %v  ====", v.GID, v.GetPlyerIDs())
+		//fmt.Printf("===> grid ID : %d, pids : %v  ====", v.GID, v.GetPlyerIDs())
 	}
 
 	return
