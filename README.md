@@ -1,5 +1,4 @@
 # Zinx
----
 [![License](https://img.shields.io/badge/License-GPL%202.0-blue.svg)](LICENSE)
 
 Zinx 是一个基于Golang的轻量级并发服务器框架
