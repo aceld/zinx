@@ -1,5 +1,5 @@
 # Zinx
-[![License](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](LICENSE) [![Gitter](https://img.shields.io/badge/在线交流-Gitter-green.svg)](https://gitter.im/zinx_go/community) [![zinx详细教程](https://img.shields.io/badge/zinx详细教程-简书-red.svg)](https://www.jianshu.com/p/23d07c0a28e5)
+[![License](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](LICENSE) [![Gitter](https://img.shields.io/badge/在线交流-Gitter-green.svg)](https://gitter.im/zinx_go/community) [![zinx详细教程](https://img.shields.io/badge/zinx详细教程-简书-red.svg)](https://www.jianshu.com/p/23d07c0a28e5)[![zinx详细教程](https://img.shields.io/badge/原创书籍下载-Gitbook-black.svg)](https://legacy.gitbook.com/book/aceld/zinx/details)
 
 Zinx 是一个基于Golang的轻量级并发服务器框架
 
