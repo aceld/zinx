@@ -3,15 +3,16 @@
 
 Zinx 是一个基于Golang的轻量级并发服务器框架
 
-### 开发人员
+### 开发者
 
 -   刘丹冰([@aceld](https://github.com/aceld))
 -   张超([@zhngcho](https://github.com/zhngcho))
 
-### zinx(C++版本):
-   [zinx——C++版本](https://github.com/marklion/Game_zinx)
-#### 开发人员
--   刘洋([@marklion](https://github.com/marklion))
+---
+   [zinx(C++版本)](https://github.com/marklion/Game_zinx)
+### 开发者
+-  刘洋([@marklion](https://github.com/marklion))
+---
     
 ## 一、写在前面
 
