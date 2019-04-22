@@ -66,8 +66,7 @@ func (g *GlobalObj) Reload() {
 		panic(err)
 	}
 	//将json数据解析到struct中
-	//fmt.Printf("json :%s\n", data)
-	err = json.Unmarshal(data, &GlobalObject)
+	err = json.Unmarshal(data, g)
 	if err != nil {
 		panic(err)
 	}
