@@ -31,7 +31,6 @@ type Server struct {
   创建一个服务器句柄
  */
 func NewServer () ziface.IServer {
-	utils.GlobalObject.Reload()
 
 	s:= &Server {
 		Name :utils.GlobalObject.Name,
