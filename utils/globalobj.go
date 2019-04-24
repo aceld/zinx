@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"zinx/ziface"
+	"zinx/zlog"
 )
 
 /*
@@ -28,12 +29,19 @@ type GlobalObj struct {
 	MaxConn          int    //当前服务器主机允许的最大链接个数
 	WorkerPoolSize   uint32 //业务工作Worker池的数量
 	MaxWorkerTaskLen uint32 //业务工作Worker对应负责的任务队列最大任务存储数量
-	MaxMsgChanLen	 uint32 //SendBuffMsg发送消息的缓冲最大长度
+	MaxMsgChanLen    uint32 //SendBuffMsg发送消息的缓冲最大长度
 
 	/*
 		config file path
 	*/
 	ConfFilePath string
+
+	/*
+		logger
+	*/
+	LogDir        string //日志所在文件夹 默认"./log"
+	LogFile       string //日志文件名称   默认""  --如果没有设置日志文件，打印信息将打印至stderr
+	LogDebugClose bool   //是否关闭Debug日志级别调试信息 默认false  -- 默认打开debug信息
 }
 
 /*
@@ -70,6 +78,14 @@ func (g *GlobalObj) Reload() {
 	if err != nil {
 		panic(err)
 	}
+
+	//Logger 设置
+	if g.LogFile != "" {
+		zlog.SetLogFile(g.LogDir, g.LogFile)
+	}
+	if g.LogDebugClose == true {
+		zlog.CloseDebug()
+	}
 }
 
 /*
@@ -78,16 +94,19 @@ func (g *GlobalObj) Reload() {
 func init() {
 	//初始化GlobalObject变量，设置一些默认值
 	GlobalObject = &GlobalObj{
-		Name:          "ZinxServerApp",
-		Version:       "V0.11",
-		TcpPort:       8999,
-		Host:          "0.0.0.0",
-		MaxConn:       12000,
-		MaxPacketSize: 4096,
-		ConfFilePath:  "conf/zinx.json",
-		WorkerPoolSize: 10,
+		Name:             "ZinxServerApp",
+		Version:          "V0.11",
+		TcpPort:          8999,
+		Host:             "0.0.0.0",
+		MaxConn:          12000,
+		MaxPacketSize:    4096,
+		ConfFilePath:     "conf/zinx.json",
+		WorkerPoolSize:   10,
 		MaxWorkerTaskLen: 1024,
-		MaxMsgChanLen:1024,
+		MaxMsgChanLen:    1024,
+		LogDir:           "./log",
+		LogFile:          "",
+		LogDebugClose:    false,
 	}
 
 	//从配置文件中加载一些用户配置的参数
