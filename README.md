@@ -157,11 +157,13 @@ func main() {
 ### Zinx配置文件
 ```json
 {
-  "Name":"Zinx Game", 
-  "Host":"0.0.0.0",
-  "TcpPort":8999,
-  "MaxConn":3000,
-  "WorkerPoolSize":10
+  "Name":"zinx v-0.10 demoApp",
+  "Host":"127.0.0.1",
+  "TcpPort":7777,
+  "MaxConn":3,
+  "WorkerPoolSize":10,
+  "LogDir": "./mylog",
+  "LogFile":"zinx.log"
 }
 ```
 
@@ -174,6 +176,10 @@ func main() {
 `MaxConn`:允许的客户端链接最大数量
 
 `WorkerPoolSize`:工作任务池最大工作Goroutine数量
+
+`LogDir`: 日志文件夹
+
+`LogFile`: 日志文件名称(如果不提供，则日志信息打印到Stderr)
 
 
 ### I.服务器模块Server
