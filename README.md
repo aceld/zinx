@@ -81,6 +81,7 @@ func (this *PingRouter) Handle(request ziface.IRequest) {
 	}
 }
 ```
+![zinx-start.gif](https://upload-images.jianshu.io/upload_images/11093205-490b49098ac63af6.gif?imageMogr2/auto-orient/strip)
 
 #### client
 Zinx的消息处理采用，`[MsgLength]|[MsgID]|[Data]`的封包格式
