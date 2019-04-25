@@ -30,6 +30,8 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 
 ![1-Zinx框架.png](https://upload-images.jianshu.io/upload_images/11093205-c75ff682233b2536.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
+![zinx-start.gif](https://upload-images.jianshu.io/upload_images/11093205-490b49098ac63af6.gif?imageMogr2/auto-orient/strip)
+
 ## 三、Zinx详细教程(代码教程同步更新)
 [《Zinx框架教程-基于Golang的轻量级并发服务器》](https://www.jianshu.com/p/23d07c0a28e5)
 
@@ -81,7 +83,6 @@ func (this *PingRouter) Handle(request ziface.IRequest) {
 	}
 }
 ```
-![zinx-start.gif](https://upload-images.jianshu.io/upload_images/11093205-490b49098ac63af6.gif?imageMogr2/auto-orient/strip)
 
 #### client
 Zinx的消息处理采用，`[MsgLength]|[MsgID]|[Data]`的封包格式
