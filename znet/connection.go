@@ -105,7 +105,7 @@ func (c *Connection) StartReader() {
 			fmt.Println("read msg head error ", err)
 			break
 		}
-		fmt.Printf("read headData %+v\n", headData)
+		//fmt.Printf("read headData %+v\n", headData)
 
 		//拆包，得到msgid 和 datalen 放在msg中
 		msg, err := dp.Unpack(headData)
