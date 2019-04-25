@@ -7,6 +7,19 @@ import (
 	"zinx/ziface"
 )
 
+var zinx_logo = `                                        
+              ██                        
+              ▀▀                        
+ ████████   ████     ██▄████▄  ▀██  ██▀ 
+     ▄█▀      ██     ██▀   ██    ████   
+   ▄█▀        ██     ██    ██    ▄██▄   
+ ▄██▄▄▄▄▄  ▄▄▄██▄▄▄  ██    ██   ▄█▀▀█▄  
+ ▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀  ▀▀    ▀▀  ▀▀▀  ▀▀▀ 
+                                        `
+var top_line    = `┌───────────────────────────────────────────────────┐`
+var border_line = `│`
+var bottom_line = `└───────────────────────────────────────────────────┘`
+
 //iServer 接口实现，定义一个Server服务类
 type Server struct {
 	//服务器的名称
@@ -47,10 +60,6 @@ func NewServer () ziface.IServer {
 //开启网络服务
 func (s *Server) Start() {
 	fmt.Printf("[START] Server name: %s,listenner at IP: %s, Port %d is starting\n", s.Name, s.IP, s.Port)
-	fmt.Printf("[Zinx] Version: %s, MaxConn: %d, MaxPacketSize: %d\n",
-		utils.GlobalObject.Version,
-		utils.GlobalObject.MaxConn,
-		utils.GlobalObject.MaxPacketSize)
 
 	//开启一个go去做服务端Linster业务
 	go func() {
@@ -156,6 +165,18 @@ func (s *Server) CallOnConnStop(conn ziface.IConnection) {
 		fmt.Println("---> CallOnConnStop....")
 		s.OnConnStop(conn)
 	}
+}
+
+func init() {
+	fmt.Println(zinx_logo)
+	fmt.Println(top_line)
+	fmt.Println(fmt.Sprintf("%s [Github] https://github.com/aceld                 %s", border_line, border_line))
+	fmt.Println(fmt.Sprintf("%s [tutorial] https://www.jianshu.com/p/23d07c0a28e5 %s", border_line, border_line))
+	fmt.Println(bottom_line)
+	fmt.Printf("[Zinx] Version: %s, MaxConn: %d, MaxPacketSize: %d\n",
+		utils.GlobalObject.Version,
+		utils.GlobalObject.MaxConn,
+		utils.GlobalObject.MaxPacketSize)
 }
 
 
