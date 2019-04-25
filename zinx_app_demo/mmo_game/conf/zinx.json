@@ -3,5 +3,7 @@
   "Host":"0.0.0.0",
   "TcpPort":8999,
   "MaxConn":3000,
-  "WorkerPoolSize":10
+  "WorkerPoolSize":10,
+  "LogDir": "./mmo_game_log",
+  "LogFile":"mmo_game.log"
 }
