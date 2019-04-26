@@ -1,0 +1,30 @@
+2019/04/24 18:26:02 [DEBUG]stdzlog.go:53: DoConnecionBegin is Called ... 
+2019/04/24 18:26:02 [DEBUG]stdzlog.go:53: Set conn Name, Home done!
+2019/04/24 18:26:02 [DEBUG]stdzlog.go:53: Call PingRouter Handle
+2019/04/24 18:26:02 [DEBUG]stdzlog.go:53: recv from client : msgId= 0 , data= Zinx V0.8 Client0 Test Message
+2019/04/24 18:26:03 [DEBUG]stdzlog.go:53: Call PingRouter Handle
+2019/04/24 18:26:03 [DEBUG]stdzlog.go:53: recv from client : msgId= 0 , data= Zinx V0.8 Client0 Test Message
+2019/04/24 18:26:04 [DEBUG]stdzlog.go:53: Call PingRouter Handle
+2019/04/24 18:26:04 [DEBUG]stdzlog.go:53: recv from client : msgId= 0 , data= Zinx V0.8 Client0 Test Message
+2019/04/24 18:26:05 [DEBUG]stdzlog.go:53: Call PingRouter Handle
+2019/04/24 18:26:05 [DEBUG]stdzlog.go:53: recv from client : msgId= 0 , data= Zinx V0.8 Client0 Test Message
+2019/04/24 18:26:06 [ERROR]stdzlog.go:80: Conn Property Name =  Aceld
+2019/04/24 18:26:06 [ERROR]stdzlog.go:80: Conn Property Home =  https://www.jianshu.com/u/35261429b7f1
+2019/04/24 18:26:06 [DEBUG]stdzlog.go:53: DoConneciotnLost is Called ... 
+2019/04/24 18:34:07 [DEBUG]stdzlog.go:53: DoConnecionBegin is Called ... 
+2019/04/24 18:34:07 [DEBUG]stdzlog.go:53: Set conn Name, Home done!
+2019/04/24 18:34:07 [DEBUG]stdzlog.go:53: Call PingRouter Handle
+2019/04/24 18:34:07 [DEBUG]stdzlog.go:53: recv from client : msgId= 0 , data= Zinx V0.8 Client0 Test Message
+2019/04/24 18:34:08 [DEBUG]stdzlog.go:53: Call PingRouter Handle
+2019/04/24 18:34:08 [DEBUG]stdzlog.go:53: recv from client : msgId= 0 , data= Zinx V0.8 Client0 Test Message
+2019/04/24 18:34:09 [DEBUG]stdzlog.go:53: Call PingRouter Handle
+2019/04/24 18:34:09 [DEBUG]stdzlog.go:53: recv from client : msgId= 0 , data= Zinx V0.8 Client0 Test Message
+2019/04/24 18:34:10 [DEBUG]stdzlog.go:53: Call PingRouter Handle
+2019/04/24 18:34:10 [DEBUG]stdzlog.go:53: recv from client : msgId= 0 , data= Zinx V0.8 Client0 Test Message
+2019/04/24 18:34:11 [DEBUG]stdzlog.go:53: Call PingRouter Handle
+2019/04/24 18:34:11 [DEBUG]stdzlog.go:53: recv from client : msgId= 0 , data= Zinx V0.8 Client0 Test Message
+2019/04/24 18:34:12 [DEBUG]stdzlog.go:53: Call PingRouter Handle
+2019/04/24 18:34:12 [DEBUG]stdzlog.go:53: recv from client : msgId= 0 , data= Zinx V0.8 Client0 Test Message
+2019/04/24 18:34:12 [ERROR]stdzlog.go:80: Conn Property Name =  Aceld
+2019/04/24 18:34:12 [ERROR]stdzlog.go:80: Conn Property Home =  https://www.jianshu.com/u/35261429b7f1
+2019/04/24 18:34:12 [DEBUG]stdzlog.go:53: DoConneciotnLost is Called ... 
