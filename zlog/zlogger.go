@@ -53,17 +53,27 @@ var levels = []string{
 }
 
 type ZinxLogger struct {
-	mu     sync.Mutex //确保多协程读写文件，防止文件内容混乱，做到协程安全
-	prefix string     //每行log日志的前缀字符串,拥有日志标记
-	flag   int			//日志标记位
-	out    io.Writer    //日志输出的文件描述符
-	buf    bytes.Buffer //输出的缓冲区
-	file   *os.File		//当前日志绑定的输出文件
-	debugClose bool     //是否打印调试debug信息
+	//确保多协程读写文件，防止文件内容混乱，做到协程安全
+	mu     sync.Mutex
+	//每行log日志的前缀字符串,拥有日志标记
+	prefix string
+	//日志标记位
+	flag   int
+	//日志输出的文件描述符
+	out    io.Writer
+	//输出的缓冲区
+	buf    bytes.Buffer
+	//当前日志绑定的输出文件
+	file   *os.File
+	//是否打印调试debug信息
+	debugClose bool
 }
 
 /*
 	创建一个日志
+	out: 标准输出的文件io
+	prefix: 日志的前缀
+	flag: 当前日志头部信息的标记位
 */
 func NewZinxLog(out io.Writer, prefix string, flag int) *ZinxLogger {
 
@@ -243,7 +253,7 @@ func (log *ZinxLogger) Fatal(v ...interface{}) {
 // ====> Panic  <====
 func (log *ZinxLogger) Panicf(format string, v ...interface{}) {
 	s := fmt.Sprintf(format, v...)
-	_ = log.OutPut(LogPanic, s)
+	_ = log.OutPut(LogPanic, fmt.Sprintf(format, s))
 	panic(s)
 }
 
