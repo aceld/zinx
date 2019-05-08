@@ -67,6 +67,8 @@ type ZinxLogger struct {
 	file   *os.File
 	//是否打印调试debug信息
 	debugClose bool
+	//获取日志文件名和代码上述的runtime.Call 的函数调用层数
+	calldDepth	int
 }
 
 /*
@@ -77,7 +79,8 @@ type ZinxLogger struct {
 */
 func NewZinxLog(out io.Writer, prefix string, flag int) *ZinxLogger {
 
-	zlog := &ZinxLogger{out: out, prefix: prefix, flag: flag, file:nil, debugClose:false}
+	//默认 debug打开， calledDepth深度为2,ZinxLogger对象调用日志打印方法最多调用两层到达output函数
+	zlog := &ZinxLogger{out: out, prefix: prefix, flag: flag, file:nil, debugClose:false, calldDepth:2}
 	//设置log对象 回收资源 析构方法(不设置也可以，go的Gc会自动回收，强迫症没办法)
 	runtime.SetFinalizer(zlog, CleanZinxLog)
 	return zlog
@@ -173,7 +176,7 @@ func (log *ZinxLogger) OutPut(level int, s string) error {
 		log.mu.Unlock()
 		var ok bool
 		//得到当前调用者的文件名称和执行到的代码行数
-		_, file, line, ok = runtime.Caller(2)
+		_, file, line, ok = runtime.Caller(log.calldDepth)
 		if !ok {
 			file = "unknown-file"
 			line = 0
