@@ -1,3 +1,9 @@
+/**
+* @Author: Aceld
+* @Date: 2019/4/30 17:42
+* @Mail: danbing.at@gmail.com
+*  ZinxV0.11测试，测试Zinx 日志模块功能 zlog模块
+ */
 package main
 
 import (
