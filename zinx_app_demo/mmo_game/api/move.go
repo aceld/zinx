@@ -32,7 +32,7 @@ func (*MoveApi) Handle(request ziface.IRequest) {
 		return
 	}
 
-	fmt.Printf("user pid = %d , move(%f,%f,%f,%f)", pid, msg.X, msg.Y, msg.Z, msg.V)
+	fmt.Printf("user pid = %d , move(%f,%f,%f,%f)\n", pid, msg.X, msg.Y, msg.Z, msg.V)
 
 	//3. 根据pid得到player对象
 	player := core.WorldMgrObj.GetPlayerByPid(pid.(int32))
