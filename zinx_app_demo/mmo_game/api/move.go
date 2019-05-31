@@ -14,7 +14,6 @@ type MoveApi struct {
 	znet.BaseRouter
 }
 
-
 func (*MoveApi) Handle(request ziface.IRequest) {
 	//1. 将客户端传来的proto协议解码
 	msg := &pb.Position{}
@@ -32,7 +31,7 @@ func (*MoveApi) Handle(request ziface.IRequest) {
 		return
 	}
 
-	fmt.Printf("user pid = %d , move(%f,%f,%f,%f)\n", pid, msg.X, msg.Y, msg.Z, msg.V)
+	//fmt.Printf("user pid = %d , move(%f,%f,%f,%f)\n", pid, msg.X, msg.Y, msg.Z, msg.V)
 
 	//3. 根据pid得到player对象
 	player := core.WorldMgrObj.GetPlayerByPid(pid.(int32))
