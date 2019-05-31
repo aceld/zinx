@@ -129,7 +129,7 @@ func (m *AOIManager) GetSurroundGridsByGid(gID int) (grids []*Grid) {
 //通过横纵坐标获取对应的格子ID
 func (m *AOIManager) GetGidByPos(x, y float32) int {
 	gx := (int(x) - m.MinX) / m.gridWidth()
-	gy := (int(x) - m.MinY) / m.gridLength()
+	gy := (int(y) - m.MinY) / m.gridLength()
 
 	return gy*m.CntsX + gx
 }
