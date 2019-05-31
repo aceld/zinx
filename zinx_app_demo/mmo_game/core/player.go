@@ -36,9 +36,9 @@ func NewPlayer(conn ziface.IConnection) *Player {
 	p := &Player{
 		Pid:  id,
 		Conn: conn,
-		X:    float32(160 + rand.Intn(10)), //随机在160坐标点 基于X轴偏移若干坐标
+		X:    float32(160 + rand.Intn(50)), //随机在160坐标点 基于X轴偏移若干坐标
 		Y:    0,                            //高度为0
-		Z:    float32(134 + rand.Intn(17)), //随机在134坐标点 基于Y轴偏移若干坐标
+		Z:    float32(134 + rand.Intn(50)), //随机在134坐标点 基于Y轴偏移若干坐标
 		V:    0,                            //角度为0，尚未实现
 	}
 
@@ -151,11 +151,28 @@ func (p *Player) Talk(content string) {
 
 //广播玩家位置移动
 func (p *Player) UpdatePos(x float32, y float32, z float32, v float32) {
+
+	//触发消失视野和添加视野业务
+	//计算旧格子gid
+	oldGid := WorldMgrObj.AoiMgr.GetGidByPos(p.X, p.Z)
+	//计算新格子gid
+	newGid := WorldMgrObj.AoiMgr.GetGidByPos(x, z)
+
 	//更新玩家的位置信息
 	p.X = x
 	p.Y = y
 	p.Z = z
 	p.V = v
+
+	if oldGid != newGid {
+		//触发gird切换
+		//把pid从就的aoi格子中删除
+		WorldMgrObj.AoiMgr.RemovePidFromGrid(int(p.Pid), oldGid)
+		//把pid添加到新的aoi格子中去
+		WorldMgrObj.AoiMgr.AddPidToGrid(int(p.Pid), newGid)
+
+		p.OnExchangeAoiGrid(oldGid, newGid)
+	}
 
 	//组装protobuf协议，发送位置给周围玩家
 	msg := &pb.BroadCast{
@@ -177,6 +194,104 @@ func (p *Player) UpdatePos(x float32, y float32, z float32, v float32) {
 	for _, player := range players {
 		player.SendMsg(200, msg)
 	}
+}
+
+func (p *Player) OnExchangeAoiGrid(oldGid, newGid int) error {
+	//获取就的九宫格成员
+	oldGrids := WorldMgrObj.AoiMgr.GetSurroundGridsByGid(oldGid)
+
+	//为旧的九宫格成员建立哈希表,用来快速查找
+	oldGridsMap := make(map[int]bool, len(oldGrids))
+	for _, grid := range oldGrids {
+		oldGridsMap[grid.GID] = true
+	}
+
+	//获取新的九宫格成员
+	newGrids := WorldMgrObj.AoiMgr.GetSurroundGridsByGid(newGid)
+	//为新的九宫格成员建立哈希表,用来快速查找
+	newGridsMap := make(map[int]bool, len(newGrids))
+	for _, grid := range newGrids {
+		newGridsMap[grid.GID] = true
+	}
+
+	//------ > 处理视野消失 <-------
+	offline_msg := &pb.SyncPid{
+		Pid: p.Pid,
+	}
+
+	//找到在旧的九宫格中出现,但是在新的九宫格中没有出现的格子
+	leavingGrids := make([]*Grid, 0)
+	for _, grid := range oldGrids {
+		if _, ok := newGridsMap[grid.GID]; !ok {
+			leavingGrids = append(leavingGrids, grid)
+		}
+	}
+
+	//获取需要消失的格子中的全部玩家
+	for _, grid := range leavingGrids {
+		players := WorldMgrObj.GetPlayersByGid(grid.GID)
+		for _, player := range players {
+			//让自己在其他玩家的客户端中消失
+			player.SendMsg(201, offline_msg)
+
+			//将其他玩家信息 在自己的客户端中消失
+			another_offline_msg := &pb.SyncPid{
+				Pid: player.Pid,
+			}
+			p.SendMsg(201, another_offline_msg)
+		}
+	}
+
+	//------ > 处理视野出现 <-------
+
+	//找到在新的九宫格内出现,但是没有在就的九宫格内出现的格子
+	enteringGrids := make([]*Grid, 0)
+	for _, grid := range newGrids {
+		if _, ok := oldGridsMap[grid.GID]; !ok {
+			enteringGrids = append(enteringGrids, grid)
+		}
+	}
+
+	online_msg := &pb.BroadCast{
+		Pid: p.Pid,
+		Tp:  2,
+		Data: &pb.BroadCast_P{
+			&pb.Position{
+				X: p.X,
+				Y: p.Y,
+				Z: p.Z,
+				V: p.V,
+			},
+		},
+	}
+
+	//获取需要显示格子的全部玩家
+	for _, grid := range enteringGrids {
+		players := WorldMgrObj.GetPlayersByGid(grid.GID)
+
+		for _, player := range players {
+			//让自己出现在其他人视野中
+			player.SendMsg(200, online_msg)
+
+			//让其他人出现在自己的视野中
+			another_online_msg := &pb.BroadCast{
+				Pid: player.Pid,
+				Tp:  2,
+				Data: &pb.BroadCast_P{
+					&pb.Position{
+						X: player.X,
+						Y: player.Y,
+						Z: player.Z,
+						V: player.V,
+					},
+				},
+			}
+
+			p.SendMsg(200, another_online_msg)
+		}
+	}
+
+	return nil
 }
 
 //获得当前玩家的AOI周边玩家信息
