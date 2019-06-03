@@ -21,12 +21,13 @@ type Message struct {
 }
 
 type TcpClient struct {
-	conn net.Conn
-	X    float32
-	Y    float32
-	Z    float32
-	V    float32
-	Pid  int32
+	conn     net.Conn
+	X        float32
+	Y        float32
+	Z        float32
+	V        float32
+	Pid      int32
+	isOnline chan bool
 }
 
 func (this *TcpClient) Unpack(headdata []byte) (head *Message, err error) {
@@ -183,13 +184,9 @@ func (this *TcpClient) DoMsg(msg *Message) {
 			this.Z = bdata.GetP().Z
 			this.V = bdata.GetP().V
 			fmt.Println(fmt.Sprintf("player ID: %d online.. at(%f,%f,%f,%f)", bdata.Pid, this.X, this.Y, this.Z, this.V))
-			//自动AI业务
-			go func() {
-				for {
-					this.AIRobotAction()
-					time.Sleep(3 * time.Second)
-				}
-			}()
+
+			//玩家已经成功上线
+			this.isOnline <- true
 
 		} else if bdata.Tp == 1 {
 			fmt.Println(fmt.Sprintf("世界聊天,玩家%d说的话是: %s", bdata.Pid, bdata.GetContent()))
@@ -223,6 +220,17 @@ func (this *TcpClient) Start() {
 			this.DoMsg(pkgHead)
 		}
 	}()
+
+	select {
+	case <-this.isOnline:
+		//自动AI业务
+		go func() {
+			for {
+				this.AIRobotAction()
+				time.Sleep(3 * time.Second)
+			}
+		}()
+	}
 }
 
 func NewTcpClient(ip string, port int) *TcpClient {
@@ -230,12 +238,13 @@ func NewTcpClient(ip string, port int) *TcpClient {
 	conn, err := net.Dial("tcp", addrStr)
 	if err == nil {
 		client := &TcpClient{
-			conn: conn,
-			Pid:  0,
-			X:    0,
-			Y:    0,
-			Z:    0,
-			V:    0,
+			conn:     conn,
+			Pid:      0,
+			X:        0,
+			Y:        0,
+			Z:        0,
+			V:        0,
+			isOnline: make(chan bool),
 		}
 		return client
 	} else {
