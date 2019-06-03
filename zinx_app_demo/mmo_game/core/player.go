@@ -5,6 +5,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"math/rand"
 	"sync"
+	"time"
 	"zinx/ziface"
 	"zinx/zinx_app_demo/mmo_game/pb"
 )
@@ -239,6 +240,7 @@ func (p *Player) OnExchangeAoiGrid(oldGid, newGid int) error {
 				Pid: player.Pid,
 			}
 			p.SendMsg(201, another_offline_msg)
+			time.Sleep(200 * time.Millisecond)
 		}
 	}
 
@@ -287,6 +289,7 @@ func (p *Player) OnExchangeAoiGrid(oldGid, newGid int) error {
 				},
 			}
 
+			time.Sleep(200 * time.Millisecond)
 			p.SendMsg(200, another_online_msg)
 		}
 	}
