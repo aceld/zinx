@@ -256,7 +256,7 @@ func (log *ZinxLogger) Fatal(v ...interface{}) {
 // ====> Panic  <====
 func (log *ZinxLogger) Panicf(format string, v ...interface{}) {
 	s := fmt.Sprintf(format, v...)
-	_ = log.OutPut(LogPanic, fmt.Sprintf(format, s))
+	_ = log.OutPut(LogPanic, s)
 	panic(s)
 }
 
