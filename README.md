@@ -12,6 +12,13 @@ Zinx 是一个基于Golang的轻量级并发服务器框架
    [zinx(C++版本)](https://github.com/marklion/zinx)
 ### 开发者
 -  刘洋([@marklion](https://github.com/marklion))
+
+### Github
+Git: https://github.com/aceld/zinx
+
+### 码云(Gitee)
+Git: https://gitee.com/Aceld/zinx
+
 ---
     
 ## 一、写在前面
@@ -28,9 +35,9 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 
 ## 二、初探Zinx架构
 
-![1-Zinx框架.png](https://upload-images.jianshu.io/upload_images/11093205-c75ff682233b2536.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![1-Zinx框架.png](https://camo.githubusercontent.com/903d1431358fa6f4634ebaae3b49a28d97e23d77/68747470733a2f2f75706c6f61642d696d616765732e6a69616e7368752e696f2f75706c6f61645f696d616765732f31313039333230352d633735666636383232333362323533362e706e673f696d6167654d6f6772322f6175746f2d6f7269656e742f7374726970253743696d61676556696577322f322f772f31323430)
 
-![zinx-start.gif](https://upload-images.jianshu.io/upload_images/11093205-490b49098ac63af6.gif?imageMogr2/auto-orient/strip)
+![zinx-start.gif](https://camo.githubusercontent.com/16afabf00523abd556d918203d11f413c178472a/68747470733a2f2f75706c6f61642d696d616765732e6a69616e7368752e696f2f75706c6f61645f696d616765732f31313039333230352d343930623439303938616336336166362e6769663f696d6167654d6f6772322f6175746f2d6f7269656e742f7374726970)
 
 ## 三、Zinx详细教程(代码教程同步更新)
 [《Zinx框架教程-基于Golang的轻量级并发服务器》](https://www.jianshu.com/p/23d07c0a28e5)
@@ -277,6 +284,6 @@ func (c *Connection) RemoveProperty(key string)
 
 QQ技术讨论群:
 
-![gopool5.jpeg](https://upload-images.jianshu.io/upload_images/11093205-6cdfd381e8ffa127.jpeg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![gopool5.jpeg](https://camo.githubusercontent.com/847acab8b3d25cce70f7eaa242120727aebe9a1c/68747470733a2f2f75706c6f61642d696d616765732e6a69616e7368752e696f2f75706c6f61645f696d616765732f31313039333230352d366364666433383165386666613132372e6a7065673f696d6167654d6f6772322f6175746f2d6f7269656e742f7374726970253743696d61676556696577322f322f772f31323430)
 
 欢迎大家加入，获取更多相关学习资料
