@@ -275,7 +275,6 @@ func (c *Connection) RemoveProperty(key string)
 ### 关于作者：
 
 作者：`Aceld(刘丹冰)`
-简书号：`IT无崖子`
 
 `mail`:
 [danbing.at@gmail.com](mailto:danbing.at@gmail.com)
