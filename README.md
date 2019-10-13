@@ -24,9 +24,11 @@ Git: https://github.com/aceld/zinx
 Git: https://gitee.com/Aceld/zinx
 
 ---
+
 **B站在线开发教程**
 
-[![zinx-视频教程B站](https://i1.hdslb.com/bfs/archive/a586e749ba8a47c49bc834b49cdde32dc9486993.jpg_320x200.jpg)](https://www.bilibili.com/video/av71067087)
+
+[![zinx-视频教程B站](https://s2.ax1x.com/2019/10/13/uv340S.jpg)](https://www.bilibili.com/video/av71067087)
 
 
 ---
