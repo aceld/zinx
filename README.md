@@ -25,11 +25,15 @@ Git: https://gitee.com/Aceld/zinx
 
 ---
 
-### B站在线开发教程
-
+## 在线开发教程
+### [B站]
 
 [![zinx-视频教程B站](https://s2.ax1x.com/2019/10/13/uv340S.jpg)](https://www.bilibili.com/video/av71067087)
 
+
+### [YouTube]
+
+[![zinx-youtube](https://s2.ax1x.com/2019/10/14/KSurCR.jpg)](https://www.youtube.com/watch?v=U95iF-HMWsU&list=PL_GrAPKmuajzeNI8HBTi-k5NQO1g0rM-A)
 
     
 ## 一、写在前面
