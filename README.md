@@ -307,8 +307,16 @@ func (c *Connection) RemoveProperty(key string)
 
 ### Zinx技术讨论社区
 
-QQ技术讨论群:
+### **微信公众号**
+![gongzhonghao](https://ww1.yunjiexi.club/2019/12/10/5WjHX.jpg)
 
-![gopool5.jpeg](https://camo.githubusercontent.com/847acab8b3d25cce70f7eaa242120727aebe9a1c/68747470733a2f2f75706c6f61642d696d616765732e6a69616e7368752e696f2f75706c6f61645f696d616765732f31313039333230352d366364666433383165386666613132372e6a7065673f696d6167654d6f6772322f6175746f2d6f7269656e742f7374726970253743696d61676556696577322f322f772f31323430)
+
+### **QQ资源分享**
+
+![qqqun](https://ww1.yunjiexi.club/2019/12/10/5WGTC.png)
+
+### **微信群**
+
+![weixin](https://ww1.yunjiexi.club/2019/12/10/5WmP4.png)
 
 欢迎大家加入，获取更多相关学习资料
