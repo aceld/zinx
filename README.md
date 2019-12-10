@@ -41,6 +41,14 @@ Git: https://gitee.com/Aceld/zinx
 
 [![zinx-youtube](https://s2.ax1x.com/2019/10/14/KSurCR.jpg)](https://www.youtube.com/watch?v=U95iF-HMWsU&list=PL_GrAPKmuajzeNI8HBTi-k5NQO1g0rM-A)
 
+## Zinx详细教程及文档
+
+### PC端文档
+[《Zinx框架教程-基于Golang的轻量级并发服务器》](https://www.jianshu.com/p/23d07c0a28e5)
+
+### 移动端文档
+![gongzhonghao](https://ww1.yunjiexi.club/2019/12/10/5WjHX.jpg)
+
     
 ## 一、写在前面
 
@@ -65,10 +73,8 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 
 ![zinx-start.gif](https://camo.githubusercontent.com/16afabf00523abd556d918203d11f413c178472a/68747470733a2f2f75706c6f61642d696d616765732e6a69616e7368752e696f2f75706c6f61645f696d616765732f31313039333230352d343930623439303938616336336166362e6769663f696d6167654d6f6772322f6175746f2d6f7269656e742f7374726970)
 
-## 三、Zinx详细教程及文档
-[《Zinx框架教程-基于Golang的轻量级并发服务器》](https://www.jianshu.com/p/23d07c0a28e5)
 
-## 四、Zinx开发API文档
+## 三、Zinx开发API文档
 
 ### 快速开始
 
