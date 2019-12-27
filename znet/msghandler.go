@@ -62,6 +62,16 @@ func (mh *MsgHandle) AddRouter(msgId uint32, router ziface.IRouter) {
 
 //启动一个Worker工作流程
 func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest) {
+	defer func() {
+		// 发生panic保持worker数量不变
+		if r := recover(); r != nil {
+			fmt.Printf("panic:%+v\n%s", r, string(debug.Stack()))
+
+			mh.StartOneWorker(workerID, taskQueue)
+		}
+	}()
+
+
 	fmt.Println("Worker ID = ", workerID, " is started.")
 	//不断的等待队列中的消息
 	for {
