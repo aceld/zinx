@@ -78,6 +78,42 @@ func (m *AOIManager) String() string {
 	return s
 }
 
+////根据格子的gID得到当前周边的九宫格信息, 使用方向向量得到周围九宫格
+//func (m *AOIManager) GetSurroundGridsByGid(gID int) (grids []*Grid) {
+//	//判断gID是否存在
+//	if _, ok := m.grids[gID]; !ok {
+//		return
+//	}
+//
+//	//将当前gid添加到九宫格中
+//	grids = append(grids, m.grids[gID])
+//
+//
+//	// x,y 为相对坐标
+//	x, y := gID%m.CntsX, gID/m.CntsX
+//	surroundGid := make([]int,0)
+//
+//	// 使用8个方向向量(-1, -1), (-1, 0), (-1, 1), (-1, -1), (0, 0), (0, 1), (1, -1), (1,0), (1,1)
+//	dx := []int{-1,-1,-1,0,0,1,1,1}
+//	dy := []int{-1,0,1,-1,0,1,-1,0,1}
+//
+//	// 根据8个方向向量, 得到周围点的相对坐标, 挑选出没有越界的坐标, 将坐标转换为gid
+//	for i:=1; i<=8; i++ {
+//		newX := x + dx[i]
+//		newY := y + dy[i]
+//		if newX >=0 && newX <= m.CntsX && newY >=0 && newY <= m.CntsY {
+//			surroundGid = append(surroundGid, newY*m.CntsX + x)
+//		}
+//	}
+//
+//	// 根据gid, 得到周围格子, 返回
+//	for _, gid := range surroundGid {
+//		grids = append(grids, m.grids[gid])
+//	}
+//
+//	return
+//}
+
 //根据格子的gID得到当前周边的九宫格信息
 func (m *AOIManager) GetSurroundGridsByGid(gID int) (grids []*Grid) {
 	//判断gID是否存在
