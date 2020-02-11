@@ -88,30 +88,39 @@ func (m *AOIManager) GetSurroundGridsByGid(gID int) (grids []*Grid) {
 	//将当前gid添加到九宫格中
 	grids = append(grids, m.grids[gID])
 
-	// 根据gID, 得到格子所在的坐标
-	x, y := gID % m.CntsX, gID / m.CntsX
+	//根据gid得到当前格子所在的X轴编号
+	idx := gID % m.CntsX
 
-	// 新建一个临时存储周围格子的数组
-	surroundGid := make([]int, 0)
-
-	// 新建8个方向向量: 左上: (-1, -1), 左中: (-1, 0), 左下: (-1,1), 中上: (0,-1), 中下: (0,1), 右上:(1, -1)
-	// 右中: (1, 0), 右下: (1, 1), 分别将这8个方向的方向向量按顺序写入x, y的分量数组
-	dx := []int{-1, -1, -1, 0, 0, 1, 1, 1}
-	dy := []int{-1, 0, 1, -1, 1, -1, 0, 1}
-
-	// 根据8个方向向量, 得到周围点的相对坐标, 挑选出没有越界的坐标, 将坐标转换为gid
-	for i := 0; i < 8; i++ {
-		newX := x + dx[i]
-		newY := y + dy[i]
-
-		if newX >= 0 && newX < m.CntsX && newY >= 0 && newY < m.CntsY {
-			surroundGid = append(surroundGid, newY * m.CntsX + x)
-		}
+	//判断当前idx左边是否还有格子
+	if idx > 0 {
+		grids = append(grids, m.grids[gID-1])
+	}
+	//判断当前的idx右边是否还有格子
+	if idx < m.CntsX-1 {
+		grids = append(grids, m.grids[gID+1])
 	}
 
-	// 根据没有越界的gid, 得到格子信息
-	for _, gid := range surroundGid {
-		grids = append(grids, m.grids[gid])
+	//将x轴当前的格子都取出，进行遍历，再分别得到每个格子的上下是否有格子
+
+	//得到当前x轴的格子id集合
+	gidsX := make([]int, 0, len(grids))
+	for _, v := range grids {
+		gidsX = append(gidsX, v.GID)
+	}
+
+	//遍历x轴格子
+	for _, v := range gidsX {
+		//计算该格子处于第几列
+		idy := v / m.CntsX
+
+		//判断当前的idy上边是否还有格子
+		if idy > 0 {
+			grids = append(grids, m.grids[v-m.CntsX])
+		}
+		//判断当前的idy下边是否还有格子
+		if idy < m.CntsY-1 {
+			grids = append(grids, m.grids[v+m.CntsX])
+		}
 	}
 
 	return
