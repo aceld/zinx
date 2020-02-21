@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"zinx/ziface"
-	"zinx/zinx_app_demo/mmo_game/api"
-	"zinx/zinx_app_demo/mmo_game/core"
-	"zinx/znet"
+	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/zinx_app_demo/mmo_game/api"
+	"github.com/aceld/zinx/zinx_app_demo/mmo_game/core"
+	"github.com/aceld/zinx/znet"
 )
 
 //当客户端建立连接的时候的hook函数

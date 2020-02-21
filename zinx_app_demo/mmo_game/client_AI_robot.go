@@ -11,7 +11,7 @@ import (
 	"os"
 	"os/signal"
 	"time"
-	"zinx/zinx_app_demo/mmo_game/pb"
+	"github.com/aceld/zinx/zinx_app_demo/mmo_game/pb"
 )
 
 type Message struct {

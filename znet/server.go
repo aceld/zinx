@@ -3,8 +3,8 @@ package znet
 import (
 	"fmt"
 	"net"
-	"zinx/utils"
-	"zinx/ziface"
+	"github.com/aceld/zinx/utils"
+	"github.com/aceld/zinx/ziface"
 )
 
 var zinx_logo = `                                        

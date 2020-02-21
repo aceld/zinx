@@ -3,10 +3,10 @@ package api
 import (
 	"fmt"
 	"github.com/golang/protobuf/proto"
-	"zinx/ziface"
-	"zinx/zinx_app_demo/mmo_game/core"
-	"zinx/zinx_app_demo/mmo_game/pb"
-	"zinx/znet"
+	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/zinx_app_demo/mmo_game/core"
+	"github.com/aceld/zinx/zinx_app_demo/mmo_game/pb"
+	"github.com/aceld/zinx/znet"
 )
 
 //世界聊天 路由业务

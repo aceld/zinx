@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/golang/protobuf/proto"
-	"zinx/examples/zinx_version_ex/protoDemo/pb"
+	"github.com/aceld/zinx/examples/zinx_version_ex/protoDemo/pb"
 )
 
 func main() {

@@ -5,7 +5,7 @@ import (
 	"net"
 	"testing"
 	"time"
-	"zinx/ziface"
+	"github.com/aceld/zinx/ziface"
 )
 
 /*

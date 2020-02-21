@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"testing"
 	"time"
-	"zinx/zlog"
+	"github.com/aceld/zinx/zlog"
 )
 
 //触发函数

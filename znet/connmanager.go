@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"zinx/ziface"
+	"github.com/aceld/zinx/ziface"
 )
 
 /*

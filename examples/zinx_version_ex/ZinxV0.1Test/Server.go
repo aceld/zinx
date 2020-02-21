@@ -1,7 +1,7 @@
 package main
 
 import (
-	"zinx/znet"
+	"github.com/aceld/zinx/znet"
 )
 
 

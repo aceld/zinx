@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"sync"
 	"time"
-	"zinx/zlog"
+	"github.com/aceld/zinx/zlog"
 )
 
 /*

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
-	"zinx/znet"
+	"github.com/aceld/zinx/znet"
 )
 
 func main() {
