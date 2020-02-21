@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"zinx/znet"
+	"github.com/aceld/zinx/znet"
 )
 
 //只是负责测试datapack拆包，封包功能

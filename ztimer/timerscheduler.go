@@ -12,7 +12,7 @@ import (
 	"math"
 	"sync"
 	"time"
-	"zinx/zlog"
+	"github.com/aceld/zinx/zlog"
 )
 
 const (

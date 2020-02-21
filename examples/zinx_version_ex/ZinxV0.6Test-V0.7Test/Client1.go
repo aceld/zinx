@@ -5,7 +5,7 @@ import (
 	"io"
 	"net"
 	"time"
-	"zinx/znet"
+	"github.com/aceld/zinx/znet"
 )
 
 /*

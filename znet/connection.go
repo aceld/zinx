@@ -6,8 +6,8 @@ import (
 	"io"
 	"net"
 	"sync"
-	"zinx/utils"
-	"zinx/ziface"
+	"github.com/aceld/zinx/utils"
+	"github.com/aceld/zinx/ziface"
 )
 
 type Connection struct {

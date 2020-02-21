@@ -7,8 +7,8 @@ package ztimer
 
 import (
 	"fmt"
+	"github.com/aceld/zinx/zlog"
 	"reflect"
-	"zinx/zlog"
 )
 
 /*
