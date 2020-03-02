@@ -97,7 +97,7 @@ func TestServerV0_3(t *testing.T) {
 	//创建一个server句柄
 	s := NewServer()
 
-	s.AddRouter(&PingRouter{})
+	s.AddRouter(1, &PingRouter{})
 
 	//	客户端测试
 	go ClientTest()
