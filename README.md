@@ -8,7 +8,7 @@ Zinx 是一个基于Golang的轻量级并发服务器框架
 #### 开发者
 -   刘丹冰([@aceld](https://github.com/aceld))
 -   张超([@zhngcho](https://github.com/zhngcho))
--   高智辉Roger(([@adsian](https://github.com/adsian))
+-   高智辉Roger([@adsian](https://github.com/adsian))
 
 
 ---
