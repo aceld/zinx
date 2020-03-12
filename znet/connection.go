@@ -194,7 +194,7 @@ func (c *Connection) RemoteAddr() net.Addr {
 //直接将Message数据发送数据给远程的TCP客户端
 func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 	if c.isClosed == true {
-		return errors.New("Connection closed when send msg")
+		return errors.New("connection closed when send msg")
 	}
 	//将data封包，并且发送
 	dp := NewDataPack()
