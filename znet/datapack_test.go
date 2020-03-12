@@ -5,39 +5,43 @@ import (
 	"io"
 	"net"
 	"testing"
+	"time"
 )
+
+// run in terminal:
+// go test -v ./znet -run=TestDataPack
 
 //只是负责测试datapack拆包，封包功能
 func TestDataPack(t *testing.T) {
 	//创建socket TCP Server
 	listener, err := net.Listen("tcp", "127.0.0.1:7777")
-	if err != nil{
+	if err != nil {
 		fmt.Println("server listen err:", err)
 		return
 	}
 
 	//创建服务器gotoutine，负责从客户端goroutine读取粘包的数据，然后进行解析
-	go func (){
-		for{
+	go func() {
+		for {
 			conn, err := listener.Accept()
-			if err != nil{
+			if err != nil {
 				fmt.Println("server accept err:", err)
 			}
 
 			//处理客户端请求
-			go func(conn net.Conn){
+			go func(conn net.Conn) {
 				//创建封包拆包对象dp
 				dp := NewDataPack()
-				for{
+				for {
 					//1 先读出流中的head部分
 					headData := make([]byte, dp.GetHeadLen())
-					_, err := io.ReadFull(conn, headData)  //ReadFull 会把msg填充满为止
+					_, err := io.ReadFull(conn, headData) //ReadFull 会把msg填充满为止
 					if err != nil {
 						fmt.Println("read head error")
 					}
 					//将headData字节流 拆包到msg中
-					msgHead,err := dp.Unpack(headData)
-					if err != nil{
+					msgHead, err := dp.Unpack(headData)
+					if err != nil {
 						fmt.Println("server unpack err:", err)
 						return
 					}
@@ -58,50 +62,54 @@ func TestDataPack(t *testing.T) {
 					}
 				}
 			}(conn)
-
 		}
 	}()
 
 	//客户端goroutine，负责模拟粘包的数据，然后进行发送
-	conn, err := net.Dial("tcp", "127.0.0.1:7777")
-	if err != nil{
-		fmt.Println("client dial err:", err)
-		return
-	}
+	go func() {
+		conn, err := net.Dial("tcp", "127.0.0.1:7777")
+		if err != nil {
+			fmt.Println("client dial err:", err)
+			return
+		}
 
-	//创建一个封包对象 dp
-	dp := NewDataPack()
+		//创建一个封包对象 dp
+		dp := NewDataPack()
 
-	//封装一个msg1包
-	msg1 := &Message{
-		Id:0,
-		DataLen:5,
-		Data:[]byte{'h', 'e', 'l', 'l', 'o'},
-	}
+		//封装一个msg1包
+		msg1 := &Message{
+			Id:      0,
+			DataLen: 5,
+			Data:    []byte{'h', 'e', 'l', 'l', 'o'},
+		}
 
-	sendData1, err := dp.Pack(msg1)
-	if err!= nil{
-		fmt.Println("client pack msg1 err:", err)
-		return
-	}
+		sendData1, err := dp.Pack(msg1)
+		if err != nil {
+			fmt.Println("client pack msg1 err:", err)
+			return
+		}
 
-	msg2 := &Message{
-		Id:1,
-		DataLen:7,
-		Data:[]byte{'w', 'o', 'r', 'l', 'd', '!', '!'},
-	}
-	sendData2, err := dp.Pack(msg2)
-	if err!= nil{
-		fmt.Println("client temp msg2 err:", err)
-		return
-	}
+		msg2 := &Message{
+			Id:      1,
+			DataLen: 7,
+			Data:    []byte{'w', 'o', 'r', 'l', 'd', '!', '!'},
+		}
+		sendData2, err := dp.Pack(msg2)
+		if err != nil {
+			fmt.Println("client temp msg2 err:", err)
+			return
+		}
 
-	//将sendData1，和 sendData2 拼接一起，组成粘包
-	sendData1 = append(sendData1, sendData2...)
+		//将sendData1，和 sendData2 拼接一起，组成粘包
+		sendData1 = append(sendData1, sendData2...)
 
-	//向服务器端写数据
-	conn.Write(sendData1)
+		//向服务器端写数据
+		conn.Write(sendData1)
+	}()
 
 	//客户端阻塞
-	select{}
+	select {
+	case <-time.After(time.Second):
+		return
+	}
 }

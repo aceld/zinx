@@ -21,6 +21,7 @@ func(dp *DataPack) GetHeadLen() uint32 {
 	//Id uint32(4字节) +  DataLen uint32(4字节)
 	return 8
 }
+
 //封包方法(压缩数据)
 func(dp *DataPack) Pack(msg ziface.IMessage)([]byte, error) {
 	//创建一个存放bytes字节的缓冲
@@ -43,6 +44,7 @@ func(dp *DataPack) Pack(msg ziface.IMessage)([]byte, error) {
 
 	return dataBuff.Bytes(), nil
 }
+
 //拆包方法(解压数据)
 func(dp *DataPack) Unpack(binaryData []byte)(ziface.IMessage, error) {
 	//创建一个从输入二进制数据的ioReader
@@ -62,8 +64,8 @@ func(dp *DataPack) Unpack(binaryData []byte)(ziface.IMessage, error) {
 	}
 
 	//判断dataLen的长度是否超出我们允许的最大包长度
-	if (utils.GlobalObject.MaxPacketSize > 0 && msg.DataLen > utils.GlobalObject.MaxPacketSize) {
-		return nil, errors.New("Too large msg data recieved")
+	if utils.GlobalObject.MaxPacketSize > 0 && msg.DataLen > utils.GlobalObject.MaxPacketSize {
+		return nil, errors.New("too large msg data received")
 	}
 
 	//这里只需要把head的数据拆包出来就可以了，然后再通过head的长度，再从conn读取一次数据
