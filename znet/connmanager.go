@@ -3,8 +3,8 @@ package znet
 import (
 	"errors"
 	"fmt"
-	"sync"
 	"github.com/aceld/zinx/ziface"
+	"sync"
 )
 
 /*
@@ -17,10 +17,10 @@ type ConnManager struct {
 
 /*
 	创建一个链接管理
- */
+*/
 func NewConnManager() *ConnManager {
 	return &ConnManager{
-		connections:make(map[uint32] ziface.IConnection),
+		connections: make(map[uint32]ziface.IConnection),
 	}
 }
 
@@ -45,7 +45,7 @@ func (connMgr *ConnManager) Remove(conn ziface.IConnection) {
 	//删除连接信息
 	delete(connMgr.connections, conn.GetConnID())
 
-	fmt.Println("connection Remove ConnID=",conn.GetConnID(), " successfully: conn num = ", connMgr.Len())
+	fmt.Println("connection Remove ConnID=", conn.GetConnID(), " successfully: conn num = ", connMgr.Len())
 }
 
 //利用ConnID获取链接
@@ -77,9 +77,8 @@ func (connMgr *ConnManager) ClearConn() {
 		//停止
 		conn.Stop()
 		//删除
-		delete(connMgr.connections,connID)
+		delete(connMgr.connections, connID)
 	}
-
 
 	fmt.Println("Clear All Connections successfully: conn num = ", connMgr.Len())
 }

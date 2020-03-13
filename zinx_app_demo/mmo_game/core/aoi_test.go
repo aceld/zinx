@@ -6,12 +6,12 @@ import (
 )
 
 func TestNewAOIManager(t *testing.T) {
-	aoiMgr := NewAOIManager(100,300, 4, 200,450, 5)
+	aoiMgr := NewAOIManager(100, 300, 4, 200, 450, 5)
 	fmt.Println(aoiMgr)
 }
 
 func TestAOIManagerSuroundGridsByGid(t *testing.T) {
-	aoiMgr := NewAOIManager(0,250, 5, 0,250, 5)
+	aoiMgr := NewAOIManager(0, 250, 5, 0, 250, 5)
 
 	for k, _ := range aoiMgr.grids {
 		//得到当前格子周边的九宫格

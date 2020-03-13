@@ -2,10 +2,10 @@ package utils
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"os"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
+	"io/ioutil"
+	"os"
 )
 
 /*

@@ -3,11 +3,11 @@ package znet
 import (
 	"errors"
 	"fmt"
+	"github.com/aceld/zinx/utils"
+	"github.com/aceld/zinx/ziface"
 	"io"
 	"net"
 	"sync"
-	"github.com/aceld/zinx/utils"
-	"github.com/aceld/zinx/ziface"
 )
 
 type Connection struct {
@@ -25,7 +25,7 @@ type Connection struct {
 	ExitBuffChan chan bool
 	//无缓冲管道，用于读、写两个goroutine之间的消息通信
 	msgChan chan []byte
-	//有关冲管道，用于读、写两个goroutine之间的消息通信
+	//有缓冲管道，用于读、写两个goroutine之间的消息通信
 	msgBuffChan chan []byte
 
 	//链接属性
@@ -78,8 +78,8 @@ func (c *Connection) StartWriter() {
 					return
 				}
 			} else {
-				break
 				fmt.Println("msgBuffChan is Closed")
+				break
 			}
 		case <-c.ExitBuffChan:
 			return

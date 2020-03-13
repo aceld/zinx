@@ -15,7 +15,7 @@ import (
 /*
 	模拟客户端
 */
-func ClientTest() {
+func ClientTest(i uint32) {
 
 	fmt.Println("Client Test ... start")
 	//3秒之后发起测试请求，给服务端开启服务的机会
@@ -29,7 +29,7 @@ func ClientTest() {
 
 	for {
 		dp := NewDataPack()
-		msg, _ := dp.Pack(NewMsgPackage(1, []byte("client test message")))
+		msg, _ := dp.Pack(NewMsgPackage(i, []byte("client test message")))
 		_, err := conn.Write(msg)
 		if err != nil {
 			fmt.Println("client write err: ", err)
@@ -109,14 +109,48 @@ func (this *PingRouter) PostHandle(request ziface.IRequest) {
 	}
 }
 
+type HelloRouter struct {
+	BaseRouter
+}
+
+func (this *HelloRouter) Handle(request ziface.IRequest) {
+	fmt.Println("call helloRouter Handle")
+	fmt.Printf("receive from client msgId=%d, data=%s\n", request.GetMsgID(), string(request.GetData()))
+
+	err := request.GetConnection().SendMsg(2, []byte("hello zix hello Router"))
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func DoConnectionBegin(conn ziface.IConnection) {
+	fmt.Println("DoConnectionBegin is Called ... ")
+	err := conn.SendMsg(2, []byte("DoConnection BEGIN..."))
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+//连接断开的时候执行
+func DoConnectionLost(conn ziface.IConnection) {
+	fmt.Println("DoConnectionLost is Called ... ")
+}
+
 func TestServer(t *testing.T) {
 	//创建一个server句柄
 	s := NewServer()
 
+	//注册链接hook回调函数
+	s.SetOnConnStart(DoConnectionBegin)
+	s.SetOnConnStop(DoConnectionLost)
+
+	// 多路由
 	s.AddRouter(1, &PingRouter{})
+	s.AddRouter(2, &HelloRouter{})
 
 	//	客户端测试
-	go ClientTest()
+	go ClientTest(1)
+	go ClientTest(2)
 
 	//2 开启服务
 	go s.Serve()

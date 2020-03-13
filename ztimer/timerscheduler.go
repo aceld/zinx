@@ -5,14 +5,14 @@
 *
 *  时间轮调度器
 *   依赖模块，delayfunc.go  timer.go timewheel.go
-*/
+ */
 package ztimer
 
 import (
+	"github.com/aceld/zinx/zlog"
 	"math"
 	"sync"
 	"time"
-	"github.com/aceld/zinx/zlog"
 )
 
 const (
@@ -57,13 +57,13 @@ func NewTimerScheduler() *TimerScheduler {
 	hour_tw.Run()
 
 	return &TimerScheduler{
-		tw:hour_tw,
-		triggerChan:make(chan *DelayFunc, MAX_CHAN_BUFF),
+		tw:          hour_tw,
+		triggerChan: make(chan *DelayFunc, MAX_CHAN_BUFF),
 	}
 }
 
 //创建一个定点Timer 并将Timer添加到分层时间轮中， 返回Timer的tid
-func (this *TimerScheduler) CreateTimerAt(df *DelayFunc, unixNano int64)(uint32, error) {
+func (this *TimerScheduler) CreateTimerAt(df *DelayFunc, unixNano int64) (uint32, error) {
 	this.Lock()
 	defer this.Unlock()
 
@@ -72,7 +72,7 @@ func (this *TimerScheduler) CreateTimerAt(df *DelayFunc, unixNano int64)(uint32,
 }
 
 //创建一个延迟Timer 并将Timer添加到分层时间轮中， 返回Timer的tid
-func (this *TimerScheduler) CreateTimerAfter(df *DelayFunc, duration time.Duration)(uint32, error) {
+func (this *TimerScheduler) CreateTimerAfter(df *DelayFunc, duration time.Duration) (uint32, error) {
 	this.Lock()
 	defer this.Unlock()
 
@@ -81,7 +81,7 @@ func (this *TimerScheduler) CreateTimerAfter(df *DelayFunc, duration time.Durati
 }
 
 //删除timer
-func(this *TimerScheduler) CancelTimer(tid uint32) {
+func (this *TimerScheduler) CancelTimer(tid uint32) {
 	this.Lock()
 	this.Unlock()
 
@@ -110,14 +110,13 @@ func (this *TimerScheduler) Start() {
 				this.triggerChan <- timer.delayFunc
 			}
 
-
-			time.Sleep(MAX_TIME_DELAY/2 * time.Millisecond)
+			time.Sleep(MAX_TIME_DELAY / 2 * time.Millisecond)
 		}
 	}()
 }
 
 //时间轮定时器 自动调度
-func NewAutoExecTimerScheduler() *TimerScheduler{
+func NewAutoExecTimerScheduler() *TimerScheduler {
 	//创建一个调度器
 	autoExecScheduler := NewTimerScheduler()
 	//启动调度器

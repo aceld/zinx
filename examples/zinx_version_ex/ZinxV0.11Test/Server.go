@@ -64,7 +64,7 @@ func DoConnectionBegin(conn ziface.IConnection) {
 //连接断开的时候执行
 func DoConnectionLost(conn ziface.IConnection) {
 	//在连接销毁之前，查询conn的Name，Home属性
-	if name, err:= conn.GetProperty("Name"); err == nil {
+	if name, err := conn.GetProperty("Name"); err == nil {
 		zlog.Error("Conn Property Name = ", name)
 	}
 

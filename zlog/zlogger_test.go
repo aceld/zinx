@@ -10,10 +10,10 @@ func TestStdZLog(t *testing.T) {
 	Debug("zinx debug content1")
 	Debug("zinx debug content2")
 
-	Debugf(" zinx debug a = %d\n",10)
+	Debugf(" zinx debug a = %d\n", 10)
 
 	//设置log标记位，加上长文件名称 和 微秒 标记
-	ResetFlags(BitDate|BitLongFile|BitLevel)
+	ResetFlags(BitDate | BitLongFile | BitLevel)
 	Info("zinx info content")
 
 	//设置日志前缀，主要标记当前日志模块
@@ -21,7 +21,7 @@ func TestStdZLog(t *testing.T) {
 	Error("zinx error content")
 
 	//添加标记位
-	AddFlag(BitShortFile|BitTime)
+	AddFlag(BitShortFile | BitTime)
 	Stack(" Zinx Stack! ")
 
 	//设置日志写入文件

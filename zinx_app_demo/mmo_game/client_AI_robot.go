@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/aceld/zinx/zinx_app_demo/mmo_game/pb"
 	"github.com/golang/protobuf/proto"
 	"io"
 	"math/rand"
@@ -11,7 +12,6 @@ import (
 	"os"
 	"os/signal"
 	"time"
-	"github.com/aceld/zinx/zinx_app_demo/mmo_game/pb"
 )
 
 type Message struct {

@@ -19,10 +19,10 @@ func (this *PingRouter) Handle(request ziface.IRequest) {
 
 	//回写数据
 	/*
-	_, err := request.GetConnection().GetTCPConnection().Write([]byte("ping...ping...ping\n"))
-	if err != nil {
-		fmt.Println("call back ping ping ping error")
-	}
+		_, err := request.GetConnection().GetTCPConnection().Write([]byte("ping...ping...ping\n"))
+		if err != nil {
+			fmt.Println("call back ping ping ping error")
+		}
 	*/
 	err := request.GetConnection().SendMsg(1, []byte("ping...ping...ping"))
 	if err != nil {

@@ -89,7 +89,7 @@ func (m *AOIManager) GetSurroundGridsByGid(gID int) (grids []*Grid) {
 	grids = append(grids, m.grids[gID])
 
 	// 根据gID, 得到格子所在的坐标
-	x, y := gID % m.CntsX, gID / m.CntsX
+	x, y := gID%m.CntsX, gID/m.CntsX
 
 	// 新建一个临时存储周围格子的数组
 	surroundGid := make([]int, 0)
@@ -105,7 +105,7 @@ func (m *AOIManager) GetSurroundGridsByGid(gID int) (grids []*Grid) {
 		newY := y + dy[i]
 
 		if newX >= 0 && newX < m.CntsX && newY >= 0 && newY < m.CntsY {
-			surroundGid = append(surroundGid, newY * m.CntsX + x)
+			surroundGid = append(surroundGid, newY*m.CntsX+x)
 		}
 	}
 
