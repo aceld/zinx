@@ -5,7 +5,7 @@
 *
 *  针对 timer_wheel.go 时间轮api 做单元测试, 主要测试时间轮运转功能
 *  依赖模块 delayFunc.go timer.go
-*/
+ */
 package ztimer
 
 import (
@@ -30,31 +30,30 @@ func TestTimerWheel(t *testing.T) {
 
 	fmt.Println("init timewheels done!")
 
-
 	//===== > 以上为初始化分层时间轮 <====
 
 	//给时间轮添加定时器
-	timer1 := NewTimerAfter(NewDelayFunc(myFunc, []interface{}{1,10}), 10 * time.Second)
+	timer1 := NewTimerAfter(NewDelayFunc(myFunc, []interface{}{1, 10}), 10*time.Second)
 	_ = hour_tw.AddTimer(1, timer1)
 	fmt.Println("add timer 1 done!")
 
 	//给时间轮添加定时器
-	timer2 := NewTimerAfter(NewDelayFunc(myFunc, []interface{}{2,20}), 20 * time.Second)
+	timer2 := NewTimerAfter(NewDelayFunc(myFunc, []interface{}{2, 20}), 20*time.Second)
 	_ = hour_tw.AddTimer(2, timer2)
 	fmt.Println("add timer 2 done!")
 
 	//给时间轮添加定时器
-	timer3 := NewTimerAfter(NewDelayFunc(myFunc, []interface{}{3,30}), 30 * time.Second)
+	timer3 := NewTimerAfter(NewDelayFunc(myFunc, []interface{}{3, 30}), 30*time.Second)
 	_ = hour_tw.AddTimer(3, timer3)
 	fmt.Println("add timer 3 done!")
 
 	//给时间轮添加定时器
-	timer4 := NewTimerAfter(NewDelayFunc(myFunc, []interface{}{4,40}), 40 * time.Second)
+	timer4 := NewTimerAfter(NewDelayFunc(myFunc, []interface{}{4, 40}), 40*time.Second)
 	_ = hour_tw.AddTimer(4, timer4)
 	fmt.Println("add timer 4 done!")
 
 	//给时间轮添加定时器
-	timer5 := NewTimerAfter(NewDelayFunc(myFunc, []interface{}{5,50}), 50 * time.Second)
+	timer5 := NewTimerAfter(NewDelayFunc(myFunc, []interface{}{5, 50}), 50*time.Second)
 	_ = hour_tw.AddTimer(5, timer5)
 	fmt.Println("add timer 5 done!")
 
@@ -71,7 +70,7 @@ func TestTimerWheel(t *testing.T) {
 			fmt.Println("tick...", n)
 
 			//取出近1ms的超时定时器有哪些
-			timers := hour_tw.GetTimerWithIn(1000 *time.Millisecond)
+			timers := hour_tw.GetTimerWithIn(1000 * time.Millisecond)
 			for _, timer := range timers {
 				//调用定时器方法
 				timer.delayFunc.Call()
@@ -83,5 +82,5 @@ func TestTimerWheel(t *testing.T) {
 	}()
 
 	//主进程等待其他go，由于Run()方法是用一个新的go承载延迟方法，这里不能用waitGroup
-	time.Sleep(10*time.Minute)
+	time.Sleep(10 * time.Minute)
 }

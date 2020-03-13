@@ -8,9 +8,9 @@ package ztimer
 import (
 	"errors"
 	"fmt"
+	"github.com/aceld/zinx/zlog"
 	"sync"
 	"time"
-	"github.com/aceld/zinx/zlog"
 )
 
 /*
@@ -110,7 +110,7 @@ func (tw *TimeWheel) addTimer(tid uint32, t *Timer, forceNext bool) error {
 			//因为这是底层时间轮，该定时器在转动的时候，如果没有被调度者取走的话，该定时器将不会再被发现
 			//因为时间轮刻度已经过去，如果不强制把该定时器Timer移至下时刻，就永远不会被取走并触发调用
 			//所以这里强制将timer移至下个刻度的集合中，等待调用者在下次轮转之前取走该定时器
-			tw.timerQueue[(tw.curIndex+1) % tw.scales][tid] = t
+			tw.timerQueue[(tw.curIndex+1)%tw.scales][tid] = t
 		} else {
 			//如果手动添加定时器，那么直接将timer添加到对应底层时间轮的当前刻度集合中
 			tw.timerQueue[tw.curIndex][tid] = t
@@ -153,7 +153,7 @@ func (tw *TimeWheel) RemoveTimer(tid uint32) {
 */
 func (tw *TimeWheel) AddTimeWheel(next *TimeWheel) {
 	tw.nextTimeWheel = next
-	zlog.Info("Add timerWhell[", tw.name,"]'s next [", next.name,"] is succ!")
+	zlog.Info("Add timerWhell[", tw.name, "]'s next [", next.name, "] is succ!")
 }
 
 /*
@@ -175,14 +175,14 @@ func (tw *TimeWheel) run() {
 		}
 
 		//取出下一个刻度 挂载的全部定时器 进行重新添加 (为了安全起见,待考慮)
-		nextTimers := tw.timerQueue[(tw.curIndex+1) % tw.scales]
-		tw.timerQueue[(tw.curIndex+1) % tw.scales] = make(map[uint32]*Timer, tw.maxCap)
+		nextTimers := tw.timerQueue[(tw.curIndex+1)%tw.scales]
+		tw.timerQueue[(tw.curIndex+1)%tw.scales] = make(map[uint32]*Timer, tw.maxCap)
 		for tid, timer := range nextTimers {
 			tw.addTimer(tid, timer, true)
 		}
 
 		//当前刻度指针 走一格
-		tw.curIndex = (tw.curIndex+1) % tw.scales
+		tw.curIndex = (tw.curIndex + 1) % tw.scales
 
 		tw.Unlock()
 	}

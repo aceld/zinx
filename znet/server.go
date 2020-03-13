@@ -2,12 +2,12 @@ package znet
 
 import (
 	"fmt"
-	"net"
 	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/ziface"
+	"net"
 )
 
-var zinx_logo = `                                        
+var zinxLogo = `                                        
               ██                        
               ▀▀                        
  ████████   ████     ██▄████▄  ▀██  ██▀ 
@@ -16,9 +16,9 @@ var zinx_logo = `
  ▄██▄▄▄▄▄  ▄▄▄██▄▄▄  ██    ██   ▄█▀▀█▄  
  ▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀  ▀▀    ▀▀  ▀▀▀  ▀▀▀ 
                                         `
-var top_line    = `┌───────────────────────────────────────────────────┐`
-var border_line = `│`
-var bottom_line = `└───────────────────────────────────────────────────┘`
+var topLine = `┌───────────────────────────────────────────────────┐`
+var borderLine = `│`
+var bottomLine = `└───────────────────────────────────────────────────┘`
 
 //iServer 接口实现，定义一个Server服务类
 type Server struct {
@@ -35,26 +35,27 @@ type Server struct {
 	//当前Server的链接管理器
 	ConnMgr ziface.IConnManager
 	//该Server的连接创建时Hook函数
-	OnConnStart	func(conn ziface.IConnection)
+	OnConnStart func(conn ziface.IConnection)
 	//该Server的连接断开时的Hook函数
 	OnConnStop func(conn ziface.IConnection)
 }
 
 /*
   创建一个服务器句柄
- */
-func NewServer () ziface.IServer {
+*/
+func NewServer() ziface.IServer {
 
-	s:= &Server {
-		Name :utils.GlobalObject.Name,
-		IPVersion:"tcp4",
-		IP:utils.GlobalObject.Host,
-		Port:utils.GlobalObject.TcpPort,
+	s := &Server{
+		Name:       utils.GlobalObject.Name,
+		IPVersion:  "tcp4",
+		IP:         utils.GlobalObject.Host,
+		Port:       utils.GlobalObject.TcpPort,
 		msgHandler: NewMsgHandle(),
-		ConnMgr:NewConnManager(),
+		ConnMgr:    NewConnManager(),
 	}
 	return s
 }
+
 //============== 实现 ziface.IServer 里的全部接口方法 ========
 
 //开启网络服务
@@ -74,7 +75,7 @@ func (s *Server) Start() {
 		}
 
 		//2 监听服务器地址
-		listenner, err:= net.ListenTCP(s.IPVersion, addr)
+		listener, err := net.ListenTCP(s.IPVersion, addr)
 		if err != nil {
 			fmt.Println("listen", s.IPVersion, "err", err)
 			return
@@ -90,7 +91,7 @@ func (s *Server) Start() {
 		//3 启动server网络连接业务
 		for {
 			//3.1 阻塞等待客户端建立连接请求
-			conn, err := listenner.AcceptTCP()
+			conn, err := listener.AcceptTCP()
 			if err != nil {
 				fmt.Println("Accept err ", err)
 				continue
@@ -105,7 +106,7 @@ func (s *Server) Start() {
 
 			//3.3 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 			dealConn := NewConntion(s, conn, cid, s.msgHandler)
-			cid ++
+			cid++
 
 			//3.4 启动当前链接的处理业务
 			go dealConn.Start()
@@ -115,7 +116,7 @@ func (s *Server) Start() {
 
 //停止服务
 func (s *Server) Stop() {
-	fmt.Println("[STOP] Zinx server , name " , s.Name)
+	fmt.Println("[STOP] Zinx server , name ", s.Name)
 
 	//将其他需要清理的连接信息或者其他信息 也要一并停止或者清理
 	s.ConnMgr.ClearConn()
@@ -128,11 +129,11 @@ func (s *Server) Serve() {
 	//TODO Server.Serve() 是否在启动服务的时候 还要处理其他的事情呢 可以在这里添加
 
 	//阻塞,否则主Go退出， listenner的go将会退出
-	select{}
+	select {}
 }
 
 //路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
-func (s *Server)AddRouter(msgId uint32, router ziface.IRouter) {
+func (s *Server) AddRouter(msgId uint32, router ziface.IRouter) {
 	s.msgHandler.AddRouter(msgId, router)
 }
 
@@ -142,12 +143,12 @@ func (s *Server) GetConnMgr() ziface.IConnManager {
 }
 
 //设置该Server的连接创建时Hook函数
-func (s *Server) SetOnConnStart(hookFunc func (ziface.IConnection)) {
+func (s *Server) SetOnConnStart(hookFunc func(ziface.IConnection)) {
 	s.OnConnStart = hookFunc
 }
 
 //设置该Server的连接断开时的Hook函数
-func (s *Server) SetOnConnStop(hookFunc func (ziface.IConnection)) {
+func (s *Server) SetOnConnStop(hookFunc func(ziface.IConnection)) {
 	s.OnConnStop = hookFunc
 }
 
@@ -168,16 +169,13 @@ func (s *Server) CallOnConnStop(conn ziface.IConnection) {
 }
 
 func init() {
-	fmt.Println(zinx_logo)
-	fmt.Println(top_line)
-	fmt.Println(fmt.Sprintf("%s [Github] https://github.com/aceld                 %s", border_line, border_line))
-	fmt.Println(fmt.Sprintf("%s [tutorial] https://www.jianshu.com/p/23d07c0a28e5 %s", border_line, border_line))
-	fmt.Println(bottom_line)
+	fmt.Println(zinxLogo)
+	fmt.Println(topLine)
+	fmt.Println(fmt.Sprintf("%s [Github] https://github.com/aceld                 %s", borderLine, borderLine))
+	fmt.Println(fmt.Sprintf("%s [tutorial] https://www.jianshu.com/p/23d07c0a28e5 %s", borderLine, borderLine))
+	fmt.Println(bottomLine)
 	fmt.Printf("[Zinx] Version: %s, MaxConn: %d, MaxPacketSize: %d\n",
 		utils.GlobalObject.Version,
 		utils.GlobalObject.MaxConn,
 		utils.GlobalObject.MaxPacketSize)
 }
-
-
-

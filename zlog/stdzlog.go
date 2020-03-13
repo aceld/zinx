@@ -3,7 +3,7 @@ package zlog
 /*
    全局默认提供一个Log对外句柄，可以直接使用API系列调用
    全局日志对象 StdZinxLog
- */
+*/
 
 import "os"
 

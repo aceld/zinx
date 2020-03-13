@@ -4,18 +4,18 @@
 * @Mail: danbing.at@gmail.com
 *
 *  时间轮定时器调度器单元测试
-*/
+ */
 package ztimer
 
 import (
 	"fmt"
+	"github.com/aceld/zinx/zlog"
 	"testing"
 	"time"
-	"github.com/aceld/zinx/zlog"
 )
 
 //触发函数
-func foo(args ...interface{}){
+func foo(args ...interface{}) {
 	fmt.Printf("I am No. %d function, delay %d ms\n", args[0].(int), args[1].(int))
 }
 
@@ -25,9 +25,9 @@ func TestNewTimerScheduler(t *testing.T) {
 	timerScheduler.Start()
 
 	//在scheduler中添加timer
-	for i := 1; i < 2000; i ++ {
-		f := NewDelayFunc(foo, []interface{}{i, i*3})
-		tid, err := timerScheduler.CreateTimerAfter(f, time.Duration(3*i) * time.Millisecond)
+	for i := 1; i < 2000; i++ {
+		f := NewDelayFunc(foo, []interface{}{i, i * 3})
+		tid, err := timerScheduler.CreateTimerAfter(f, time.Duration(3*i)*time.Millisecond)
 		if err != nil {
 			zlog.Error("create timer error", tid, err)
 			break
@@ -43,7 +43,7 @@ func TestNewTimerScheduler(t *testing.T) {
 	}()
 
 	//阻塞等待
-	select{}
+	select {}
 }
 
 //采用自动调度器运转时间轮
@@ -51,9 +51,9 @@ func TestNewAutoExecTimerScheduler(t *testing.T) {
 	autoTS := NewAutoExecTimerScheduler()
 
 	//给调度器添加Timer
-	for i := 0; i < 2000; i ++ {
-		f := NewDelayFunc(foo, []interface{}{i, i*3})
-		tid, err := autoTS.CreateTimerAfter(f, time.Duration(3*i) * time.Millisecond)
+	for i := 0; i < 2000; i++ {
+		f := NewDelayFunc(foo, []interface{}{i, i * 3})
+		tid, err := autoTS.CreateTimerAfter(f, time.Duration(3*i)*time.Millisecond)
 		if err != nil {
 			zlog.Error("create timer error", tid, err)
 			break
@@ -61,7 +61,5 @@ func TestNewAutoExecTimerScheduler(t *testing.T) {
 	}
 
 	//阻塞等待
-	select{}
+	select {}
 }
-
-

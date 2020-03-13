@@ -10,8 +10,8 @@ type Message struct {
 func NewMsgPackage(id uint32, data []byte) *Message {
 	return &Message{
 		DataLen: uint32(len(data)),
-		Id:     id,
-		Data:   data,
+		Id:      id,
+		Data:    data,
 	}
 }
 

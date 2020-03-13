@@ -2,11 +2,11 @@ package api
 
 import (
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zinx_app_demo/mmo_game/core"
 	"github.com/aceld/zinx/zinx_app_demo/mmo_game/pb"
 	"github.com/aceld/zinx/znet"
+	"github.com/golang/protobuf/proto"
 )
 
 //玩家移动

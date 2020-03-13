@@ -10,17 +10,17 @@ import (
 )
 
 const (
-	HOUR_NAME = "HOUR"
-	HOUR_INTERVAL = 60*60*1e3 //ms为精度
-	HOUR_SCALES = 12
+	HOUR_NAME     = "HOUR"
+	HOUR_INTERVAL = 60 * 60 * 1e3 //ms为精度
+	HOUR_SCALES   = 12
 
-	MINUTE_NAME = "MINUTE"
+	MINUTE_NAME     = "MINUTE"
 	MINUTE_INTERVAL = 60 * 1e3
-	MINUTE_SCALES = 60
+	MINUTE_SCALES   = 60
 
-	SECOND_NAME = "SECOND"
+	SECOND_NAME     = "SECOND"
 	SECOND_INTERVAL = 1e3
-	SECOND_SCALES = 60
+	SECOND_SCALES   = 60
 
 	TIMERS_MAX_CAP = 2048 //每个时间轮刻度挂载定时器的最大个数
 )
@@ -33,7 +33,7 @@ const (
 	time.Microsecond(微秒) = time.Nanosecond * 1e3
 
 	time.Now().UnixNano() ==> time.Nanosecond (纳秒)
- */
+*/
 
 /*
 	定时器实现

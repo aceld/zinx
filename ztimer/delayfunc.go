@@ -2,7 +2,7 @@
 * @Author: Aceld
 * @Date: 2019/4/30 11:57
 * @Mail: danbing.at@gmail.com
-*/
+ */
 package ztimer
 
 import (
@@ -26,8 +26,8 @@ type DelayFunc struct {
 */
 func NewDelayFunc(f func(v ...interface{}), args []interface{}) *DelayFunc {
 	return &DelayFunc{
-		f:f,
-		args:args,
+		f:    f,
+		args: args,
 	}
 }
 
@@ -36,11 +36,9 @@ func (df *DelayFunc) String() string {
 	return fmt.Sprintf("{DelayFun:%s, args:%v}", reflect.TypeOf(df.f).Name(), df.args)
 }
 
-
-
 /*
 	执行延迟函数---如果执行失败，抛出异常
- */
+*/
 func (df *DelayFunc) Call() {
 	defer func() {
 		if err := recover(); err != nil {
