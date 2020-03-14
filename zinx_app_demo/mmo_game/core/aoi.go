@@ -105,7 +105,7 @@ func (m *AOIManager) GetSurroundGridsByGid(gID int) (grids []*Grid) {
 		newY := y + dy[i]
 
 		if newX >= 0 && newX < m.CntsX && newY >= 0 && newY < m.CntsY {
-			surroundGid = append(surroundGid, newY*m.CntsX+x)
+			surroundGid = append(surroundGid, newY*m.CntsX+newX)
 		}
 	}
 
