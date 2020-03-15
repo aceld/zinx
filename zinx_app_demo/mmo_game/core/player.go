@@ -172,7 +172,7 @@ func (p *Player) UpdatePos(x float32, y float32, z float32, v float32) {
 		//把pid添加到新的aoi格子中去
 		WorldMgrObj.AoiMgr.AddPidToGrid(int(p.Pid), newGid)
 
-		p.OnExchangeAoiGrid(oldGid, newGid)
+		_ = p.OnExchangeAoiGrid(oldGid, newGid)
 	}
 
 	//组装protobuf协议，发送位置给周围玩家
@@ -216,7 +216,7 @@ func (p *Player) OnExchangeAoiGrid(oldGid, newGid int) error {
 	}
 
 	//------ > 处理视野消失 <-------
-	offline_msg := &pb.SyncPid{
+	offlineMsg := &pb.SyncPid{
 		Pid: p.Pid,
 	}
 
@@ -233,13 +233,13 @@ func (p *Player) OnExchangeAoiGrid(oldGid, newGid int) error {
 		players := WorldMgrObj.GetPlayersByGid(grid.GID)
 		for _, player := range players {
 			//让自己在其他玩家的客户端中消失
-			player.SendMsg(201, offline_msg)
+			player.SendMsg(201, offlineMsg)
 
 			//将其他玩家信息 在自己的客户端中消失
-			another_offline_msg := &pb.SyncPid{
+			anotherOfflineMsg := &pb.SyncPid{
 				Pid: player.Pid,
 			}
-			p.SendMsg(201, another_offline_msg)
+			p.SendMsg(201, anotherOfflineMsg)
 			time.Sleep(200 * time.Millisecond)
 		}
 	}
@@ -254,11 +254,11 @@ func (p *Player) OnExchangeAoiGrid(oldGid, newGid int) error {
 		}
 	}
 
-	online_msg := &pb.BroadCast{
+	onlineMsg := &pb.BroadCast{
 		Pid: p.Pid,
 		Tp:  2,
 		Data: &pb.BroadCast_P{
-			&pb.Position{
+			P: &pb.Position{
 				X: p.X,
 				Y: p.Y,
 				Z: p.Z,
@@ -273,14 +273,14 @@ func (p *Player) OnExchangeAoiGrid(oldGid, newGid int) error {
 
 		for _, player := range players {
 			//让自己出现在其他人视野中
-			player.SendMsg(200, online_msg)
+			player.SendMsg(200, onlineMsg)
 
 			//让其他人出现在自己的视野中
-			another_online_msg := &pb.BroadCast{
+			anotherOnlineMsg := &pb.BroadCast{
 				Pid: player.Pid,
 				Tp:  2,
 				Data: &pb.BroadCast_P{
-					&pb.Position{
+					P: &pb.Position{
 						X: player.X,
 						Y: player.Y,
 						Z: player.Z,
@@ -290,7 +290,7 @@ func (p *Player) OnExchangeAoiGrid(oldGid, newGid int) error {
 			}
 
 			time.Sleep(200 * time.Millisecond)
-			p.SendMsg(200, another_online_msg)
+			p.SendMsg(200, anotherOnlineMsg)
 		}
 	}
 
