@@ -9,8 +9,8 @@ import (
 	"io"
 	"math/rand"
 	"net"
-	"os"
-	"os/signal"
+	"runtime"
+	"sync"
 	"time"
 )
 
@@ -31,17 +31,17 @@ type TcpClient struct {
 }
 
 func (this *TcpClient) Unpack(headdata []byte) (head *Message, err error) {
-	headbuf := bytes.NewReader(headdata)
+	headBuf := bytes.NewReader(headdata)
 
 	head = &Message{}
 
 	// 读取Len
-	if err = binary.Read(headbuf, binary.LittleEndian, &head.Len); err != nil {
+	if err = binary.Read(headBuf, binary.LittleEndian, &head.Len); err != nil {
 		return nil, err
 	}
 
 	// 读取MsgId
-	if err = binary.Read(headbuf, binary.LittleEndian, &head.MsgId); err != nil {
+	if err = binary.Read(headBuf, binary.LittleEndian, &head.MsgId); err != nil {
 		return nil, err
 	}
 
@@ -77,15 +77,15 @@ func (this *TcpClient) Pack(msgId uint32, dataBytes []byte) (out []byte, err err
 func (this *TcpClient) SendMsg(msgID uint32, data proto.Message) {
 
 	// 进行编码
-	binary_data, err := proto.Marshal(data)
+	binaryData, err := proto.Marshal(data)
 	if err != nil {
 		fmt.Println(fmt.Sprintf("marshaling error:  %s", err))
 		return
 	}
 
-	sendData, err := this.Pack(msgID, binary_data)
+	sendData, err := this.Pack(msgID, binaryData)
 	if err == nil {
-		this.conn.Write(sendData)
+		_, _ = this.conn.Write(sendData)
 	} else {
 		fmt.Println(err)
 	}
@@ -109,8 +109,8 @@ func (this *TcpClient) AIRobotAction() {
 		x := this.X
 		z := this.Z
 
-		randpos := rand.Intn(2)
-		if randpos == 0 {
+		randPos := rand.Intn(2)
+		if randPos == 0 {
 			x -= float32(rand.Intn(10))
 			z -= float32(rand.Intn(10))
 		} else {
@@ -132,14 +132,14 @@ func (this *TcpClient) AIRobotAction() {
 		}
 
 		//移动方向角度
-		randv := rand.Intn(2)
+		randV := rand.Intn(2)
 		v := this.V
-		if randv == 0 {
+		if randV == 0 {
 			v = 25
 		} else {
 			v = 335
 		}
-		//封装Postsition消息
+		//封装Position消息
 		msg := &pb.Position{
 			X: x,
 			Y: this.Y,
@@ -164,7 +164,7 @@ func (this *TcpClient) DoMsg(msg *Message) {
 
 		//解析proto
 		syncpid := &pb.SyncPid{}
-		proto.Unmarshal(msg.Data, syncpid)
+		_ = proto.Unmarshal(msg.Data, syncpid)
 
 		//给当前客户端ID进行赋值
 		this.Pid = syncpid.Pid
@@ -173,7 +173,7 @@ func (this *TcpClient) DoMsg(msg *Message) {
 
 		//解析proto
 		bdata := &pb.BroadCast{}
-		proto.Unmarshal(msg.Data, bdata)
+		_ = proto.Unmarshal(msg.Data, bdata)
 
 		//初次玩家上线 广播位置消息
 		if bdata.Tp == 2 && bdata.Pid == this.Pid {
@@ -197,14 +197,16 @@ func (this *TcpClient) DoMsg(msg *Message) {
 func (this *TcpClient) Start() {
 	go func() {
 		for {
-			//read per head data
-			headdata := make([]byte, 8)
+			//读取服务端发来的数据 ==》 SyncPid
+			//1.读取8字节
+			//第一次读取，读取数据头
+			headData := make([]byte, 8)
 
-			if _, err := io.ReadFull(this.conn, headdata); err != nil {
+			if _, err := io.ReadFull(this.conn, headData); err != nil {
 				fmt.Println(err)
 				return
 			}
-			pkgHead, err := this.Unpack(headdata)
+			pkgHead, err := this.Unpack(headData)
 			if err != nil {
 				return
 			}
@@ -221,47 +223,74 @@ func (this *TcpClient) Start() {
 		}
 	}()
 
-	select {
-	case <-this.isOnline:
-		//自动AI业务
-		go func() {
-			for {
-				this.AIRobotAction()
-				time.Sleep(3 * time.Second)
-			}
-		}()
+	// 10s后，断开连接
+	for {
+		select {
+		case <-this.isOnline:
+			go func() {
+				for {
+					this.AIRobotAction()
+					time.Sleep(time.Second)
+				}
+			}()
+		case <-time.After(time.Second * 10):
+			_ = this.conn.Close()
+			return
+		}
 	}
 }
 
 func NewTcpClient(ip string, port int) *TcpClient {
 	addrStr := fmt.Sprintf("%s:%d", ip, port)
 	conn, err := net.Dial("tcp", addrStr)
-	if err == nil {
-		client := &TcpClient{
-			conn:     conn,
-			Pid:      0,
-			X:        0,
-			Y:        0,
-			Z:        0,
-			V:        0,
-			isOnline: make(chan bool),
-		}
-		return client
-	} else {
+	if err != nil {
 		panic(err)
 	}
+
+	client := &TcpClient{
+		conn:     conn,
+		Pid:      0,
+		X:        0,
+		Y:        0,
+		Z:        0,
+		V:        0,
+		isOnline: make(chan bool),
+	}
+	return client
 }
 
 func main() {
-	for i := 0; i < 1000; i++ {
-		client := NewTcpClient("127.0.0.1", 8999)
-		client.Start()
-		time.Sleep(1 * time.Second)
-	}
+	// 开启一个waitgroup，同时运行3个goroutine
 
-	// close
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, os.Kill)
-	sig := <-c
-	fmt.Println("=======", sig)
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	var wg sync.WaitGroup
+	wg.Add(3)
+
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 10; i++ {
+			client := NewTcpClient("127.0.0.1", 8999)
+			client.Start()
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 10; i++ {
+			client := NewTcpClient("127.0.0.1", 8999)
+			client.Start()
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 10; i++ {
+			client := NewTcpClient("127.0.0.1", 8999)
+			client.Start()
+		}
+	}()
+
+	fmt.Println("AI robot start")
+	wg.Wait()
+	fmt.Println("AI robot exit")
 }
