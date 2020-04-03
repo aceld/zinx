@@ -1,0 +1,18 @@
+syntax = "proto3";
+package pb;
+
+// protoc --go_out=. --dart_out=. *.proto
+
+enum MessageID {
+    NaN = 0;
+    First = 1;
+}
+
+
+message HelloRequest {
+    string name = 1;
+}
+
+message HelloResponse {
+    string greeter = 1;
+}
