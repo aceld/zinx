@@ -6,6 +6,7 @@ import (
 	"github.com/aceld/zinx/zlog"
 	"io/ioutil"
 	"os"
+	"runtime"
 )
 
 /*
@@ -101,7 +102,7 @@ func init() {
 		MaxConn:          12000,
 		MaxPacketSize:    4096,
 		ConfFilePath:     "conf/zinx.json",
-		WorkerPoolSize:   10,
+		WorkerPoolSize:   uint32(runtime.NumCPU() << 1),
 		MaxWorkerTaskLen: 1024,
 		MaxMsgChanLen:    1024,
 		LogDir:           "./log",
