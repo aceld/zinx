@@ -320,10 +320,9 @@ func (c *Connection) RemoveProperty(key string)
 
 ### **QQ资源分享**
 
-![qqqun](https://s1.ax1x.com/2020/06/26/NrCbo8.png)
+![qqqun](https://s1.ax1x.com/2020/06/26/NrCbo8.th.png)
 
 ### **微信群**
-
-![weixin](https://s1.ax1x.com/2020/06/26/NrCOJg.png)
-
+![weixin](https://s1.ax1x.com/2020/06/26/NrCOJg.png){:height="50%" width="50%"}
+<img src="https://s1.ax1x.com/2020/06/26/NrCOJg.png" width = "200" height = "230" alt="weixin" />
 欢迎大家加入，获取更多相关学习资料
