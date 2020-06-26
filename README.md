@@ -42,6 +42,8 @@ Git: https://gitee.com/Aceld/zinx
 
 [![zinx-youtube](https://s2.ax1x.com/2019/10/14/KSurCR.jpg)](https://www.youtube.com/watch?v=U95iF-HMWsU&list=PL_GrAPKmuajzeNI8HBTi-k5NQO1g0rM-A)
 
+> 注意：修正Github打不开图片方法 windows: https://zhuanlan.zhihu.com/p/107196957 , mac/Linux: 修改/etc/hosts文件即可 
+
 ## Zinx详细教程及文档
 
 ### PC端文档
@@ -323,6 +325,5 @@ func (c *Connection) RemoveProperty(key string)
 ![qqqun](https://s1.ax1x.com/2020/06/26/NrCbo8.th.png)
 
 ### **微信群**
-![weixin](https://s1.ax1x.com/2020/06/26/NrCOJg.png){:height="50%" width="50%"}
 <img src="https://s1.ax1x.com/2020/06/26/NrCOJg.png" width = "200" height = "230" alt="weixin" />
 欢迎大家加入，获取更多相关学习资料
