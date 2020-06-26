@@ -48,7 +48,7 @@ Git: https://gitee.com/Aceld/zinx
 [《Zinx框架教程-基于Golang的轻量级并发服务器》](https://www.jianshu.com/p/23d07c0a28e5)
 
 ### 移动端文档
-![gongzhonghao](https://ww1.yunjiexi.club/2019/12/10/5WjHX.jpg)
+![gongzhonghao](https://s1.ax1x.com/2020/06/26/NrCHdf.jpg)
 
     
 ## 一、写在前面
@@ -315,15 +315,15 @@ func (c *Connection) RemoveProperty(key string)
 ### Zinx技术讨论社区
 
 ### **微信公众号**
-![gongzhonghao](https://ww1.yunjiexi.club/2019/12/10/5WjHX.jpg)
+![gongzhonghao](https://s1.ax1x.com/2020/06/26/NrCHdf.jpg)
 
 
 ### **QQ资源分享**
 
-![qqqun](https://ww1.yunjiexi.club/2019/12/10/5WGTC.png)
+![qqqun](https://s1.ax1x.com/2020/06/26/NrCbo8.png)
 
 ### **微信群**
 
-![weixin](https://ww1.yunjiexi.club/2019/12/10/5WmP4.png)
+![weixin](https://s1.ax1x.com/2020/06/26/NrCOJg.png)
 
 欢迎大家加入，获取更多相关学习资料
