@@ -1,0 +1,45 @@
+{
+  "websocket 监听IP" : "地址",
+  "ip": "0.0.0.0",
+
+  "websocket 监听端口" : "建议nginx做转发",
+  "port" : 8092,
+
+  "heartBeatTime 心跳包检测时间" : "单位秒",
+  "heartBeatTime" : 30,
+
+  "inChanSize读队列大小" : "可设置",
+  "inChanSize" : 1000,
+
+  "outChanSize写队列大小" : "可设置",
+  "outChanSize" : 1000,
+
+  "redisAddr redis连接地址" : "redis连接地址",
+  "redisAddr":"127.0.0.1",
+
+  "redisPort redis 端口号" : "redis 端口号",
+  "redisPort" : 6379,
+
+  "redisPw redis 密码" : "redis 密码",
+  "redisPw": "",
+
+  "dbAddr 数据库地址" : "数据库地址",
+  "dbAddr" : "",
+
+  "dbPort 数据库端口" : "数据库端口",
+  "dbPort" : 3306,
+
+  "dbDatabase 数据库" : "数数库",
+  "dbDatabase" : "",
+
+  "dbUserName 数据库用户名" : "数据库用户名",
+  "dbUserName" : "",
+
+  "dbPw 数据库密码" : "数据库密码",
+  "dbPw" : "",
+
+  "workerPoolSize"  : 5,
+  "MaxWorkTaskLen"  : 10,
+  "MaxWorkTaskLen"  : 1024
+
+}
