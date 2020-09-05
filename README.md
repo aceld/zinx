@@ -9,6 +9,7 @@ Zinx 是一个基于Golang的轻量级并发服务器框架
 -   刘丹冰([@aceld](https://github.com/aceld))
 -   张超([@zhngcho](https://github.com/zhngcho))
 -   高智辉Roger([@adsian](https://github.com/adsian))
+-   胡贵建([@huguijian](https://github.com/huguijian))
 
 
 ---
@@ -21,6 +22,11 @@ Zinx 是一个基于Golang的轻量级并发服务器框架
 [zinx(Lua版本)](https://github.com/huqitt/zinx-lua)
 #### 开发者
 -  胡琪([@huqitt](https://github.com/huqitt))
+
+---
+[zinx(websocket版本)](https://github.com/aceld/zinx/tree/wsserver)
+#### 开发者
+-  胡贵建([@huguijian](https://github.com/huguijian))
 
 ---
 ## zinx源码地址
