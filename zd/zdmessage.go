@@ -15,6 +15,7 @@ type ZdMessage struct {
 	Data    []byte
 }
 
+
 //新建一个ZdMessage结构体
 func NewZdMessage(cmdId int, unit *ZinxUnit, data []byte) *ZdMessage {
 	return &ZdMessage{

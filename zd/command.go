@@ -118,6 +118,7 @@ func CommandAddNode() {
 		//"application/x-www-form-urlencoded",
 		"",
 		bytes.NewReader(data))
+
 	if err != nil {
 		fmt.Println("http Post error:", err)
 		return

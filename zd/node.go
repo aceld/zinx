@@ -60,6 +60,9 @@ func NewNode() *Node {
 		return nil
 	}
 
+	//默认给一个Leader为自己 网络测试版
+	node.Leader = node.GetZinxUnit()
+
 	return node
 }
 
@@ -101,6 +104,10 @@ func (node *Node) Start() {
 	fmt.Println("Role		:", utils.NodeRoleName(node.Role))
 	fmt.Println("------------------------")
 
+	//启动消息数据同步的TCP Server
+	go zdnet.NewZdTcpServer(utils.ZINX_SYNC_PORT, node.DealSyncMsg).Start()
+
 	//启动API服务
 	go ApiRun(node)
+
 }

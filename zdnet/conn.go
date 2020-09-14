@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aceld/zinx/utils"
@@ -34,6 +36,22 @@ func NewZDConn(ip string, port int) *ZDConn {
 		fmt.Println("Dial ", address, "err = ", err)
 		return nil
 	}
+
+	zdConn.Conn = conn
+
+	return zdConn
+}
+
+/*
+  将net.Conn 组装成一个ZDConn 对象
+*/
+func MakeZDConn(conn net.Conn) *ZDConn {
+	zdConn := &ZDConn{
+		Ip: strings.Split(conn.RemoteAddr().String(), ":")[0],
+	}
+	portStr := strings.Split(conn.RemoteAddr().String(), ":")[1]
+
+	zdConn.Port, _ = strconv.Atoi(portStr)
 
 	zdConn.Conn = conn
 
