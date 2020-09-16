@@ -44,8 +44,8 @@ func (node *Node) GetLeader() *ZinxUnit {
 
 //设置Leader节点信息
 func (node *Node) SetLeader(unit *ZinxUnit) {
-	//	node.mutex.Lock()
-	//defer node.mutex.Unlock()
+	node.mutex.Lock()
+	defer node.mutex.Unlock()
 
 	if node.Leader != nil {
 		if node.Leader.Id == unit.Id {
@@ -59,5 +59,52 @@ func (node *Node) SetLeader(unit *ZinxUnit) {
 	}
 
 	node.Leader = unit
+}
 
+//更新节点的zinxUnit信息
+func (node *Node) AddPeersUnit(unit *ZinxUnit) {
+	//添加节点
+	node.peersLock.Lock()
+	node.Peers[unit.Id] = unit
+	node.peersLock.Unlock()
+
+	//leader更新判断
+	leaderUnit := node.GetLeader()
+	if leaderUnit != nil && leaderUnit.Id == unit.Id {
+		node.SetLeader(unit)
+	}
+
+	//去掉初始化时写入的IP作为Key值的记录
+	node.peersLock.Lock()
+	if _, ok := node.Peers[unit.Ip]; ok {
+		if unit.Id != unit.Ip {
+			delete(node.Peers, unit.Ip)
+		}
+	}
+	node.peersLock.Unlock()
+}
+
+//查询全部的Peers节点
+func (node *Node) GetPeers() []ZinxUnit {
+	peers := make([]ZinxUnit, 0)
+
+	//添加当前node自身
+	peers = append(peers, *node.GetZinxUnit())
+
+	node.peersLock.RLock()
+	for _, unit := range node.Peers {
+		peers = append(peers, unit.(ZinxUnit))
+	}
+	node.peersLock.RUnlock()
+
+	return peers
+}
+
+func (node *Node) ElectionLeader() {
+	if len(node.Peers) > 1 {
+		//TODO 集群在两个以上
+	} else {
+		//集群目前仅有1个节点，就是自己,那么Leader也是自己
+		node.SetLeader(node.GetZinxUnit())
+	}
 }

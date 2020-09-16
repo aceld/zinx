@@ -28,9 +28,10 @@ type Node struct {
 	/* 配置文件信息 */
 
 	/* 集群与选举信息 */
-	Leader *ZinxUnit              //Leader节点信息(zinx集群中的一个节点单元)
-	Peers  map[string]interface{} //集群所有节点信息
-	Role   int32                  //集群角色
+	Leader    *ZinxUnit              //Leader节点信息(zinx集群中的一个节点单元)
+	Peers     map[string]interface{} //集群所有节点信息
+	peersLock sync.RWMutex           //防止竞争Peers的读写锁
+	Role      int32                  //集群角色
 
 	/* 锁 */
 	mutex sync.RWMutex //保护Node对象竞争访问的锁
@@ -60,8 +61,6 @@ func NewNode() *Node {
 		return nil
 	}
 
-	//默认给一个Leader为自己 网络测试版
-	node.Leader = node.GetZinxUnit()
 
 	return node
 }
@@ -110,4 +109,6 @@ func (node *Node) Start() {
 	//启动API服务
 	go ApiRun(node)
 
+	//初始化选举Leader
+	node.ElectionLeader()
 }

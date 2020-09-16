@@ -104,23 +104,16 @@ func ParseCommand() bool {
 	return false
 }
 
-//添加一个node节点到集群中
-// ./zinx -addnode IP1,IP2,IP3...
-func CommandAddNode() {
-	data, err := json.Marshal(zinxCmd.addNodes)
-	if err != nil {
-		fmt.Println("json marshal addNodes err:", err)
-		return
-	}
-
+/*
+	查询集群中当前在线的node节点信息
+	usage: [zinx -nodes]
+*/
+func CommandNodes() {
 	//发送http请求,给API层
-	response, err := http.Post(fmt.Sprintf("http://127.0.0.1:%d/node", utils.ZINX_API_PORT),
-		//"application/x-www-form-urlencoded",
-		"",
-		bytes.NewReader(data))
-
+	url := fmt.Sprintf("http://127.0.0.1:%d/nodes", utils.ZINX_API_PORT)
+	response, err := http.Get(url)
 	if err != nil {
-		fmt.Println("http Post error:", err)
+		fmt.Printf("http GET %s error: %s", url, err)
 		return
 	}
 
@@ -138,7 +131,63 @@ func CommandAddNode() {
 		return
 	}
 
+	//peersUnit := make([]ZinxUnit, 0)
+
 	if string(retData) == utils.ZINX_API_RET_SUCC {
+		fmt.Println("[AddNode Success!]")
+	} else {
+		fmt.Println("[AddNode Fail!]")
+	}
+
+}
+
+/*
+	添加一个node节点到集群中
+	usage: [zinx -addnode IP1,IP2,IP3...]
+*/
+func CommandAddNode() {
+	data, err := json.Marshal(zinxCmd.addNodes)
+	if err != nil {
+		fmt.Println("json marshal addNodes err:", err)
+		return
+	}
+
+	//发送http请求,给API层
+	url := fmt.Sprintf("http://127.0.0.1:%d/addnode", utils.ZINX_API_PORT)
+	response, err := http.Post(url,
+		//"application/x-www-form-urlencoded",
+		"",
+		bytes.NewReader(data))
+
+	if err != nil {
+		fmt.Printf("http POST %s error: %s", url, err)
+		return
+	}
+
+	defer response.Body.Close()
+
+	//处理API回执内容
+	if response.StatusCode != 200 {
+		fmt.Println("command ERROR, StatusCode = ", response.StatusCode)
+		return
+	}
+
+	retData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println("read Body error, ", err)
+		return
+	}
+
+	//解析json文件
+
+	resp := ApiResponse{}
+
+	if err := json.Unmarshal(retData, &resp); err != nil {
+		fmt.Println("unmarshal API json retData error ,", err)
+		return
+	}
+
+	if resp.RetCode == utils.ZINX_API_RETCODE_OK {
 		fmt.Println("[AddNode Success!]")
 	} else {
 		fmt.Println("[AddNode Fail!]")

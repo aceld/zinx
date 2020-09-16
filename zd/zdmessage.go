@@ -15,7 +15,6 @@ type ZdMessage struct {
 	Data    []byte
 }
 
-
 //新建一个ZdMessage结构体
 func NewZdMessage(cmdId int, unit *ZinxUnit, data []byte) *ZdMessage {
 	return &ZdMessage{
@@ -33,7 +32,7 @@ func ZdMsgPack(msg *ZdMessage) ([]byte, error) {
 	buf := new(bytes.Buffer)
 
 	//写cmdID (4个字节)
-	if err := binary.Write(buf, binary.LittleEndian, (int32)(msg.CmdId)); err != nil {
+	if err := binary.Write(buf, binary.LittleEndian, (uint32)(msg.CmdId)); err != nil {
 		fmt.Println("ZdMsgPack encode cmdId error, ", err)
 		return nil, err
 	}
@@ -46,7 +45,7 @@ func ZdMsgPack(msg *ZdMessage) ([]byte, error) {
 	unitLen := len(unitStr)
 
 	//写unit 数据长度  (4个字节)
-	if err := binary.Write(buf, binary.LittleEndian, unitLen); err != nil {
+	if err := binary.Write(buf, binary.LittleEndian, (uint32)(unitLen)); err != nil {
 		fmt.Println("ZdMsgPack encode unitLen error,", err)
 		return nil, err
 	}

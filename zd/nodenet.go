@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/aceld/zinx/utils"
+
 	"github.com/aceld/zinx/zdnet"
 )
 
@@ -36,6 +38,9 @@ func (node *Node) SendToLeader(cmdId int, port int, data []byte) ([]byte, error)
 	} else {
 		//4.读取远程Node返回的消息
 		msg := node.RecvFromNode(conn)
+		if msg != nil && msg.CmdId != utils.ZINX_CMD_ID_NODE_SYNC_ACK {
+			return nil, errors.New(fmt.Sprintf("sync/raft deal response error, cmdid = %d", msg.CmdId))
+		}
 		return msg.Data, nil
 	}
 
@@ -76,8 +81,6 @@ func (node *Node) RecvFromNode(conn *zdnet.ZDConn) *ZdMessage {
 			fmt.Println("ZdMsgUnpack error")
 			return nil
 		}
-
-		fmt.Printf("msg = %+v\n", msg)
 
 		return msg
 	}

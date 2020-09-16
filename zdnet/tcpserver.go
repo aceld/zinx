@@ -3,6 +3,8 @@ package zdnet
 import (
 	"fmt"
 	"net"
+
+	"github.com/aceld/zinx/utils"
 )
 
 /*
@@ -20,8 +22,15 @@ type ZdTcpServer struct {
 }
 
 func NewZdTcpServer(port int, handler func(*ZDConn)) *ZdTcpServer {
+
+	ip := utils.GetInternalIP(utils.INTERNET_DEVICE_NAME)
+	if ip == "" {
+		fmt.Println("error get Ip")
+		return nil
+	}
+
 	s := &ZdTcpServer{
-		Ip:      "127.0.0.1",
+		Ip:      ip,
 		Port:    port,
 		Handler: handler,
 	}
