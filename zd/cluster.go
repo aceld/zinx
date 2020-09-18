@@ -93,7 +93,7 @@ func (node *Node) GetPeers() []ZinxUnit {
 
 	node.peersLock.RLock()
 	for _, unit := range node.Peers {
-		peers = append(peers, unit.(ZinxUnit))
+		peers = append(peers, *unit.(*ZinxUnit))
 	}
 	node.peersLock.RUnlock()
 
