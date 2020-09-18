@@ -61,7 +61,6 @@ func NewNode() *Node {
 		return nil
 	}
 
-
 	return node
 }
 
