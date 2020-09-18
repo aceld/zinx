@@ -108,7 +108,7 @@ func (c *Connection) StartReader() {
 			headData := make([]byte, dp.GetHeadLen())
 			if _, err := io.ReadFull(c.Conn, headData); err != nil {
 				fmt.Println("read msg head error ", err)
-				break
+				return
 			}
 			//fmt.Printf("read headData %+v\n", headData)
 
@@ -116,7 +116,7 @@ func (c *Connection) StartReader() {
 			msg, err := dp.Unpack(headData)
 			if err != nil {
 				fmt.Println("unpack error ", err)
-				break
+				return
 			}
 
 			//根据 dataLen 读取 data，放在msg.Data中
@@ -125,7 +125,7 @@ func (c *Connection) StartReader() {
 				data = make([]byte, msg.GetDataLen())
 				if _, err := io.ReadFull(c.Conn, data); err != nil {
 					fmt.Println("read msg data error ", err)
-					break
+					return
 				}
 			}
 			msg.SetData(data)
