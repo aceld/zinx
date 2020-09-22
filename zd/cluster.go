@@ -100,6 +100,7 @@ func (node *Node) GetPeers() []ZinxUnit {
 	return peers
 }
 
+//选举得到Leader
 func (node *Node) ElectionLeader() {
 	if len(node.Peers) > 1 {
 		//TODO 集群在两个以上

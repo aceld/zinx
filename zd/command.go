@@ -57,7 +57,7 @@ func ParseCommand() bool {
 	//解析命令行
 	flag.Parse()
 
-	fmt.Println("zinxCmd = ", zinxCmd)
+	//	fmt.Println("zinxCmd = ", zinxCmd)
 
 	//处理命令行结果
 	if zinxCmd.nodes == true {
@@ -135,8 +135,8 @@ func CommandNodes() {
 	//解析json文件
 	resp := ApiResponse{}
 
-	//fmt.Println("json: ")
-	//fmt.Printf("%s\n", retData)
+	fmt.Println("json: ")
+	fmt.Printf("%s\n", retData)
 
 	if err := json.Unmarshal(retData, &resp); err != nil {
 		fmt.Println("unmarshal API json retData error ,", err)
@@ -175,6 +175,8 @@ func CommandAddNode() {
 		return
 	}
 
+	//fmt.Printf("请求数据: %s\n", data)
+
 	//发送http请求,给API层
 	url := fmt.Sprintf("http://127.0.0.1:%d/addnode", utils.ZINX_API_PORT)
 	response, err := http.Post(url,
@@ -201,8 +203,8 @@ func CommandAddNode() {
 		return
 	}
 
-	//fmt.Println("json: ")
-	//fmt.Printf("%s\n", retData)
+	fmt.Println("json: ")
+	fmt.Printf("%s\n", retData)
 
 	//解析json文件
 	resp := ApiResponse{}
@@ -256,8 +258,8 @@ func CommandDelNode() {
 		return
 	}
 
-	//fmt.Println("json: ")
-	//fmt.Printf("%s\n", retData)
+	fmt.Println("json: ")
+	fmt.Printf("%s\n", retData)
 
 	//解析json文件
 	resp := ApiResponse{}
@@ -268,8 +270,8 @@ func CommandDelNode() {
 	}
 
 	if resp.RetCode == utils.ZINX_API_RETCODE_OK {
-		fmt.Println("[AddNode Success!]")
+		fmt.Println("[DelNode Success!]")
 	} else {
-		fmt.Println("[AddNode Fail!]")
+		fmt.Println("[DelNode Fail!]")
 	}
 }
