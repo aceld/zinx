@@ -315,10 +315,12 @@ func (c *Connection) RemoveProperty(key string)
 
 `mail`:
 [danbing.at@gmail.com](mailto:danbing.at@gmail.com)
+
 `github`:
 [https://github.com/aceld](https://github.com/aceld)
-`原创书籍gitbook`:
-[http://legacy.gitbook.com/@aceld](http://legacy.gitbook.com/@aceld)
+
+`原创书籍`:
+[https://www.kancloud.cn/@aceld](https://www.kancloud.cn/@aceld)
 
 ### Zinx技术讨论社区
 
