@@ -9,9 +9,13 @@ const (
 	ZINX_UNIT_STATUS_DEAD  = false
 
 	//zinx 集群中的角色
-	ZINX_ROLE_SERVER  = 0
-	ZINX_ROLE_CLIENT  = 1
-	ZINX_ROLE_MONITOR = 2
+	ZINX_ROLE_SERVER = 0
+	ZINX_ROLE_CLIENT = 1
+
+	//raft 集群角色
+	ZINX_RAFT_LEADER    = 0
+	ZINX_RAFT_CONDIDATE = 1
+	ZINX_RAFT_FOLLOWER  = 2
 
 	//API处理HTTP指令端口
 	ZINX_API_RET_SUCC     = "SUCC"
@@ -37,14 +41,27 @@ const (
 	ZINX_DISTRIBUTED_VERSION = "1.0"
 )
 
+//将集群角色标识转换为名称:server/client
 func NodeRoleName(role int32) string {
 	switch role {
 	case ZINX_ROLE_SERVER:
 		return "server"
 	case ZINX_ROLE_CLIENT:
 		return "client"
-	case ZINX_ROLE_MONITOR:
-		return "monitor"
+	}
+
+	return "UNKNOW"
+}
+
+//将集群raft角色标识转化为名称:leader/condidate/follower
+func NodeRaftName(raftRole int32) string {
+	switch raftRole {
+	case ZINX_RAFT_LEADER:
+		return "leader"
+	case ZINX_RAFT_CONDIDATE:
+		return "condidate"
+	case ZINX_RAFT_FOLLOWER:
+		return "follower"
 	}
 
 	return "UNKNOW"

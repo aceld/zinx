@@ -31,7 +31,20 @@ type Node struct {
 	Leader    *ZinxUnit              //Leader节点信息(zinx集群中的一个节点单元)
 	Peers     map[string]interface{} //集群所有节点信息
 	peersLock sync.RWMutex           //防止竞争Peers的读写锁
-	Role      int32                  //集群角色
+
+	/*
+		集群角色
+		Server:提供基础的服务，参与Raft的选举流程，是提供服务的基础节点
+		Client: 不参与Raft选举，可以接收消息，但是rediect到Leader节点中，
+		        如果写入成功，在本地有缓存，LRU模式缓存
+	*/
+	Role int32
+
+	/*
+		在Raft协议中参与选举的状态角色
+		Leader、Condidate、Follower
+	*/
+	RaftRole int32
 
 	/* 锁 */
 	mutex sync.RWMutex //保护Node对象竞争访问的锁

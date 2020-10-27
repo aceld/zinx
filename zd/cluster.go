@@ -109,3 +109,5 @@ func (node *Node) ElectionLeader() {
 		node.SetLeader(node.GetZinxUnit())
 	}
 }
+
+
