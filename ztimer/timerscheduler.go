@@ -31,6 +31,8 @@ type TimerScheduler struct {
 	triggerChan chan *DelayFunc
 	//互斥锁
 	sync.RWMutex
+	//所有注册的timerId集合
+	ids []uint32
 }
 
 /*
@@ -59,6 +61,7 @@ func NewTimerScheduler() *TimerScheduler {
 	return &TimerScheduler{
 		tw:          hour_tw,
 		triggerChan: make(chan *DelayFunc, MAX_CHAN_BUFF),
+		ids:         make([]uint32, 0),
 	}
 }
 
@@ -68,6 +71,7 @@ func (this *TimerScheduler) CreateTimerAt(df *DelayFunc, unixNano int64) (uint32
 	defer this.Unlock()
 
 	this.idGen++
+	this.ids = append(this.ids, this.idGen)
 	return this.idGen, this.tw.AddTimer(this.idGen, NewTimerAt(df, unixNano))
 }
 
@@ -77,6 +81,7 @@ func (this *TimerScheduler) CreateTimerAfter(df *DelayFunc, duration time.Durati
 	defer this.Unlock()
 
 	this.idGen++
+	this.ids = append(this.ids, this.idGen)
 	return this.idGen, this.tw.AddTimer(this.idGen, NewTimerAfter(df, duration))
 }
 
@@ -84,13 +89,29 @@ func (this *TimerScheduler) CreateTimerAfter(df *DelayFunc, duration time.Durati
 func (this *TimerScheduler) CancelTimer(tid uint32) {
 	this.Lock()
 	this.Unlock()
-
-	this.tw.RemoveTimer(tid)
+	//this.tw.RemoveTimer(tid)  这个方法无效
+	//删除timerId
+	var index = 0
+	for i := 0; i < len(this.ids); i++ {
+		if this.ids[i] == tid {
+			index = i
+		}
+	}
+	this.ids = append(this.ids[:index], this.ids[index+1:]...)
 }
 
 //获取计时结束的延迟执行函数通道
 func (this *TimerScheduler) GetTriggerChan() chan *DelayFunc {
 	return this.triggerChan
+}
+
+func (this *TimerScheduler) HasTimer(tid uint32) bool {
+	for i := 0; i < len(this.ids); i++ {
+		if this.ids[i] == tid {
+			return true
+		}
+	}
+	return false
 }
 
 //非阻塞的方式启动timerSchedule
@@ -101,15 +122,16 @@ func (this *TimerScheduler) Start() {
 			now := UnixMilli()
 			//获取最近MAX_TIME_DELAY 毫秒的超时定时器集合
 			timerList := this.tw.GetTimerWithIn(MAX_TIME_DELAY * time.Millisecond)
-			for _, timer := range timerList {
+			for tid, timer := range timerList {
 				if math.Abs(float64(now-timer.unixts)) > MAX_TIME_DELAY {
 					//已经超时的定时器，报警
 					zlog.Error("want call at ", timer.unixts, "; real call at", now, "; delay ", now-timer.unixts)
 				}
-				//将超时触发函数写入管道
-				this.triggerChan <- timer.delayFunc
+				if this.HasTimer(tid) {
+					//将超时触发函数写入管道
+					this.triggerChan <- timer.delayFunc
+				}
 			}
-
 			time.Sleep(MAX_TIME_DELAY / 2 * time.Millisecond)
 		}
 	}()
