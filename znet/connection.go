@@ -32,6 +32,8 @@ type Connection struct {
 	sync.RWMutex
 	//链接属性
 	property map[string]interface{}
+	////保护当前property的锁
+	propertyLock sync.Mutex
 	//当前连接的关闭状态
 	isClosed bool
 }
@@ -161,17 +163,18 @@ func (c *Connection) Start() {
 //停止连接，结束当前连接状态M
 func (c *Connection) Stop() {
 	fmt.Println("Conn Stop()...ConnID = ", c.ConnID)
-	//如果当前链接已经关闭
+
 	c.Lock()
 	defer c.Unlock()
 
+	//如果用户注册了该链接的关闭回调业务，那么在此刻应该显示调用
+	c.TcpServer.CallOnConnStop(c)
+
+	//如果当前链接已经关闭
 	if c.isClosed == true {
 		return
 	}
 	c.isClosed = true
-
-	//如果用户注册了该链接的关闭回调业务，那么在此刻应该显示调用
-	c.TcpServer.CallOnConnStop(c)
 
 	// 关闭socket链接
 	c.Conn.Close()
@@ -247,16 +250,16 @@ func (c *Connection) SendBuffMsg(msgId uint32, data []byte) error {
 
 //设置链接属性
 func (c *Connection) SetProperty(key string, value interface{}) {
-	c.Lock()
-	defer c.Unlock()
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
 
 	c.property[key] = value
 }
 
 //获取链接属性
 func (c *Connection) GetProperty(key string) (interface{}, error) {
-	c.RLock()
-	defer c.RUnlock()
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
 
 	if value, ok := c.property[key]; ok {
 		return value, nil
@@ -267,8 +270,8 @@ func (c *Connection) GetProperty(key string) (interface{}, error) {
 
 //移除链接属性
 func (c *Connection) RemoveProperty(key string) {
-	c.Lock()
-	defer c.Unlock()
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
 
 	delete(c.property, key)
 }
