@@ -91,13 +91,16 @@ func (this *TimerScheduler) CancelTimer(tid uint32) {
 	this.Unlock()
 	//this.tw.RemoveTimer(tid)  这个方法无效
 	//删除timerId
-	var index = 0
+	var index = -1
 	for i := 0; i < len(this.ids); i++ {
 		if this.ids[i] == tid {
 			index = i
 		}
 	}
-	this.ids = append(this.ids[:index], this.ids[index+1:]...)
+
+	if index > -1 {
+		this.ids = append(this.ids[:index], this.ids[index+1:]...)
+	}
 }
 
 //获取计时结束的延迟执行函数通道
