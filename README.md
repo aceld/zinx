@@ -54,6 +54,7 @@ Git: https://gitee.com/Aceld/zinx
 
 ### PC端文档
 [简书-《Zinx框架教程-基于Golang的轻量级并发服务器》](https://www.jianshu.com/p/23d07c0a28e5)
+
 [看云-《Zinx框架教程-基于Golang的轻量级并发服务器》](https://www.kancloud.cn/aceld/zinx)
 
 ### 移动端文档
