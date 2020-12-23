@@ -44,6 +44,7 @@ type Server struct {
   创建一个服务器句柄
 */
 func NewServer() ziface.IServer {
+	printLogo()
 
 	s := &Server{
 		Name:       utils.GlobalObject.Name,
@@ -168,14 +169,18 @@ func (s *Server) CallOnConnStop(conn ziface.IConnection) {
 	}
 }
 
-func init() {
+
+func printLogo() {
 	fmt.Println(zinxLogo)
 	fmt.Println(topLine)
 	fmt.Println(fmt.Sprintf("%s [Github] https://github.com/aceld                 %s", borderLine, borderLine))
-	fmt.Println(fmt.Sprintf("%s [tutorial] https://www.jianshu.com/p/23d07c0a28e5 %s", borderLine, borderLine))
+	fmt.Println(fmt.Sprintf("%s [tutorial] https://www.kancloud.cn/aceld/zinx     %s", borderLine, borderLine))
 	fmt.Println(bottomLine)
 	fmt.Printf("[Zinx] Version: %s, MaxConn: %d, MaxPacketSize: %d\n",
 		utils.GlobalObject.Version,
 		utils.GlobalObject.MaxConn,
 		utils.GlobalObject.MaxPacketSize)
+}
+
+func init() {
 }

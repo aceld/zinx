@@ -92,6 +92,10 @@ func (g *GlobalObj) Reload() {
 	提供init方法，默认加载
 */
 func init() {
+	pwd, err := os.Getwd()
+	if err != nil {
+		pwd = "."
+	}
 	//初始化GlobalObject变量，设置一些默认值
 	GlobalObject = &GlobalObj{
 		Name:             "ZinxServerApp",
@@ -100,11 +104,11 @@ func init() {
 		Host:             "0.0.0.0",
 		MaxConn:          12000,
 		MaxPacketSize:    4096,
-		ConfFilePath:     "conf/zinx.json",
+		ConfFilePath:     pwd+"/conf/zinx.json",
 		WorkerPoolSize:   10,
 		MaxWorkerTaskLen: 1024,
 		MaxMsgChanLen:    1024,
-		LogDir:           "./log",
+		LogDir:           pwd+"/log",
 		LogFile:          "",
 		LogDebugClose:    false,
 	}

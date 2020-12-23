@@ -65,16 +65,15 @@ func TestNewAutoExecTimerScheduler(t *testing.T) {
 	select {}
 }
 
-
 //测试取消一个定时器
 func TestCancelTimerScheduler(t *testing.T) {
 	Scheduler := NewAutoExecTimerScheduler()
-	f1 := NewDelayFunc(foo, []interface{}{3,  3})
-	f2 := NewDelayFunc(foo, []interface{}{5,  5})
-	timerId1,_:=Scheduler.CreateTimerAfter(f1, time.Duration(3)*time.Second)
-	timerId2,_:=Scheduler.CreateTimerAfter(f2, time.Duration(5)*time.Second)
-	log.Printf("timerId1=%d ,timerId2=%d\n",timerId1,timerId2)
-	Scheduler.CancelTimer(timerId1)    //删除timerId1
+	f1 := NewDelayFunc(foo, []interface{}{3, 3})
+	f2 := NewDelayFunc(foo, []interface{}{5, 5})
+	timerId1, _ := Scheduler.CreateTimerAfter(f1, time.Duration(3)*time.Second)
+	timerId2, _ := Scheduler.CreateTimerAfter(f2, time.Duration(5)*time.Second)
+	log.Printf("timerId1=%d ,timerId2=%d\n", timerId1, timerId2)
+	Scheduler.CancelTimer(timerId1) //删除timerId1
 
 	//阻塞等待
 	select {}

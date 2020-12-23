@@ -1,5 +1,5 @@
 # <img width="80px" src="https://s2.ax1x.com/2019/10/09/u4yHo9.png" /> 
-[![License](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](LICENSE) [![Gitter](https://img.shields.io/badge/在线交流-Gitter-green.svg)](https://gitter.im/zinx_go/community) [![zinx详细教程](https://img.shields.io/badge/zinx详细教程-简书-red.svg)](https://www.jianshu.com/p/23d07c0a28e5) [![zinx原创书籍下载](https://img.shields.io/badge/原创书籍下载-Gitbook-black.svg)](https://legacy.gitbook.com/book/aceld/zinx/details)
+[![License](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](LICENSE) [![Gitter](https://img.shields.io/badge/在线交流-Gitter-green.svg)](https://gitter.im/zinx_go/community) [![zinx详细教程](https://img.shields.io/badge/zinx详细教程-简书-red.svg)](https://www.kancloud.cn/aceld/zinx) [![zinx原创书籍下载](https://img.shields.io/badge/原创书籍下载-KanCloud-black.svg)](https://www.kancloud.cn/@aceld)
 
 Zinx 是一个基于Golang的轻量级并发服务器框架
 
@@ -90,6 +90,59 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 ## 三、Zinx开发API文档
 
 ### 快速开始
+
+#### 示例演示
+1. 编译demo示例，会在`zinx/example/zinx_server`下得到`server`, 在`zinx/example/zinx_client`下得到`client`.
+```bash
+$ cd zinx/
+$ make
+```
+2. 启动Demo server, 该终端不要关闭
+```bash
+$ cd example/zinx_server
+$ ./server 
+                                        
+              ██                        
+              ▀▀                        
+ ████████   ████     ██▄████▄  ▀██  ██▀ 
+     ▄█▀      ██     ██▀   ██    ████   
+   ▄█▀        ██     ██    ██    ▄██▄   
+ ▄██▄▄▄▄▄  ▄▄▄██▄▄▄  ██    ██   ▄█▀▀█▄  
+ ▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀  ▀▀    ▀▀  ▀▀▀  ▀▀▀ 
+                                        
+┌───────────────────────────────────────────────────┐
+│ [Github] https://github.com/aceld                 │
+│ [tutorial] https://www.kancloud.cn/aceld/zinx     │
+└───────────────────────────────────────────────────┘
+[Zinx] Version: V0.11, MaxConn: 3, MaxPacketSize: 4096
+Add api msgId =  0
+Add api msgId =  1
+[START] Server name: zinx server Demo,listenner at IP: 127.0.0.1, Port 8999 is starting
+Worker ID =  0  is started.
+Worker ID =  1  is started.
+Worker ID =  2  is started.
+Worker ID =  3  is started.
+Worker ID =  4  is started.
+Worker ID =  7  is started.
+Worker ID =  6  is started.
+Worker ID =  8  is started.
+Worker ID =  9  is started.
+Worker ID =  5  is started.
+start Zinx server   zinx server Demo  succ, now listenning...
+...
+```
+
+3. 再打开新终端，启动client Demo测试通信
+```bash
+$ cd example/zinx_client
+$ ./client
+==> Test Router:[Ping] Recv Msg: ID= 2 , len= 21 , data= DoConnection BEGIN... ==> Test Router:[Ping] Recv Msg: ID= 0 , len= 18 , data= ping...ping...ping 
+==> Test Router:[Ping] Recv Msg: ID= 0 , len= 18 , data= ping...ping...ping
+==> Test Router:[Ping] Recv Msg: ID= 0 , len= 18 , data= ping...ping...ping
+...
+t
+
+```
 
 #### server
 基于Zinx框架开发的服务器应用，主函数步骤比较精简，最多只需要3步即可。
