@@ -79,6 +79,12 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 
 ![GVP-zinx](https://s2.ax1x.com/2019/10/13/uvYVBV.jpg)
 
+
+#### Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/aceld/zinx.svg)](https://starchart.cc/aceld/zinx)
+
+
 ## 二、初探Zinx架构
 
 ![1-Zinx框架.png](https://camo.githubusercontent.com/903d1431358fa6f4634ebaae3b49a28d97e23d77/68747470733a2f2f75706c6f61642d696d616765732e6a69616e7368752e696f2f75706c6f61645f696d616765732f31313039333230352d633735666636383232333362323533362e706e673f696d6167654d6f6772322f6175746f2d6f7269656e742f7374726970253743696d61676556696577322f322f772f31323430)
