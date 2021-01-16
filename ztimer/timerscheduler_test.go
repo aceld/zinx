@@ -1,3 +1,5 @@
+package ztimer
+
 /**
 * @Author: Aceld(刘丹冰)
 * @Date: 2019/5/9 10:14
@@ -5,14 +7,14 @@
 *
 *  时间轮定时器调度器单元测试
  */
-package ztimer
 
 import (
 	"fmt"
-	"github.com/aceld/zinx/zlog"
 	"log"
 	"testing"
 	"time"
+
+	"github.com/aceld/zinx/zlog"
 )
 
 //触发函数
@@ -70,10 +72,16 @@ func TestCancelTimerScheduler(t *testing.T) {
 	Scheduler := NewAutoExecTimerScheduler()
 	f1 := NewDelayFunc(foo, []interface{}{3, 3})
 	f2 := NewDelayFunc(foo, []interface{}{5, 5})
-	timerId1, _ := Scheduler.CreateTimerAfter(f1, time.Duration(3)*time.Second)
-	timerId2, _ := Scheduler.CreateTimerAfter(f2, time.Duration(5)*time.Second)
-	log.Printf("timerId1=%d ,timerId2=%d\n", timerId1, timerId2)
-	Scheduler.CancelTimer(timerId1) //删除timerId1
+	timerID1, err := Scheduler.CreateTimerAfter(f1, time.Duration(3)*time.Second)
+	if nil != err {
+		t.Log("Scheduler.CreateTimerAfter(f1, time.Duration(3)*time.Second)", "err：", err)
+	}
+	timerID2, err := Scheduler.CreateTimerAfter(f2, time.Duration(5)*time.Second)
+	if nil != err {
+		t.Log("Scheduler.CreateTimerAfter(f1, time.Duration(3)*time.Second)", "err：", err)
+	}
+	log.Printf("timerId1=%d ,timerId2=%d\n", timerID1, timerID2)
+	Scheduler.CancelTimer(timerID1) //删除timerId1
 
 	//阻塞等待
 	select {}

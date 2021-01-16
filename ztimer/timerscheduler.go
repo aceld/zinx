@@ -1,3 +1,5 @@
+package ztimer
+
 /**
 * @Author: Aceld
 * @Date: 2019/5/8 17:43
@@ -6,22 +8,23 @@
 *  时间轮调度器
 *   依赖模块，delayfunc.go  timer.go timewheel.go
  */
-package ztimer
 
 import (
-	"github.com/aceld/zinx/zlog"
 	"math"
 	"sync"
 	"time"
+
+	"github.com/aceld/zinx/zlog"
 )
 
 const (
-	//默认缓冲触发函数队列大小
-	MAX_CHAN_BUFF = 2048
-	//默认最大误差时间
-	MAX_TIME_DELAY = 100
+	//MaxChanBuff 默认缓冲触发函数队列大小
+	MaxChanBuff = 2048
+	//MaxTimeDelay 默认最大误差时间
+	MaxTimeDelay = 100
 )
 
+//TimerScheduler 计时器调度器
 type TimerScheduler struct {
 	//当前调度器的最高级时间轮
 	tw *TimeWheel
@@ -35,112 +38,109 @@ type TimerScheduler struct {
 	ids []uint32
 }
 
-/*
-	返回一个定时器调度器
-
-	主要创建分层定时器，并做关联，并依次启动
-*/
+// NewTimerScheduler 返回一个定时器调度器 ，主要创建分层定时器，并做关联，并依次启动
 func NewTimerScheduler() *TimerScheduler {
 
 	//创建秒级时间轮
-	second_tw := NewTimeWheel(SECOND_NAME, SECOND_INTERVAL, SECOND_SCALES, TIMERS_MAX_CAP)
+	secondTw := NewTimeWheel(SecondName, SecondInterval, SecondScales, TimersMaxCap)
 	//创建分钟级时间轮
-	minute_tw := NewTimeWheel(MINUTE_NAME, MINUTE_INTERVAL, MINUTE_SCALES, TIMERS_MAX_CAP)
+	minuteTw := NewTimeWheel(MinuteName, MinuteInterval, MinuteScales, TimersMaxCap)
 	//创建小时级时间轮
-	hour_tw := NewTimeWheel(HOUR_NAME, HOUR_INTERVAL, HOUR_SCALES, TIMERS_MAX_CAP)
+	hourTw := NewTimeWheel(HourName, HourInterval, HourScales, TimersMaxCap)
 
 	//将分层时间轮做关联
-	hour_tw.AddTimeWheel(minute_tw)
-	minute_tw.AddTimeWheel(second_tw)
+	hourTw.AddTimeWheel(minuteTw)
+	minuteTw.AddTimeWheel(secondTw)
 
 	//时间轮运行
-	second_tw.Run()
-	minute_tw.Run()
-	hour_tw.Run()
+	secondTw.Run()
+	minuteTw.Run()
+	hourTw.Run()
 
 	return &TimerScheduler{
-		tw:          hour_tw,
-		triggerChan: make(chan *DelayFunc, MAX_CHAN_BUFF),
+		tw:          hourTw,
+		triggerChan: make(chan *DelayFunc, MaxChanBuff),
 		ids:         make([]uint32, 0),
 	}
 }
 
-//创建一个定点Timer 并将Timer添加到分层时间轮中， 返回Timer的tid
-func (this *TimerScheduler) CreateTimerAt(df *DelayFunc, unixNano int64) (uint32, error) {
-	this.Lock()
-	defer this.Unlock()
+//CreateTimerAt 创建一个定点Timer 并将Timer添加到分层时间轮中， 返回Timer的tid
+func (ts *TimerScheduler) CreateTimerAt(df *DelayFunc, unixNano int64) (uint32, error) {
+	ts.Lock()
+	defer ts.Unlock()
 
-	this.idGen++
-	this.ids = append(this.ids, this.idGen)
-	return this.idGen, this.tw.AddTimer(this.idGen, NewTimerAt(df, unixNano))
+	ts.idGen++
+	ts.ids = append(ts.ids, ts.idGen)
+	return ts.idGen, ts.tw.AddTimer(ts.idGen, NewTimerAt(df, unixNano))
 }
 
-//创建一个延迟Timer 并将Timer添加到分层时间轮中， 返回Timer的tid
-func (this *TimerScheduler) CreateTimerAfter(df *DelayFunc, duration time.Duration) (uint32, error) {
-	this.Lock()
-	defer this.Unlock()
+//CreateTimerAfter 创建一个延迟Timer 并将Timer添加到分层时间轮中， 返回Timer的tid
+func (ts *TimerScheduler) CreateTimerAfter(df *DelayFunc, duration time.Duration) (uint32, error) {
+	ts.Lock()
+	defer ts.Unlock()
 
-	this.idGen++
-	this.ids = append(this.ids, this.idGen)
-	return this.idGen, this.tw.AddTimer(this.idGen, NewTimerAfter(df, duration))
+	ts.idGen++
+	ts.ids = append(ts.ids, ts.idGen)
+	return ts.idGen, ts.tw.AddTimer(ts.idGen, NewTimerAfter(df, duration))
 }
 
-//删除timer
-func (this *TimerScheduler) CancelTimer(tid uint32) {
-	this.Lock()
-	this.Unlock()
-	//this.tw.RemoveTimer(tid)  这个方法无效
+//CancelTimer 删除timer
+func (ts *TimerScheduler) CancelTimer(tid uint32) {
+	ts.Lock()
+	ts.Unlock()
+	//ts.tw.RemoveTimer(tid)  这个方法无效
 	//删除timerId
 	var index = -1
-	for i := 0; i < len(this.ids); i++ {
-		if this.ids[i] == tid {
+	for i := 0; i < len(ts.ids); i++ {
+		if ts.ids[i] == tid {
 			index = i
 		}
 	}
 
 	if index > -1 {
-		this.ids = append(this.ids[:index], this.ids[index+1:]...)
+		ts.ids = append(ts.ids[:index], ts.ids[index+1:]...)
 	}
 }
 
-//获取计时结束的延迟执行函数通道
-func (this *TimerScheduler) GetTriggerChan() chan *DelayFunc {
-	return this.triggerChan
+//GetTriggerChan 获取计时结束的延迟执行函数通道
+func (ts *TimerScheduler) GetTriggerChan() chan *DelayFunc {
+	return ts.triggerChan
 }
 
-func (this *TimerScheduler) HasTimer(tid uint32) bool {
-	for i := 0; i < len(this.ids); i++ {
-		if this.ids[i] == tid {
+// HasTimer 是否有时间轮
+func (ts *TimerScheduler) HasTimer(tid uint32) bool {
+	for i := 0; i < len(ts.ids); i++ {
+		if ts.ids[i] == tid {
 			return true
 		}
 	}
 	return false
 }
 
-//非阻塞的方式启动timerSchedule
-func (this *TimerScheduler) Start() {
+//Start 非阻塞的方式启动timerSchedule
+func (ts *TimerScheduler) Start() {
 	go func() {
 		for {
 			//当前时间
 			now := UnixMilli()
-			//获取最近MAX_TIME_DELAY 毫秒的超时定时器集合
-			timerList := this.tw.GetTimerWithIn(MAX_TIME_DELAY * time.Millisecond)
+			//获取最近MaxTimeDelay 毫秒的超时定时器集合
+			timerList := ts.tw.GetTimerWithIn(MaxTimeDelay * time.Millisecond)
 			for tid, timer := range timerList {
-				if math.Abs(float64(now-timer.unixts)) > MAX_TIME_DELAY {
+				if math.Abs(float64(now-timer.unixts)) > MaxTimeDelay {
 					//已经超时的定时器，报警
 					zlog.Error("want call at ", timer.unixts, "; real call at", now, "; delay ", now-timer.unixts)
 				}
-				if this.HasTimer(tid) {
+				if ts.HasTimer(tid) {
 					//将超时触发函数写入管道
-					this.triggerChan <- timer.delayFunc
+					ts.triggerChan <- timer.delayFunc
 				}
 			}
-			time.Sleep(MAX_TIME_DELAY / 2 * time.Millisecond)
+			time.Sleep(MaxTimeDelay / 2 * time.Millisecond)
 		}
 	}()
 }
 
-//时间轮定时器 自动调度
+//NewAutoExecTimerScheduler 时间轮定时器 自动调度
 func NewAutoExecTimerScheduler() *TimerScheduler {
 	//创建一个调度器
 	autoExecScheduler := NewTimerScheduler()

@@ -1,16 +1,18 @@
+package ztimer
+
 /**
 * @Author: Aceld
 * @Date: 2019/4/30 11:57
 * @Mail: danbing.at@gmail.com
  */
-package ztimer
 
 import (
 	"errors"
 	"fmt"
-	"github.com/aceld/zinx/zlog"
 	"sync"
 	"time"
+
+	"github.com/aceld/zinx/zlog"
 )
 
 /*
@@ -24,6 +26,7 @@ import (
 	用时间轮的方式来管理和维护大量的timer调度，会解决上面的问题。
 */
 
+//TimeWheel 时间轮
 type TimeWheel struct {
 	//TimeWheel的名称
 	name string
@@ -44,14 +47,13 @@ type TimeWheel struct {
 	sync.RWMutex
 }
 
-/*
-	创建一个时间轮
-	name：时间轮的名称
-	interval：每个刻度之间的duration时间间隔
-	scales:当前时间轮的轮盘一共多少个刻度(如我们正常的时钟就是12个刻度)
-	maxCap: 每个刻度所最大保存的Timer定时器个数
-*/
+//NewTimeWheel  创建一个时间轮
 func NewTimeWheel(name string, interval int64, scales int, maxCap int) *TimeWheel {
+	// name：时间轮的名称
+	// interval：每个刻度之间的duration时间间隔
+	// scales:当前时间轮的轮盘一共多少个刻度(如我们正常的时钟就是12个刻度)
+	// maxCap: 每个刻度所最大保存的Timer定时器个数
+
 	tw := &TimeWheel{
 		name:       name,
 		interval:   interval,
@@ -126,7 +128,7 @@ func (tw *TimeWheel) addTimer(tid uint32, t *Timer, forceNext bool) error {
 	return nil
 }
 
-//添加一个timer到一个时间轮中(非时间轮自转情况)
+//AddTimer 添加一个timer到一个时间轮中(非时间轮自转情况)
 func (tw *TimeWheel) AddTimer(tid uint32, t *Timer) error {
 	tw.Lock()
 	defer tw.Unlock()
@@ -134,9 +136,7 @@ func (tw *TimeWheel) AddTimer(tid uint32, t *Timer) error {
 	return tw.addTimer(tid, t, false)
 }
 
-/*
-	删除一个定时器，根据定时器的id
-*/
+//RemoveTimer 删除一个定时器，根据定时器的id
 func (tw *TimeWheel) RemoveTimer(tid uint32) {
 	tw.Lock()
 	defer tw.Unlock()
@@ -148,9 +148,7 @@ func (tw *TimeWheel) RemoveTimer(tid uint32) {
 	}
 }
 
-/*
-	给一个时间轮添加下层时间轮 比如给小时时间轮添加分钟时间轮，给分钟时间轮添加秒时间轮
-*/
+//AddTimeWheel 给一个时间轮添加下层时间轮 比如给小时时间轮添加分钟时间轮，给分钟时间轮添加秒时间轮
 func (tw *TimeWheel) AddTimeWheel(next *TimeWheel) {
 	tw.nextTimeWheel = next
 	zlog.Info("Add timerWhell[", tw.name, "]'s next [", next.name, "] is succ!")
@@ -188,13 +186,13 @@ func (tw *TimeWheel) run() {
 	}
 }
 
-//非阻塞的方式让时间轮转起来
+//Run 非阻塞的方式让时间轮转起来
 func (tw *TimeWheel) Run() {
 	go tw.run()
 	zlog.Info("timerwheel name = ", tw.name, " is running...")
 }
 
-//获取定时器在一段时间间隔内的Timer
+//GetTimerWithIn 获取定时器在一段时间间隔内的Timer
 func (tw *TimeWheel) GetTimerWithIn(duration time.Duration) map[uint32]*Timer {
 	//最终触发定时器的一定是挂载最底层时间轮上的定时器
 	//1 找到最底层时间轮

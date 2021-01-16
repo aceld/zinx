@@ -3,8 +3,9 @@ package znet
 import (
 	"errors"
 	"fmt"
-	"github.com/aceld/zinx/ziface"
 	"sync"
+
+	"github.com/aceld/zinx/ziface"
 )
 
 /*
