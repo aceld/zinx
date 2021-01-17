@@ -2,11 +2,12 @@ package znet
 
 import (
 	"fmt"
-	"github.com/aceld/zinx/ziface"
 	"io"
 	"net"
 	"testing"
 	"time"
+
+	"github.com/aceld/zinx/ziface"
 )
 
 // run in terminal:
@@ -63,7 +64,7 @@ func ClientTest(i uint32) {
 				return
 			}
 
-			fmt.Printf("==> Client receive Msg: Id = %d, len = %d , data = %s\n", msg.Id, msg.DataLen, msg.Data)
+			fmt.Printf("==> Client receive Msg: ID = %d, len = %d , data = %s\n", msg.ID, msg.DataLen, msg.Data)
 		}
 
 		time.Sleep(time.Second)
@@ -92,7 +93,7 @@ func (this *PingRouter) PreHandle(request ziface.IRequest) {
 func (this *PingRouter) Handle(request ziface.IRequest) {
 	fmt.Println("Call PingRouter Handle")
 	//先读取客户端的数据，再回写ping...ping...ping
-	fmt.Println("recv from client : msgId=", request.GetMsgID(), ", data=", string(request.GetData()))
+	fmt.Println("recv from client : msgID=", request.GetMsgID(), ", data=", string(request.GetData()))
 
 	err := request.GetConnection().SendMsg(1, []byte("ping...ping...ping\n"))
 	if err != nil {
@@ -115,7 +116,7 @@ type HelloRouter struct {
 
 func (this *HelloRouter) Handle(request ziface.IRequest) {
 	fmt.Println("call helloRouter Handle")
-	fmt.Printf("receive from client msgId=%d, data=%s\n", request.GetMsgID(), string(request.GetData()))
+	fmt.Printf("receive from client msgID=%d, data=%s\n", request.GetMsgID(), string(request.GetData()))
 
 	err := request.GetConnection().SendMsg(2, []byte("hello zix hello Router"))
 	if err != nil {

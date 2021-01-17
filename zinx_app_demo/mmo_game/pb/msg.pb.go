@@ -21,41 +21,41 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 //同步客户端玩家ID
-type SyncPid struct {
-	Pid                  int32    `protobuf:"varint,1,opt,name=Pid,proto3" json:"Pid,omitempty"`
+type SyncPID struct {
+	PID                  int32    `protobuf:"varint,1,opt,name=PID,proto3" json:"PID,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *SyncPid) Reset()         { *m = SyncPid{} }
-func (m *SyncPid) String() string { return proto.CompactTextString(m) }
-func (*SyncPid) ProtoMessage()    {}
-func (*SyncPid) Descriptor() ([]byte, []int) {
+func (m *SyncPID) Reset()         { *m = SyncPID{} }
+func (m *SyncPID) String() string { return proto.CompactTextString(m) }
+func (*SyncPID) ProtoMessage()    {}
+func (*SyncPID) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c06e4cca6c2cc899, []int{0}
 }
 
-func (m *SyncPid) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_SyncPid.Unmarshal(m, b)
+func (m *SyncPID) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SyncPID.Unmarshal(m, b)
 }
-func (m *SyncPid) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_SyncPid.Marshal(b, m, deterministic)
+func (m *SyncPID) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SyncPID.Marshal(b, m, deterministic)
 }
-func (m *SyncPid) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SyncPid.Merge(m, src)
+func (m *SyncPID) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SyncPID.Merge(m, src)
 }
-func (m *SyncPid) XXX_Size() int {
-	return xxx_messageInfo_SyncPid.Size(m)
+func (m *SyncPID) XXX_Size() int {
+	return xxx_messageInfo_SyncPID.Size(m)
 }
-func (m *SyncPid) XXX_DiscardUnknown() {
-	xxx_messageInfo_SyncPid.DiscardUnknown(m)
+func (m *SyncPID) XXX_DiscardUnknown() {
+	xxx_messageInfo_SyncPID.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SyncPid proto.InternalMessageInfo
+var xxx_messageInfo_SyncPID proto.InternalMessageInfo
 
-func (m *SyncPid) GetPid() int32 {
+func (m *SyncPID) GetPID() int32 {
 	if m != nil {
-		return m.Pid
+		return m.PID
 	}
 	return 0
 }
@@ -126,9 +126,9 @@ func (m *Position) GetV() float32 {
 
 //玩家广播数据
 type BroadCast struct {
-	Pid int32 `protobuf:"varint,1,opt,name=Pid,proto3" json:"Pid,omitempty"`
+	PID int32 `protobuf:"varint,1,opt,name=PID,proto3" json:"PID,omitempty"`
 	Tp  int32 `protobuf:"varint,2,opt,name=Tp,proto3" json:"Tp,omitempty"`
-	// Types that are valid to be assigned to Data:
+	// Types that are valID to be assigned to Data:
 	//	*BroadCast_Content
 	//	*BroadCast_P
 	//	*BroadCast_ActionData
@@ -163,9 +163,9 @@ func (m *BroadCast) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_BroadCast proto.InternalMessageInfo
 
-func (m *BroadCast) GetPid() int32 {
+func (m *BroadCast) GetPID() int32 {
 	if m != nil {
-		return m.Pid
+		return m.PID
 	}
 	return 0
 }
@@ -278,7 +278,7 @@ func (m *Talk) GetContent() string {
 
 //玩家信息
 type Player struct {
-	Pid                  int32     `protobuf:"varint,1,opt,name=Pid,proto3" json:"Pid,omitempty"`
+	PID                  int32     `protobuf:"varint,1,opt,name=PID,proto3" json:"PID,omitempty"`
 	P                    *Position `protobuf:"bytes,2,opt,name=P,proto3" json:"P,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
 	XXX_unrecognized     []byte    `json:"-"`
@@ -310,9 +310,9 @@ func (m *Player) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Player proto.InternalMessageInfo
 
-func (m *Player) GetPid() int32 {
+func (m *Player) GetPID() int32 {
 	if m != nil {
-		return m.Pid
+		return m.PID
 	}
 	return 0
 }
@@ -365,7 +365,7 @@ func (m *SyncPlayers) GetPs() []*Player {
 }
 
 func init() {
-	proto.RegisterType((*SyncPid)(nil), "pb.SyncPid")
+	proto.RegisterType((*SyncPID)(nil), "pb.SyncPID")
 	proto.RegisterType((*Position)(nil), "pb.Position")
 	proto.RegisterType((*BroadCast)(nil), "pb.BroadCast")
 	proto.RegisterType((*Talk)(nil), "pb.Talk")

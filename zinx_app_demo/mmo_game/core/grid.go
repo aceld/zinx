@@ -8,7 +8,7 @@ import (
 /*
 	一个地图中的格子类
 */
-type Grid struct {
+type GrID struct {
 	GID       int          //格子ID
 	MinX      int          //格子左边界坐标
 	MaxX      int          //格子右边界坐标
@@ -19,8 +19,8 @@ type Grid struct {
 }
 
 //初始化一个格子
-func NewGrid(gID, minX, maxX, minY, maxY int) *Grid {
-	return &Grid{
+func NewGrID(gID, minX, maxX, minY, maxY int) *GrID {
+	return &GrID{
 		GID:       gID,
 		MinX:      minX,
 		MaxX:      maxX,
@@ -31,7 +31,7 @@ func NewGrid(gID, minX, maxX, minY, maxY int) *Grid {
 }
 
 //向当前格子中添加一个玩家
-func (g *Grid) Add(playerID int) {
+func (g *GrID) Add(playerID int) {
 	g.pIDLock.Lock()
 	defer g.pIDLock.Unlock()
 
@@ -39,7 +39,7 @@ func (g *Grid) Add(playerID int) {
 }
 
 //从格子中删除一个玩家
-func (g *Grid) Remove(playerID int) {
+func (g *GrID) Remove(playerID int) {
 	g.pIDLock.Lock()
 	defer g.pIDLock.Unlock()
 
@@ -47,7 +47,7 @@ func (g *Grid) Remove(playerID int) {
 }
 
 //得到当前格子中所有的玩家
-func (g *Grid) GetPlyerIDs() (playerIDs []int) {
+func (g *GrID) GetPlyerIDs() (playerIDs []int) {
 	g.pIDLock.RLock()
 	defer g.pIDLock.RUnlock()
 
@@ -59,7 +59,7 @@ func (g *Grid) GetPlyerIDs() (playerIDs []int) {
 }
 
 //打印信息方法
-func (g *Grid) String() string {
-	return fmt.Sprintf("Grid id: %d, minX:%d, maxX:%d, minY:%d, maxY:%d, playerIDs:%v",
+func (g *GrID) String() string {
+	return fmt.Sprintf("GrID ID: %d, minX:%d, maxX:%d, minY:%d, maxY:%d, playerIDs:%v",
 		g.GID, g.MinX, g.MaxX, g.MinY, g.MaxY, g.playerIDs)
 }

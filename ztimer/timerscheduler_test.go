@@ -30,9 +30,9 @@ func TestNewTimerScheduler(t *testing.T) {
 	//在scheduler中添加timer
 	for i := 1; i < 2000; i++ {
 		f := NewDelayFunc(foo, []interface{}{i, i * 3})
-		tid, err := timerScheduler.CreateTimerAfter(f, time.Duration(3*i)*time.Millisecond)
+		tID, err := timerScheduler.CreateTimerAfter(f, time.Duration(3*i)*time.Millisecond)
 		if err != nil {
-			zlog.Error("create timer error", tid, err)
+			zlog.Error("create timer error", tID, err)
 			break
 		}
 	}
@@ -56,9 +56,9 @@ func TestNewAutoExecTimerScheduler(t *testing.T) {
 	//给调度器添加Timer
 	for i := 0; i < 2000; i++ {
 		f := NewDelayFunc(foo, []interface{}{i, i * 3})
-		tid, err := autoTS.CreateTimerAfter(f, time.Duration(3*i)*time.Millisecond)
+		tID, err := autoTS.CreateTimerAfter(f, time.Duration(3*i)*time.Millisecond)
 		if err != nil {
-			zlog.Error("create timer error", tid, err)
+			zlog.Error("create timer error", tID, err)
 			break
 		}
 	}
@@ -80,8 +80,8 @@ func TestCancelTimerScheduler(t *testing.T) {
 	if nil != err {
 		t.Log("Scheduler.CreateTimerAfter(f1, time.Duration(3)*time.Second)", "err：", err)
 	}
-	log.Printf("timerId1=%d ,timerId2=%d\n", timerID1, timerID2)
-	Scheduler.CancelTimer(timerID1) //删除timerId1
+	log.Printf("timerID1=%d ,timerID2=%d\n", timerID1, timerID2)
+	Scheduler.CancelTimer(timerID1) //删除timerID1
 
 	//阻塞等待
 	select {}

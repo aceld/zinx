@@ -372,9 +372,9 @@ func mkdirLog(dir string) (e error) {
 
 //将一个整形转换成一个固定长度的字符串，字符串宽度应该是大于0的
 //要确保buffer是有容量空间的
-func itoa(buf *bytes.Buffer, i int, wid int) {
+func itoa(buf *bytes.Buffer, i int, wID int) {
 	var u uint = uint(i)
-	if u == 0 && wid <= 1 {
+	if u == 0 && wID <= 1 {
 		buf.WriteByte('0')
 		return
 	}
@@ -382,13 +382,13 @@ func itoa(buf *bytes.Buffer, i int, wid int) {
 	// Assemble decimal in reverse order.
 	var b [32]byte
 	bp := len(b)
-	for ; u > 0 || wid > 0; u /= 10 {
+	for ; u > 0 || wID > 0; u /= 10 {
 		bp--
-		wid--
+		wID--
 		b[bp] = byte(u%10) + '0'
 	}
 
-	// avoid slicing b to avoid an allocation.
+	// avoID slicing b to avoID an allocation.
 	for bp < len(b) {
 		buf.WriteByte(b[bp])
 		bp++

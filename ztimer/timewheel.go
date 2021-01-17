@@ -40,7 +40,7 @@ type TimeWheel struct {
 	maxCap int
 	//当前时间轮上的所有timer
 	timerQueue map[int]map[uint32]*Timer //map[int] VALUE  其中int表示当前时间轮的刻度,
-	// map[int] map[uint32] *Timer, uint32表示Timer的id号
+	// map[int] map[uint32] *Timer, uint32表示Timer的ID号
 	//下一层时间轮
 	nextTimeWheel *TimeWheel
 	//互斥锁（继承RWMutex的 RWLock,UnLock 等方法）
@@ -72,7 +72,7 @@ func NewTimeWheel(name string, interval int64, scales int, maxCap int) *TimeWhee
 
 /*
 	将一个timer定时器加入到分层时间轮中
-	tid: 每个定时器timer的唯一标识
+	tID: 每个定时器timer的唯一标识
 	t: 当前被加入时间轮的定时器
 	forceNext: 是否强制的将定时器添加到下一层时间轮
 
@@ -81,7 +81,7 @@ func NewTimeWheel(name string, interval int64, scales int, maxCap int) *TimeWhee
 	如果当前的timer的超时时间间隔 小于一个刻度 :
 					如果没有下一轮时间轮
 */
-func (tw *TimeWheel) addTimer(tid uint32, t *Timer, forceNext bool) error {
+func (tw *TimeWheel) addTimer(tID uint32, t *Timer, forceNext bool) error {
 	defer func() error {
 		if err := recover(); err != nil {
 			errstr := fmt.Sprintf("addTimer function err : %s", err)
@@ -99,7 +99,7 @@ func (tw *TimeWheel) addTimer(tid uint32, t *Timer, forceNext bool) error {
 		//得到需要跨越几个刻度
 		dn := delayInterval / tw.interval
 		//在对应的刻度上的定时器Timer集合map加入当前定时器(由于是环形，所以要求余)
-		tw.timerQueue[(tw.curIndex+int(dn))%tw.scales][tid] = t
+		tw.timerQueue[(tw.curIndex+int(dn))%tw.scales][tID] = t
 
 		return nil
 	}
@@ -112,38 +112,38 @@ func (tw *TimeWheel) addTimer(tid uint32, t *Timer, forceNext bool) error {
 			//因为这是底层时间轮，该定时器在转动的时候，如果没有被调度者取走的话，该定时器将不会再被发现
 			//因为时间轮刻度已经过去，如果不强制把该定时器Timer移至下时刻，就永远不会被取走并触发调用
 			//所以这里强制将timer移至下个刻度的集合中，等待调用者在下次轮转之前取走该定时器
-			tw.timerQueue[(tw.curIndex+1)%tw.scales][tid] = t
+			tw.timerQueue[(tw.curIndex+1)%tw.scales][tID] = t
 		} else {
 			//如果手动添加定时器，那么直接将timer添加到对应底层时间轮的当前刻度集合中
-			tw.timerQueue[tw.curIndex][tid] = t
+			tw.timerQueue[tw.curIndex][tID] = t
 		}
 		return nil
 	}
 
 	//如果当前的超时时间，小于一个刻度的时间间隔，并且有下一层时间轮
 	if delayInterval < tw.interval {
-		return tw.nextTimeWheel.AddTimer(tid, t)
+		return tw.nextTimeWheel.AddTimer(tID, t)
 	}
 
 	return nil
 }
 
 //AddTimer 添加一个timer到一个时间轮中(非时间轮自转情况)
-func (tw *TimeWheel) AddTimer(tid uint32, t *Timer) error {
+func (tw *TimeWheel) AddTimer(tID uint32, t *Timer) error {
 	tw.Lock()
 	defer tw.Unlock()
 
-	return tw.addTimer(tid, t, false)
+	return tw.addTimer(tID, t, false)
 }
 
-//RemoveTimer 删除一个定时器，根据定时器的id
-func (tw *TimeWheel) RemoveTimer(tid uint32) {
+//RemoveTimer 删除一个定时器，根据定时器的ID
+func (tw *TimeWheel) RemoveTimer(tID uint32) {
 	tw.Lock()
 	defer tw.Unlock()
 
 	for i := 0; i < tw.scales; i++ {
-		if _, ok := tw.timerQueue[i][tid]; ok {
-			delete(tw.timerQueue[i], tid)
+		if _, ok := tw.timerQueue[i][tID]; ok {
+			delete(tw.timerQueue[i], tID)
 		}
 	}
 }
@@ -167,16 +167,16 @@ func (tw *TimeWheel) run() {
 		curTimers := tw.timerQueue[tw.curIndex]
 		//当前定时器要重新添加 所给当前刻度再重新开辟一个map Timer容器
 		tw.timerQueue[tw.curIndex] = make(map[uint32]*Timer, tw.maxCap)
-		for tid, timer := range curTimers {
+		for tID, timer := range curTimers {
 			//这里属于时间轮自动转动，forceNext设置为true
-			tw.addTimer(tid, timer, true)
+			tw.addTimer(tID, timer, true)
 		}
 
 		//取出下一个刻度 挂载的全部定时器 进行重新添加 (为了安全起见,待考慮)
 		nextTimers := tw.timerQueue[(tw.curIndex+1)%tw.scales]
 		tw.timerQueue[(tw.curIndex+1)%tw.scales] = make(map[uint32]*Timer, tw.maxCap)
-		for tid, timer := range nextTimers {
-			tw.addTimer(tid, timer, true)
+		for tID, timer := range nextTimers {
+			tw.addTimer(tID, timer, true)
 		}
 
 		//当前刻度指针 走一格
@@ -209,12 +209,12 @@ func (tw *TimeWheel) GetTimerWithIn(duration time.Duration) map[uint32]*Timer {
 	now := UnixMilli()
 
 	//取出当前时间轮刻度内全部Timer
-	for tid, timer := range leaftw.timerQueue[leaftw.curIndex] {
+	for tID, timer := range leaftw.timerQueue[leaftw.curIndex] {
 		if timer.unixts-now < int64(duration/1e6) {
 			//当前定时器已经超时
-			timerList[tid] = timer
+			timerList[tID] = timer
 			//定时器已经超时被取走，从当前时间轮上 摘除该定时器
-			delete(leaftw.timerQueue[leaftw.curIndex], tid)
+			delete(leaftw.timerQueue[leaftw.curIndex], tID)
 		}
 	}
 
