@@ -206,11 +206,11 @@ func (c *Connection) RemoteAddr() net.Addr {
 //直接将Message数据发送数据给远程的TCP客户端
 func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 	c.RLock()
+	defer c.RUnlock()
 	if c.isClosed == true {
-		c.RUnlock()
 		return errors.New("connection closed when send msg")
 	}
-	c.RUnlock()
+
 
 	//将data封包，并且发送
 	dp := NewDataPack()
@@ -228,11 +228,10 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 
 func (c *Connection) SendBuffMsg(msgId uint32, data []byte) error {
 	c.RLock()
+	defer c.RUnlock()
 	if c.isClosed == true {
-		c.RUnlock()
 		return errors.New("Connection closed when send buff msg")
 	}
-	c.RUnlock()
 
 	//将data封包，并且发送
 	dp := NewDataPack()
