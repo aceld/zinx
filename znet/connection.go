@@ -162,19 +162,19 @@ func (c *Connection) Start() {
 
 //停止连接，结束当前连接状态M
 func (c *Connection) Stop() {
-	fmt.Println("Conn Stop()...ConnID = ", c.ConnID)
-
 	c.Lock()
 	defer c.Unlock()
-
-	//如果用户注册了该链接的关闭回调业务，那么在此刻应该显示调用
-	c.TcpServer.CallOnConnStop(c)
 
 	//如果当前链接已经关闭
 	if c.isClosed == true {
 		return
 	}
 	c.isClosed = true
+
+	fmt.Println("Conn Stop()...ConnID = ", c.ConnID)
+
+	//如果用户注册了该链接的关闭回调业务，那么在此刻应该显示调用
+	c.TcpServer.CallOnConnStop(c)
 
 	// 关闭socket链接
 	c.Conn.Close()
@@ -210,7 +210,6 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 	if c.isClosed == true {
 		return errors.New("connection closed when send msg")
 	}
-
 
 	//将data封包，并且发送
 	dp := NewDataPack()
