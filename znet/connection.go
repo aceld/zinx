@@ -276,3 +276,8 @@ func (c *Connection) RemoveProperty(key string) {
 
 	delete(c.property, key)
 }
+
+//返回ctx，用于用户自定义的go程获取连接退出状态
+func (c *Connection) Context() context.Context {
+	return c.ctx
+}

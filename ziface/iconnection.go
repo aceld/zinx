@@ -1,6 +1,9 @@
 package ziface
 
-import "net"
+import (
+	"context"
+	"net"
+)
 
 //定义连接接口
 type IConnection interface {
@@ -8,7 +11,8 @@ type IConnection interface {
 	Start()
 	//停止连接，结束当前连接状态M
 	Stop()
-
+	//返回ctx，用于用户自定义的go程获取连接退出状态
+	Context() context.Context
 	//从当前连接获取原始的socket TCPConn
 	GetTCPConnection() *net.TCPConn
 	//获取当前连接ID
