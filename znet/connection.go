@@ -49,7 +49,7 @@ func NewConntion(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHan
 		MsgHandler:  msgHandler,
 		msgChan:     make(chan []byte),
 		msgBuffChan: make(chan []byte, utils.GlobalObject.MaxMsgChanLen),
-		property:    make(map[string]interface{}),
+		property:    nil,
 	}
 
 	//将新创建的Conn添加到链接管理中
@@ -250,6 +250,9 @@ func (c *Connection) SendBuffMsg(msgId uint32, data []byte) error {
 func (c *Connection) SetProperty(key string, value interface{}) {
 	c.propertyLock.Lock()
 	defer c.propertyLock.Unlock()
+	if c.property == nil {
+		c.property = make(map[string]interface{})
+	}
 
 	c.property[key] = value
 }
