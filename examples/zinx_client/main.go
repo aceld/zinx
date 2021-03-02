@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/aceld/zinx/znet"
 	"io"
 	"net"
 	"time"
+
+	"github.com/aceld/zinx/znet"
 )
 
 /*
@@ -15,7 +16,7 @@ func main() {
 
 	conn, err := net.Dial("tcp", "127.0.0.1:8999")
 	if err != nil {
-		fmt.Println("client start err, exit!")
+		fmt.Println("client start err, exit!", err)
 		return
 	}
 
@@ -55,7 +56,7 @@ func main() {
 				return
 			}
 
-			fmt.Println("==> Test Router:[Ping] Recv Msg: ID=", msg.Id, ", len=", msg.DataLen, ", data=", string(msg.Data))
+			// fmt.Println("==> Test Router:[Ping] Recv Msg: ID=", msg.Id ", len=", msg.DataLen, ", data=", string(msg.Data))
 		}
 
 		time.Sleep(1 * time.Second)
