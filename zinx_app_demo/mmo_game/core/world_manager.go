@@ -28,26 +28,26 @@ func init() {
 func (wm *WorldManager) AddPlayer(player *Player) {
 	//将player添加到 世界管理器中
 	wm.pLock.Lock()
-	wm.Players[player.Pid] = player
+	wm.Players[player.PID] = player
 	wm.pLock.Unlock()
 
 	//将player 添加到AOI网络规划中
-	wm.AoiMgr.AddToGridByPos(int(player.Pid), player.X, player.Z)
+	wm.AoiMgr.AddToGrIDByPos(int(player.PID), player.X, player.Z)
 }
 
 //从玩家信息表中移除一个玩家
-func (wm *WorldManager) RemovePlayerByPid(pid int32) {
+func (wm *WorldManager) RemovePlayerByPID(pID int32) {
 	wm.pLock.Lock()
-	delete(wm.Players, pid)
+	delete(wm.Players, pID)
 	wm.pLock.Unlock()
 }
 
 //通过玩家ID 获取对应玩家信息
-func (wm *WorldManager) GetPlayerByPid(pid int32) *Player {
+func (wm *WorldManager) GetPlayerByPID(pID int32) *Player {
 	wm.pLock.RLock()
 	defer wm.pLock.RUnlock()
 
-	return wm.Players[pid]
+	return wm.Players[pID]
 }
 
 //获取所有玩家的信息
@@ -67,16 +67,16 @@ func (wm *WorldManager) GetAllPlayers() []*Player {
 	return players
 }
 
-//获取指定gid中的所有player信息
-func (wm *WorldManager) GetPlayersByGid(gid int) []*Player {
-	//通过gid获取 对应 格子中的所有pid
-	pids := wm.AoiMgr.grids[gid].GetPlyerIDs()
+//获取指定gID中的所有player信息
+func (wm *WorldManager) GetPlayersByGID(gID int) []*Player {
+	//通过gID获取 对应 格子中的所有pID
+	pIDs := wm.AoiMgr.grIDs[gID].GetPlyerIDs()
 
-	//通过pid找到对应的player对象
-	players := make([]*Player, 0, len(pids))
+	//通过pID找到对应的player对象
+	players := make([]*Player, 0, len(pIDs))
 	wm.pLock.RLock()
-	for _, pid := range pids {
-		players = append(players, wm.Players[int32(pid)])
+	for _, pID := range pIDs {
+		players = append(players, wm.Players[int32(pID)])
 	}
 	wm.pLock.RUnlock()
 

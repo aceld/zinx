@@ -3,8 +3,8 @@ package pb;                     //当前包名
 option csharp_namespace="Pb";   //给C#提供的选项
 
 //同步客户端玩家ID
-message SyncPid{
-	int32 Pid=1;
+message SyncPID{
+	int32 PID=1;
 }
 
 //玩家位置
@@ -17,7 +17,7 @@ message Position{
 
 //玩家广播数据
 message BroadCast{
-	int32 Pid=1;
+	int32 PID=1;
 	int32 Tp=2;              //1-世界聊天  2-玩家位置 3 动作 4 移动之后坐标信息更新
 	oneof Data {
         string Content=3;    //聊天的信息
@@ -33,7 +33,7 @@ message Talk{
 
 //玩家信息
 message Player{
-	int32 Pid=1;
+	int32 PID=1;
 	Position P=2;
 }
 

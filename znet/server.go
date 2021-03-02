@@ -2,9 +2,10 @@ package znet
 
 import (
 	"fmt"
+	"net"
+
 	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/ziface"
-	"net"
 )
 
 var zinxLogo = `                                        
@@ -20,7 +21,7 @@ var topLine = `┌────────────────────�
 var borderLine = `│`
 var bottomLine = `└───────────────────────────────────────────────────┘`
 
-//iServer 接口实现，定义一个Server服务类
+//Server 接口实现，定义一个Server服务类
 type Server struct {
 	//服务器的名称
 	Name string
@@ -30,7 +31,7 @@ type Server struct {
 	IP string
 	//服务绑定的端口
 	Port int
-	//当前Server的消息管理模块，用来绑定MsgId和对应的处理方法
+	//当前Server的消息管理模块，用来绑定MsgID和对应的处理方法
 	msgHandler ziface.IMsgHandle
 	//当前Server的链接管理器
 	ConnMgr ziface.IConnManager
@@ -40,9 +41,7 @@ type Server struct {
 	OnConnStop func(conn ziface.IConnection)
 }
 
-/*
-  创建一个服务器句柄
-*/
+//NewServer 创建一个服务器句柄
 func NewServer() ziface.IServer {
 	printLogo()
 
@@ -59,7 +58,7 @@ func NewServer() ziface.IServer {
 
 //============== 实现 ziface.IServer 里的全部接口方法 ========
 
-//开启网络服务
+//Start 开启网络服务
 func (s *Server) Start() {
 	fmt.Printf("[START] Server name: %s,listenner at IP: %s, Port %d is starting\n", s.Name, s.IP, s.Port)
 
@@ -86,8 +85,8 @@ func (s *Server) Start() {
 		fmt.Println("start Zinx server  ", s.Name, " succ, now listenning...")
 
 		//TODO server.go 应该有一个自动生成ID的方法
-		var cid uint32
-		cid = 0
+		var cID uint32
+		cID = 0
 
 		//3 启动server网络连接业务
 		for {
@@ -106,8 +105,8 @@ func (s *Server) Start() {
 			}
 
 			//3.3 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
-			dealConn := NewConntion(s, conn, cid, s.msgHandler)
-			cid++
+			dealConn := NewConntion(s, conn, cID, s.msgHandler)
+			cID++
 
 			//3.4 启动当前链接的处理业务
 			go dealConn.Start()
@@ -115,7 +114,7 @@ func (s *Server) Start() {
 	}()
 }
 
-//停止服务
+//Stop 停止服务
 func (s *Server) Stop() {
 	fmt.Println("[STOP] Zinx server , name ", s.Name)
 
@@ -123,7 +122,7 @@ func (s *Server) Stop() {
 	s.ConnMgr.ClearConn()
 }
 
-//运行服务
+//Serve 运行服务
 func (s *Server) Serve() {
 	s.Start()
 
@@ -133,27 +132,27 @@ func (s *Server) Serve() {
 	select {}
 }
 
-//路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
-func (s *Server) AddRouter(msgId uint32, router ziface.IRouter) {
-	s.msgHandler.AddRouter(msgId, router)
+//AddRouter 路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
+func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
+	s.msgHandler.AddRouter(msgID, router)
 }
 
-//得到链接管理
+//GetConnMgr 得到链接管理
 func (s *Server) GetConnMgr() ziface.IConnManager {
 	return s.ConnMgr
 }
 
-//设置该Server的连接创建时Hook函数
+//SetOnConnStart 设置该Server的连接创建时Hook函数
 func (s *Server) SetOnConnStart(hookFunc func(ziface.IConnection)) {
 	s.OnConnStart = hookFunc
 }
 
-//设置该Server的连接断开时的Hook函数
+//SetOnConnStop 设置该Server的连接断开时的Hook函数
 func (s *Server) SetOnConnStop(hookFunc func(ziface.IConnection)) {
 	s.OnConnStop = hookFunc
 }
 
-//调用连接OnConnStart Hook函数
+//CallOnConnStart 调用连接OnConnStart Hook函数
 func (s *Server) CallOnConnStart(conn ziface.IConnection) {
 	if s.OnConnStart != nil {
 		fmt.Println("---> CallOnConnStart....")
@@ -161,14 +160,13 @@ func (s *Server) CallOnConnStart(conn ziface.IConnection) {
 	}
 }
 
-//调用连接OnConnStop Hook函数
+//CallOnConnStop 调用连接OnConnStop Hook函数
 func (s *Server) CallOnConnStop(conn ziface.IConnection) {
 	if s.OnConnStop != nil {
 		fmt.Println("---> CallOnConnStop....")
 		s.OnConnStop(conn)
 	}
 }
-
 
 func printLogo() {
 	fmt.Println(zinxLogo)

@@ -4,19 +4,20 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/aceld/zinx/zinx_app_demo/mmo_game/pb"
-	"github.com/golang/protobuf/proto"
 	"io"
 	"math/rand"
 	"net"
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/aceld/zinx/zinx_app_demo/mmo_game/pb"
+	"github.com/golang/protobuf/proto"
 )
 
 type Message struct {
 	Len   uint32
-	MsgId uint32
+	MsgID uint32
 	Data  []byte
 }
 
@@ -26,7 +27,7 @@ type TcpClient struct {
 	Y        float32
 	Z        float32
 	V        float32
-	Pid      int32
+	PID      int32
 	isOnline chan bool
 }
 
@@ -40,8 +41,8 @@ func (this *TcpClient) Unpack(headdata []byte) (head *Message, err error) {
 		return nil, err
 	}
 
-	// 读取MsgId
-	if err = binary.Read(headBuf, binary.LittleEndian, &head.MsgId); err != nil {
+	// 读取MsgID
+	if err = binary.Read(headBuf, binary.LittleEndian, &head.MsgID); err != nil {
 		return nil, err
 	}
 
@@ -53,14 +54,14 @@ func (this *TcpClient) Unpack(headdata []byte) (head *Message, err error) {
 	return head, nil
 }
 
-func (this *TcpClient) Pack(msgId uint32, dataBytes []byte) (out []byte, err error) {
+func (this *TcpClient) Pack(msgID uint32, dataBytes []byte) (out []byte, err error) {
 	outbuff := bytes.NewBuffer([]byte{})
 	// 写Len
 	if err = binary.Write(outbuff, binary.LittleEndian, uint32(len(dataBytes))); err != nil {
 		return
 	}
-	// 写MsgId
-	if err = binary.Write(outbuff, binary.LittleEndian, msgId); err != nil {
+	// 写MsgID
+	if err = binary.Write(outbuff, binary.LittleEndian, msgID); err != nil {
 		return
 	}
 
@@ -99,7 +100,7 @@ func (this *TcpClient) AIRobotAction() {
 	//随机获得动作
 	tp := rand.Intn(2)
 	if tp == 0 {
-		content := fmt.Sprintf("hello 我是player %d, 你是谁?", this.Pid)
+		content := fmt.Sprintf("hello 我是player %d, 你是谁?", this.PID)
 		msg := &pb.Talk{
 			Content: content,
 		}
@@ -147,7 +148,7 @@ func (this *TcpClient) AIRobotAction() {
 			V: v,
 		}
 
-		fmt.Println(fmt.Sprintf("player ID: %d. Walking...", this.Pid))
+		fmt.Println(fmt.Sprintf("player ID: %d. Walking...", this.PID))
 		//发送移动MsgID:3的指令
 		this.SendMsg(3, msg)
 	}
@@ -158,17 +159,17 @@ func (this *TcpClient) AIRobotAction() {
 */
 func (this *TcpClient) DoMsg(msg *Message) {
 	//处理消息
-	//fmt.Println(fmt.Sprintf("msg id :%d, data len: %d", msg.MsgId, msg.Len))
-	if msg.MsgId == 1 {
+	//fmt.Println(fmt.Sprintf("msg ID :%d, data len: %d", msg.MsgID, msg.Len))
+	if msg.MsgID == 1 {
 		//服务器回执给客户端 分配ID
 
 		//解析proto
-		syncpid := &pb.SyncPid{}
-		_ = proto.Unmarshal(msg.Data, syncpid)
+		syncpID := &pb.SyncPID{}
+		_ = proto.Unmarshal(msg.Data, syncpID)
 
 		//给当前客户端ID进行赋值
-		this.Pid = syncpid.Pid
-	} else if msg.MsgId == 200 {
+		this.PID = syncpID.PID
+	} else if msg.MsgID == 200 {
 		//服务器回执客户端广播数据
 
 		//解析proto
@@ -176,20 +177,20 @@ func (this *TcpClient) DoMsg(msg *Message) {
 		_ = proto.Unmarshal(msg.Data, bdata)
 
 		//初次玩家上线 广播位置消息
-		if bdata.Tp == 2 && bdata.Pid == this.Pid {
+		if bdata.Tp == 2 && bdata.PID == this.PID {
 			//本人
 			//更新客户端坐标
 			this.X = bdata.GetP().X
 			this.Y = bdata.GetP().Y
 			this.Z = bdata.GetP().Z
 			this.V = bdata.GetP().V
-			fmt.Println(fmt.Sprintf("player ID: %d online.. at(%f,%f,%f,%f)", bdata.Pid, this.X, this.Y, this.Z, this.V))
+			fmt.Println(fmt.Sprintf("player ID: %d online.. at(%f,%f,%f,%f)", bdata.PID, this.X, this.Y, this.Z, this.V))
 
 			//玩家已经成功上线
 			this.isOnline <- true
 
 		} else if bdata.Tp == 1 {
-			fmt.Println(fmt.Sprintf("世界聊天,玩家%d说的话是: %s", bdata.Pid, bdata.GetContent()))
+			fmt.Println(fmt.Sprintf("世界聊天,玩家%d说的话是: %s", bdata.PID, bdata.GetContent()))
 		}
 	}
 }
@@ -197,7 +198,7 @@ func (this *TcpClient) DoMsg(msg *Message) {
 func (this *TcpClient) Start() {
 	go func() {
 		for {
-			//读取服务端发来的数据 ==》 SyncPid
+			//读取服务端发来的数据 ==》 SyncPID
 			//1.读取8字节
 			//第一次读取，读取数据头
 			headData := make([]byte, 8)
@@ -249,7 +250,7 @@ func NewTcpClient(ip string, port int) *TcpClient {
 
 	client := &TcpClient{
 		conn:     conn,
-		Pid:      0,
+		PID:      0,
 		X:        0,
 		Y:        0,
 		Z:        0,

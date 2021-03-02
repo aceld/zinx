@@ -58,7 +58,7 @@ func TestDataPack(t *testing.T) {
 							return
 						}
 
-						fmt.Println("==> Recv Msg: ID=", msg.Id, ", len=", msg.DataLen, ", data=", string(msg.Data))
+						fmt.Println("==> Recv Msg: ID=", msg.ID, ", len=", msg.DataLen, ", data=", string(msg.Data))
 					}
 				}
 			}(conn)
@@ -78,7 +78,7 @@ func TestDataPack(t *testing.T) {
 
 		//封装一个msg1包
 		msg1 := &Message{
-			Id:      0,
+			ID:      0,
 			DataLen: 5,
 			Data:    []byte{'h', 'e', 'l', 'l', 'o'},
 		}
@@ -90,7 +90,7 @@ func TestDataPack(t *testing.T) {
 		}
 
 		msg2 := &Message{
-			Id:      1,
+			ID:      1,
 			DataLen: 7,
 			Data:    []byte{'w', 'o', 'r', 'l', 'd', '!', '!'},
 		}
