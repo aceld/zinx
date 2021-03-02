@@ -50,7 +50,7 @@ func NewConntion(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHan
 		MsgHandler:  msgHandler,
 		msgChan:     make(chan []byte),
 		msgBuffChan: make(chan []byte, utils.GlobalObject.MaxMsgChanLen),
-		property:    make(map[string]interface{}),
+		property:    nil,
 	}
 
 	//将新创建的Conn添加到链接管理中
@@ -159,18 +159,22 @@ func (c *Connection) Start() {
 
 //Stop 停止连接，结束当前连接状态M
 func (c *Connection) Stop() {
-	fmt.Println("Conn Stop()...ConnID = ", c.ConnID)
-
 	c.Lock()
 	defer c.Unlock()
 
-	//如果用户注册了该链接的关闭回调业务，那么在此刻应该显示调用
+
 	c.TCPServer.CallOnConnStop(c)
+
 
 	//如果当前链接已经关闭
 	if c.isClosed == true {
 		return
 	}
+
+	fmt.Println("Conn Stop()...ConnID = ", c.ConnID)
+
+	//如果用户注册了该链接的关闭回调业务，那么在此刻应该显示调用
+	c.TcpServer.CallOnConnStop(c)
 
 	// 关闭socket链接
 	c.Conn.Close()
@@ -205,11 +209,10 @@ func (c *Connection) RemoteAddr() net.Addr {
 //SendMsg 直接将Message数据发送数据给远程的TCP客户端
 func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 	c.RLock()
+	defer c.RUnlock()
 	if c.isClosed == true {
-		c.RUnlock()
 		return errors.New("connection closed when send msg")
 	}
-	c.RUnlock()
 
 	//将data封包，并且发送
 	dp := NewDataPack()
@@ -228,11 +231,10 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 //SendBuffMsg  发生BuffMsg
 func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 	c.RLock()
+	defer c.RUnlock()
 	if c.isClosed == true {
-		c.RUnlock()
 		return errors.New("Connection closed when send buff msg")
 	}
-	c.RUnlock()
 
 	//将data封包，并且发送
 	dp := NewDataPack()
@@ -252,6 +254,9 @@ func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 func (c *Connection) SetProperty(key string, value interface{}) {
 	c.propertyLock.Lock()
 	defer c.propertyLock.Unlock()
+	if c.property == nil {
+		c.property = make(map[string]interface{})
+	}
 
 	c.property[key] = value
 }
@@ -274,4 +279,9 @@ func (c *Connection) RemoveProperty(key string) {
 	defer c.propertyLock.Unlock()
 
 	delete(c.property, key)
+}
+
+//返回ctx，用于用户自定义的go程获取连接退出状态
+func (c *Connection) Context() context.Context {
+	return c.ctx
 }
