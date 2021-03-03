@@ -174,7 +174,7 @@ func (c *Connection) Stop() {
 	fmt.Println("Conn Stop()...ConnID = ", c.ConnID)
 
 	//如果用户注册了该链接的关闭回调业务，那么在此刻应该显示调用
-	c.TcpServer.CallOnConnStop(c)
+	c.TCPServer.CallOnConnStop(c)
 
 	// 关闭socket链接
 	c.Conn.Close()
