@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
 )
@@ -43,7 +44,8 @@ func main() {
 	s := znet.NewServer()
 
 	//配置路由
-	s.AddRouter(&PingRouter{})
+	// s.AddRouter(&PingRouter{})
+	s.AddRouter(4, &PingRouter{})
 
 	//开启服务
 	s.Serve()
