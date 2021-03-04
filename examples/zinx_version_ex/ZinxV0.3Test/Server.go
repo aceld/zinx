@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
 )
@@ -40,10 +41,11 @@ func (this *PingRouter) PostHandle(request ziface.IRequest) {
 
 func main() {
 	//创建一个server句柄
-	s := znet.NewServer("[zinx V0.3]")
+	// s := znet.NewServer("[zinx V0.3]")
+	s := znet.NewServer()
 
-	s.AddRouter(&PingRouter{})
-
+	// s.AddRouter(&PingRouter{})
+	s.AddRouter(3, &PingRouter{})
 	//2 开启服务
 	s.Serve()
 }

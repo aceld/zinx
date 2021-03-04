@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/aceld/zinx/znet"
 	"io"
 	"net"
+
+	"github.com/aceld/zinx/znet"
 )
 
 //只是负责测试datapack拆包，封包功能
@@ -55,7 +56,7 @@ func main() {
 						return
 					}
 
-					fmt.Println("==> Recv Msg: ID=", msg.Id, ", len=", msg.DataLen, ", data=", string(msg.Data))
+					fmt.Println("==> Recv Msg: ID=", msg.ID, ", len=", msg.DataLen, ", data=", string(msg.Data))
 				}
 			}
 		}(conn)
