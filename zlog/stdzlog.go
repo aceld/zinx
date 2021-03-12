@@ -1,3 +1,12 @@
+// Package zlog 主要提供zinx相关日志记录接口
+// 包括:
+//		stdzlog模块， 提供全局日志方法
+//		zlogger模块,  日志内部定义协议，均为对象类方法
+//
+// 当前文件描述:
+// @Title  stdzlog.go
+// @Description    包裹zlogger日志方法，提供全局方法
+// @Author  Aceld - Thu Mar 11 10:32:29 CST 2019
 package zlog
 
 /*

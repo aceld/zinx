@@ -1,3 +1,12 @@
+// Package utils 提供zinx相关工具类函数
+// 包括:
+//		全局配置
+//		配置文件加载
+//
+// 当前文件描述:
+// @Title  globalobj.go
+// @Description  相关配置文件定义及加载方式
+// @Author  Aceld - Thu Mar 11 10:32:29 CST 2019
 package utils
 
 import (
@@ -114,6 +123,6 @@ func init() {
 		LogDebugClose:    false,
 	}
 
-	//从配置文件中加载一些用户配置的参数
+	//NOTE: 从配置文件中加载一些用户配置的参数
 	GlobalObject.Reload()
 }

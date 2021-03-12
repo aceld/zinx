@@ -1,3 +1,12 @@
+// Package zlog 主要提供zinx相关日志记录接口
+// 包括:
+//		stdzlog模块， 提供全局日志方法
+//		zlogger模块,  日志内部定义协议，均为对象类方法
+//
+// 当前文件描述:
+// @Title  zlogger.go
+// @Description    基础日志接口，包括Debug、Fatal等
+// @Author  Aceld - Thu Mar 11 10:32:29 CST 2019
 package zlog
 
 /*
@@ -25,9 +34,9 @@ const (
 	BitDate         = 1 << iota                            //日期标记位  2019/01/23
 	BitTime                                                //时间标记位  01:23:12
 	BitMicroSeconds                                        //微秒级标记位 01:23:12.111222
-	BitLongFile                                            // 完整文件名称 /home/go/src/zinx/server.go
-	BitShortFile                                           // 最后文件名   server.go
-	BitLevel                                               // 当前日志级别： 0(Debug), 1(Info), 2(Warn), 3(Error), 4(Panic), 5(Fatal)
+	BitLongFile                                            //完整文件名称 /home/go/src/zinx/server.go
+	BitShortFile                                           //最后文件名   server.go
+	BitLevel                                               //当前日志级别： 0(Debug), 1(Info), 2(Warn), 3(Error), 4(Panic), 5(Fatal)
 	BitStdFlag      = BitDate | BitTime                    //标准头部日志格式
 	BitDefault      = BitLevel | BitShortFile | BitStdFlag //默认日志头部格式
 )
@@ -53,22 +62,14 @@ var levels = []string{
 }
 
 type ZinxLogger struct {
-	//确保多协程读写文件，防止文件内容混乱，做到协程安全
-	mu sync.Mutex
-	//每行log日志的前缀字符串,拥有日志标记
-	prefix string
-	//日志标记位
-	flag int
-	//日志输出的文件描述符
-	out io.Writer
-	//输出的缓冲区
-	buf bytes.Buffer
-	//当前日志绑定的输出文件
-	file *os.File
-	//是否打印调试debug信息
-	debugClose bool
-	//获取日志文件名和代码上述的runtime.Call 的函数调用层数
-	calldDepth int
+	mu sync.Mutex 		//确保多协程读写文件，防止文件内容混乱，做到协程安全
+	prefix string 		//每行log日志的前缀字符串,拥有日志标记
+	flag int 			//日志标记位
+	out io.Writer 		//日志输出的文件描述符
+	buf bytes.Buffer 	//输出的缓冲区
+	file *os.File 		//当前日志绑定的输出文件
+	debugClose bool 	//是否打印调试debug信息
+	calldDepth int 		//获取日志文件名和代码上述的runtime.Call 的函数调用层数
 }
 
 /*
