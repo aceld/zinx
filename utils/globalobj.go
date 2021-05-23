@@ -2,6 +2,7 @@
 // 包括:
 //		全局配置
 //		配置文件加载
+//      buffer池
 //
 // 当前文件描述:
 // @Title  globalobj.go

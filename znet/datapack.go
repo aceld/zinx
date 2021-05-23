@@ -26,7 +26,8 @@ func (dp *DataPack) GetHeadLen() uint32 {
 //Pack 封包方法(压缩数据)
 func (dp *DataPack) Pack(msg ziface.IMessage) ([]byte, error) {
 	//创建一个存放bytes字节的缓冲
-	dataBuff := bytes.NewBuffer([]byte{})
+	dataBuff := utils.NewBuffer()
+	defer utils.PutBuffer(dataBuff)
 
 	//写dataLen
 	if err := binary.Write(dataBuff, binary.LittleEndian, msg.GetDataLen()); err != nil {
