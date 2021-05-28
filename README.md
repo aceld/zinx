@@ -10,6 +10,7 @@ Zinx 是一个基于Golang的轻量级并发服务器框架
 -   张超([@zhngcho](https://github.com/zhngcho))
 -   高智辉Roger([@adsian](https://github.com/adsian))
 -   胡贵建([@huguijian](https://github.com/huguijian))
+-   张继瑀([@kstwoak](https://github.com/huguijian))
 
 
 ---
@@ -85,7 +86,34 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 [![Stargazers over time](https://starchart.cc/aceld/zinx.svg)](https://starchart.cc/aceld/zinx)
 
 
-## 二、初探Zinx架构
+## 二、快速启动
+
+```
+# 克隆项目
+$ git clone https://github.com/aceld/zinx.git
+
+# 进入服务端样例目录
+$ cd ./zinx/examples/zinx_server
+
+# 服务端编译
+$ make build
+
+# 服务端容器化
+$ make image
+
+# 服务端启动
+$ make run 
+
+# 进入客户端样例目录
+$ cd ../zinx_client
+
+# 启动客户端进行测试
+$ go run main.go 
+
+```
+
+
+## 三、初探Zinx架构
 
 ![1-Zinx框架.png](https://camo.githubusercontent.com/903d1431358fa6f4634ebaae3b49a28d97e23d77/68747470733a2f2f75706c6f61642d696d616765732e6a69616e7368752e696f2f75706c6f61645f696d616765732f31313039333230352d633735666636383232333362323533362e706e673f696d6167654d6f6772322f6175746f2d6f7269656e742f7374726970253743696d61676556696577322f322f772f31323430)
 
