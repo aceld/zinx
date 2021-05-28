@@ -3,7 +3,8 @@
 
 Zinx 是一个基于Golang的轻量级并发服务器框架
 
-> **说明**:目前zinx已经在很多企业进行开发使用，具体使用领域包括:后端模块的消息中转、长链接游戏服务器、Web框架中的消息处理插件等。zinx的定位是代码简洁，让更多的开发者迅速的了解框架的内脏细节并且可以快速基于zinx DIY一款适合自己企业场景的模块。
+> **说明**:目前zinx已经在很多企业进行开发使用，具体使用领域包括:后端模块的消息中转、长链接游戏服务器、Web框架中的消息处理插件等。zinx的定位是代码简洁，让更多的开发者迅速的了解框架的内脏细节并且可以快速基于zinx DIY(二次开发)一款适合自己企业场景的模块。
+
 
 #### 开发者
 -   刘丹冰([@aceld](https://github.com/aceld))
@@ -397,6 +398,40 @@ func (c *Connection) GetProperty(key string) (interface{}, error)
 func (c *Connection) RemoveProperty(key string) 
 ```
 
+---
+
+#### 开发者
+-   刘丹冰([@aceld](https://github.com/aceld))
+-   张超([@zhngcho](https://github.com/zhngcho))
+-   高智辉Roger([@adsian](https://github.com/adsian))
+-   胡贵建([@huguijian](https://github.com/huguijian))
+
+
+---
+[zinx(C++版本)](https://github.com/marklion/zinx)
+#### 开发者
+-  刘洋([@marklion](https://github.com/marklion))
+
+
+---
+[zinx(Lua版本)](https://github.com/huqitt/zinx-lua)
+#### 开发者
+-  胡琪([@huqitt](https://github.com/huqitt))
+
+---
+[zinx(websocket版本)](https://github.com/aceld/zinx/tree/wsserver)
+#### 开发者
+-  胡贵建([@huguijian](https://github.com/huguijian))
+
+---
+
+感谢所有为zinx贡献的开发者
+
+
+<a href="https://github.com/aceld/zinx/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=aceld/zinx" />
+</a>    
+
 
 ---
 ### 关于作者：
@@ -424,4 +459,4 @@ func (c *Connection) RemoveProperty(key string)
 
 ### **微信群**
 <img src="https://s1.ax1x.com/2020/07/07/UF6rNV.png" width = "200" height = "230" alt="weixin" />
-欢迎大家加入，获取更多相关学习资料
+欢迎大家加入，一起学习分享

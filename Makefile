@@ -21,8 +21,8 @@ LD_FLAGS='-X "$(SERVICE)/version.TAG=$(TAG)" -X "$(SERVICE)/version.VERSION=$(VE
 default: build
 
 build:
-	go build  -ldflags $(LD_FLAGS) -gcflags "-N" -i -o $(SERVER_DEMO_BIN) $(SERVER_DEMO_PATH)/main.go
-	go build  -ldflags $(LD_FLAGS) -gcflags "-N" -i -o $(CLIENT_DEMO_BIN) $(CLIENT_DEMO_PATH)/main.go
+	go build  -ldflags $(LD_FLAGS) -gcflags "-N"  -o $(SERVER_DEMO_BIN) $(SERVER_DEMO_PATH)/main.go
+	go build  -ldflags $(LD_FLAGS) -gcflags "-N"  -o $(CLIENT_DEMO_BIN) $(CLIENT_DEMO_PATH)/main.go
 clean:
 	rm $(SERVER_DEMO_BIN)
 	rm $(CLIENT_DEMO_BIN)
