@@ -6,6 +6,30 @@ Zinx 是一个基于Golang的轻量级并发服务器框架
 > **说明**:目前zinx已经在很多企业进行开发使用，具体使用领域包括:后端模块的消息中转、长链接游戏服务器、Web框架中的消息处理插件等。zinx的定位是代码简洁，让更多的开发者迅速的了解框架的内脏细节并且可以快速基于zinx DIY(二次开发)一款适合自己企业场景的模块。
 
 
+#### 开发者
+-   刘丹冰([@aceld](https://github.com/aceld))
+-   张超([@zhngcho](https://github.com/zhngcho))
+-   高智辉Roger([@adsian](https://github.com/adsian))
+-   胡贵建([@huguijian](https://github.com/huguijian))
+-   张继瑀([@kstwoak](https://github.com/huguijian))
+
+
+---
+[zinx(C++版本)](https://github.com/marklion/zinx)
+#### 开发者
+-  刘洋([@marklion](https://github.com/marklion))
+
+
+---
+[zinx(Lua版本)](https://github.com/huqitt/zinx-lua)
+#### 开发者
+-  胡琪([@huqitt](https://github.com/huqitt))
+
+---
+[zinx(websocket版本)](https://github.com/aceld/zinx/tree/wsserver)
+#### 开发者
+-  胡贵建([@huguijian](https://github.com/huguijian))
+
 ---
 ## zinx源码地址
 ### Github
@@ -63,7 +87,34 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 [![Stargazers over time](https://starchart.cc/aceld/zinx.svg)](https://starchart.cc/aceld/zinx)
 
 
-## 二、初探Zinx架构
+## 二、快速启动
+
+```
+# 克隆项目
+$ git clone https://github.com/aceld/zinx.git
+
+# 进入服务端样例目录
+$ cd ./zinx/examples/zinx_server
+
+# 服务端编译
+$ make build
+
+# 服务端容器化
+$ make image
+
+# 服务端启动
+$ make run 
+
+# 进入客户端样例目录
+$ cd ../zinx_client
+
+# 启动客户端进行测试
+$ go run main.go 
+
+```
+
+
+## 三、初探Zinx架构
 
 ![1-Zinx框架.png](https://camo.githubusercontent.com/903d1431358fa6f4634ebaae3b49a28d97e23d77/68747470733a2f2f75706c6f61642d696d616765732e6a69616e7368752e696f2f75706c6f61645f696d616765732f31313039333230352d633735666636383232333362323533362e706e673f696d6167654d6f6772322f6175746f2d6f7269656e742f7374726970253743696d61676556696577322f322f772f31323430)
 
