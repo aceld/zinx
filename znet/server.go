@@ -105,7 +105,7 @@ func (s *Server) Start() {
 			}
 
 			//3.3 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
-			dealConn := NewConntion(s, conn, cID, s.msgHandler)
+			dealConn := NewConnection(s, conn, cID, s.msgHandler)
 			cID++
 
 			//3.4 启动当前链接的处理业务

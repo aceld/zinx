@@ -39,8 +39,8 @@ type Connection struct {
 	isClosed bool
 }
 
-//NewConntion 创建连接的方法
-func NewConntion(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandle) *Connection {
+//NewConnection 创建连接的方法
+func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandle) *Connection {
 	//初始化Conn属性
 	c := &Connection{
 		TCPServer:   server,
