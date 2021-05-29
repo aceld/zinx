@@ -39,10 +39,12 @@ type Server struct {
 	OnConnStart func(conn ziface.IConnection)
 	//该Server的连接断开时的Hook函数
 	OnConnStop func(conn ziface.IConnection)
+
+	packet ziface.Packet
 }
 
 //NewServer 创建一个服务器句柄
-func NewServer() ziface.IServer {
+func NewServer(opts ...Option) ziface.IServer {
 	printLogo()
 
 	s := &Server{
@@ -52,7 +54,13 @@ func NewServer() ziface.IServer {
 		Port:       utils.GlobalObject.TCPPort,
 		msgHandler: NewMsgHandle(),
 		ConnMgr:    NewConnManager(),
+		packet:     NewDataPack(),
 	}
+
+	for _, opt := range opts {
+		opt(s)
+	}
+
 	return s
 }
 
@@ -166,6 +174,10 @@ func (s *Server) CallOnConnStop(conn ziface.IConnection) {
 		fmt.Println("---> CallOnConnStop....")
 		s.OnConnStop(conn)
 	}
+}
+
+func (s *Server) Packet() ziface.Packet {
+	return s.packet
 }
 
 func printLogo() {

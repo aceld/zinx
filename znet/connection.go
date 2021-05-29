@@ -96,16 +96,14 @@ func (c *Connection) StartReader() {
 	defer c.Stop()
 
 	// 创建拆包解包的对象
-	dp := NewDataPack()
 	for {
 		select {
 		case <-c.ctx.Done():
 			return
 		default:
 
-
 			//读取客户端的Msg head
-			headData := make([]byte, dp.GetHeadLen())
+			headData := make([]byte, c.TCPServer.Packet().GetHeadLen())
 			if _, err := io.ReadFull(c.Conn, headData); err != nil {
 				fmt.Println("read msg head error ", err)
 				return
@@ -113,7 +111,7 @@ func (c *Connection) StartReader() {
 			//fmt.Printf("read headData %+v\n", headData)
 
 			//拆包，得到msgID 和 datalen 放在msg中
-			msg, err := dp.Unpack(headData)
+			msg, err := c.TCPServer.Packet().Unpack(headData)
 			if err != nil {
 				fmt.Println("unpack error ", err)
 				return
@@ -214,7 +212,7 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 	}
 
 	//将data封包，并且发送
-	dp := NewDataPack()
+	dp := c.TCPServer.Packet()
 	msg, err := dp.Pack(NewMsgPackage(msgID, data))
 	if err != nil {
 		fmt.Println("Pack error msg ID = ", msgID)
@@ -236,7 +234,7 @@ func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 	}
 
 	//将data封包，并且发送
-	dp := NewDataPack()
+	dp := c.TCPServer.Packet()
 	msg, err := dp.Pack(NewMsgPackage(msgID, data))
 	if err != nil {
 		fmt.Println("Pack error msg ID = ", msgID)
