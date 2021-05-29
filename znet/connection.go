@@ -95,13 +95,14 @@ func (c *Connection) StartReader() {
 	defer fmt.Println(c.RemoteAddr().String(), "[conn Reader exit!]")
 	defer c.Stop()
 
+	// 创建拆包解包的对象
+	dp := NewDataPack()
 	for {
 		select {
 		case <-c.ctx.Done():
 			return
 		default:
-			// 创建拆包解包的对象
-			dp := NewDataPack()
+
 
 			//读取客户端的Msg head
 			headData := make([]byte, dp.GetHeadLen())
