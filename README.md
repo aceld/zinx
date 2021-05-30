@@ -5,31 +5,6 @@ Zinx 是一个基于Golang的轻量级并发服务器框架
 
 > **说明**:目前zinx已经在很多企业进行开发使用，具体使用领域包括:后端模块的消息中转、长链接游戏服务器、Web框架中的消息处理插件等。zinx的定位是代码简洁，让更多的开发者迅速的了解框架的内脏细节并且可以快速基于zinx DIY(二次开发)一款适合自己企业场景的模块。
 
-
-#### 开发者
--   刘丹冰([@aceld](https://github.com/aceld))
--   张超([@zhngcho](https://github.com/zhngcho))
--   高智辉Roger([@adsian](https://github.com/adsian))
--   胡贵建([@huguijian](https://github.com/huguijian))
--   张继瑀([@kstwoak](https://github.com/huguijian))
-
-
----
-[zinx(C++版本)](https://github.com/marklion/zinx)
-#### 开发者
--  刘洋([@marklion](https://github.com/marklion))
-
-
----
-[zinx(Lua版本)](https://github.com/huqitt/zinx-lua)
-#### 开发者
--  胡琪([@huqitt](https://github.com/huqitt))
-
----
-[zinx(websocket版本)](https://github.com/aceld/zinx/tree/wsserver)
-#### 开发者
--  胡贵建([@huguijian](https://github.com/huguijian))
-
 ---
 ## zinx源码地址
 ### Github
@@ -89,7 +64,7 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 
 ## 二、快速启动
 
-```
+```bash
 # 克隆项目
 $ git clone https://github.com/aceld/zinx.git
 
@@ -405,6 +380,7 @@ func (c *Connection) RemoveProperty(key string)
 -   张超([@zhngcho](https://github.com/zhngcho))
 -   高智辉Roger([@adsian](https://github.com/adsian))
 -   胡贵建([@huguijian](https://github.com/huguijian))
+-   张继瑀([@kstwoak](https://github.com/huguijian))
 
 
 ---
