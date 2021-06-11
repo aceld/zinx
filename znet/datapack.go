@@ -9,18 +9,20 @@ import (
 	"github.com/aceld/zinx/ziface"
 )
 
+var defaultHeaderLen uint32 = 8
+
 //DataPack 封包拆包类实例，暂时不需要成员
 type DataPack struct{}
 
 //NewDataPack 封包拆包实例初始化方法
-func NewDataPack() *DataPack {
+func NewDataPack() ziface.Packet {
 	return &DataPack{}
 }
 
 //GetHeadLen 获取包头长度方法
 func (dp *DataPack) GetHeadLen() uint32 {
 	//ID uint32(4字节) +  DataLen uint32(4字节)
-	return 8
+	return defaultHeaderLen
 }
 
 //Pack 封包方法(压缩数据)

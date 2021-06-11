@@ -39,8 +39,8 @@ type Connection struct {
 	isClosed bool
 }
 
-//NewConntion 创建连接的方法
-func NewConntion(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandle) *Connection {
+//NewConnection 创建连接的方法
+func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandle) *Connection {
 	//初始化Conn属性
 	c := &Connection{
 		TCPServer:   server,
@@ -95,16 +95,15 @@ func (c *Connection) StartReader() {
 	defer fmt.Println(c.RemoteAddr().String(), "[conn Reader exit!]")
 	defer c.Stop()
 
+	// 创建拆包解包的对象
 	for {
 		select {
 		case <-c.ctx.Done():
 			return
 		default:
-			// 创建拆包解包的对象
-			dp := NewDataPack()
 
 			//读取客户端的Msg head
-			headData := make([]byte, dp.GetHeadLen())
+			headData := make([]byte, c.TCPServer.Packet().GetHeadLen())
 			if _, err := io.ReadFull(c.Conn, headData); err != nil {
 				fmt.Println("read msg head error ", err)
 				return
@@ -112,7 +111,7 @@ func (c *Connection) StartReader() {
 			//fmt.Printf("read headData %+v\n", headData)
 
 			//拆包，得到msgID 和 datalen 放在msg中
-			msg, err := dp.Unpack(headData)
+			msg, err := c.TCPServer.Packet().Unpack(headData)
 			if err != nil {
 				fmt.Println("unpack error ", err)
 				return
@@ -213,7 +212,7 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 	}
 
 	//将data封包，并且发送
-	dp := NewDataPack()
+	dp := c.TCPServer.Packet()
 	msg, err := dp.Pack(NewMsgPackage(msgID, data))
 	if err != nil {
 		fmt.Println("Pack error msg ID = ", msgID)
@@ -235,7 +234,7 @@ func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 	}
 
 	//将data封包，并且发送
-	dp := NewDataPack()
+	dp := c.TCPServer.Packet()
 	msg, err := dp.Pack(NewMsgPackage(msgID, data))
 	if err != nil {
 		fmt.Println("Pack error msg ID = ", msgID)
