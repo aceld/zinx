@@ -97,7 +97,8 @@ func CleanZinxLog(log *ZinxLogger) {
 /*
    制作当条日志数据的 格式头信息
 */
-func (log *ZinxLogger) formatHeader(buf *bytes.Buffer, t time.Time, file string, line int, level int) {
+func (log *ZinxLogger) formatHeader(t time.Time, file string, line int, level int) {
+	var buf *bytes.Buffer = &log.buf
 	//如果当前前缀字符串不为空，那么需要先写前缀
 	if log.prefix != "" {
 		buf.WriteByte('<')
@@ -187,7 +188,7 @@ func (log *ZinxLogger) OutPut(level int, s string) error {
 	//清零buf
 	log.buf.Reset()
 	//写日志头
-	log.formatHeader(&log.buf, now, file, line, level)
+	log.formatHeader(now, file, line, level)
 	//写日志内容
 	log.buf.WriteString(s)
 	//补充回车
