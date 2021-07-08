@@ -78,7 +78,7 @@ func (connMgr *ConnManager) ClearConn() {
 func (connMgr *ConnManager) ClearOneConn(connID uint32) {
 	connections:=connMgr.connections.Load().(map[uint32]ziface.IConnection)
 
-	if conn, ok := connections[connID]; !ok {
+	if conn, ok := connections[connID]; ok {
 		//停止
 		conn.Stop()
 		//删除
