@@ -85,8 +85,7 @@ func (s *Server) Start() {
 		//2 监听服务器地址
 		listener, err := net.ListenTCP(s.IPVersion, addr)
 		if err != nil {
-			fmt.Println("listen", s.IPVersion, "err", err)
-			return
+			panic(err)
 		}
 
 		//已经监听成功
