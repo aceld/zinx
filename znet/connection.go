@@ -158,11 +158,12 @@ func (c *Connection) Start() {
 
 //Stop 停止连接，结束当前连接状态M
 func (c *Connection) Stop() {
-	c.Lock()
-	defer c.Unlock()
 
 	//如果用户注册了该链接的关闭回调业务，那么在此刻应该显示调用
 	c.TCPServer.CallOnConnStop(c)
+
+	c.Lock()
+	defer c.Unlock()
 
 	//如果当前链接已经关闭
 	if c.isClosed == true {

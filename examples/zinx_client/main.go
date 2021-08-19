@@ -56,7 +56,7 @@ func main() {
 				return
 			}
 
-			// fmt.Println("==> Test Router:[Ping] Recv Msg: ID=", msg.Id ", len=", msg.DataLen, ", data=", string(msg.Data))
+			fmt.Println("==> Test Router:[Ping] Recv Msg: ID=", msg.ID, ", len=", msg.DataLen, ", data=", string(msg.Data))
 		}
 
 		time.Sleep(1 * time.Second)
