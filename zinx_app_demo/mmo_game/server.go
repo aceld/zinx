@@ -41,7 +41,7 @@ func OnConnectionLost(conn ziface.IConnection) {
 	player := core.WorldMgrObj.GetPlayerByPID(pID.(int32))
 
 	//触发玩家下线业务
-	if pID != nil {
+	if player != nil {
 		player.LostConnection()
 	}
 
