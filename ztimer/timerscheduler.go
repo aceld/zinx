@@ -34,8 +34,6 @@ type TimerScheduler struct {
 	triggerChan chan *DelayFunc
 	//互斥锁
 	sync.RWMutex
-	//所有注册的timerID集合
-	IDs []uint32
 }
 
 // NewTimerScheduler 返回一个定时器调度器 ，主要创建分层定时器，并做关联，并依次启动
@@ -60,7 +58,6 @@ func NewTimerScheduler() *TimerScheduler {
 	return &TimerScheduler{
 		tw:          hourTw,
 		triggerChan: make(chan *DelayFunc, MaxChanBuff),
-		IDs:         make([]uint32, 0),
 	}
 }
 
@@ -70,7 +67,6 @@ func (ts *TimerScheduler) CreateTimerAt(df *DelayFunc, unixNano int64) (uint32, 
 	defer ts.Unlock()
 
 	ts.IDGen++
-	ts.IDs = append(ts.IDs, ts.IDGen)
 	return ts.IDGen, ts.tw.AddTimer(ts.IDGen, NewTimerAt(df, unixNano))
 }
 
@@ -80,7 +76,6 @@ func (ts *TimerScheduler) CreateTimerAfter(df *DelayFunc, duration time.Duration
 	defer ts.Unlock()
 
 	ts.IDGen++
-	ts.IDs = append(ts.IDs, ts.IDGen)
 	return ts.IDGen, ts.tw.AddTimer(ts.IDGen, NewTimerAfter(df, duration))
 }
 
@@ -88,33 +83,17 @@ func (ts *TimerScheduler) CreateTimerAfter(df *DelayFunc, duration time.Duration
 func (ts *TimerScheduler) CancelTimer(tID uint32) {
 	ts.Lock()
 	ts.Unlock()
-	//ts.tw.RemoveTimer(tID)  这个方法无效
-	//删除timerID
-	var index = -1
-	for i := 0; i < len(ts.IDs); i++ {
-		if ts.IDs[i] == tID {
-			index = i
-		}
-	}
 
-	if index > -1 {
-		ts.IDs = append(ts.IDs[:index], ts.IDs[index+1:]...)
+	tw := ts.tw
+	for tw != nil {
+		tw.RemoveTimer(tID)
+		tw = tw.nextTimeWheel
 	}
 }
 
 //GetTriggerChan 获取计时结束的延迟执行函数通道
 func (ts *TimerScheduler) GetTriggerChan() chan *DelayFunc {
 	return ts.triggerChan
-}
-
-// HasTimer 是否有时间轮
-func (ts *TimerScheduler) HasTimer(tID uint32) bool {
-	for i := 0; i < len(ts.IDs); i++ {
-		if ts.IDs[i] == tID {
-			return true
-		}
-	}
-	return false
 }
 
 //Start 非阻塞的方式启动timerSchedule
@@ -125,15 +104,12 @@ func (ts *TimerScheduler) Start() {
 			now := UnixMilli()
 			//获取最近MaxTimeDelay 毫秒的超时定时器集合
 			timerList := ts.tw.GetTimerWithIn(MaxTimeDelay * time.Millisecond)
-			for tID, timer := range timerList {
+			for _, timer := range timerList {
 				if math.Abs(float64(now-timer.unixts)) > MaxTimeDelay {
 					//已经超时的定时器，报警
 					zlog.Error("want call at ", timer.unixts, "; real call at", now, "; delay ", now-timer.unixts)
 				}
-				if ts.HasTimer(tID) {
-					//将超时触发函数写入管道
-					ts.triggerChan <- timer.delayFunc
-				}
+				ts.triggerChan <- timer.delayFunc
 			}
 			time.Sleep(MaxTimeDelay / 2 * time.Millisecond)
 		}
