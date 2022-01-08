@@ -25,9 +25,9 @@ func NewConnManager() *ConnManager {
 func (connMgr *ConnManager) Add(conn ziface.IConnection) {
 
 	connMgr.connLock.Lock()
+	defer connMgr.connLock.Unlock()
 	//将conn连接添加到ConnMananger中
 	connMgr.connections[conn.GetConnID()] = conn
-	connMgr.connLock.Unlock()
 
 	fmt.Println("connection add to ConnManager successfully: conn num = ", connMgr.Len())
 }
@@ -36,9 +36,9 @@ func (connMgr *ConnManager) Add(conn ziface.IConnection) {
 func (connMgr *ConnManager) Remove(conn ziface.IConnection) {
 
 	connMgr.connLock.Lock()
+	defer connMgr.connLock.Unlock()
 	//删除连接信息
 	delete(connMgr.connections, conn.GetConnID())
-	connMgr.connLock.Unlock()
 	fmt.Println("connection Remove ConnID=", conn.GetConnID(), " successfully: conn num = ", connMgr.Len())
 }
 
@@ -58,14 +58,15 @@ func (connMgr *ConnManager) Get(connID uint32) (ziface.IConnection, error) {
 //Len 获取当前连接
 func (connMgr *ConnManager) Len() int {
 	connMgr.connLock.RLock()
+	defer connMgr.connLock.RUnlock()
 	length := len(connMgr.connections)
-	connMgr.connLock.RUnlock()
 	return length
 }
 
 //ClearConn 清除并停止所有连接
 func (connMgr *ConnManager) ClearConn() {
 	connMgr.connLock.Lock()
+	defer connMgr.connLock.Unlock()
 
 	//停止并删除全部的连接信息
 	for connID, conn := range connMgr.connections {
@@ -74,7 +75,6 @@ func (connMgr *ConnManager) ClearConn() {
 		//删除
 		delete(connMgr.connections, connID)
 	}
-	connMgr.connLock.Unlock()
 	fmt.Println("Clear All Connections successfully: conn num = ", connMgr.Len())
 }
 
