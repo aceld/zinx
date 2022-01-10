@@ -161,3 +161,16 @@ func TestServer(t *testing.T) {
 		return
 	}
 }
+
+func TestServerDeadLock(t *testing.T) {
+	s := NewServer()
+
+	s.Start()
+	time.Sleep(time.Second * 1)
+
+	go func() {
+		_, _ = net.Dial("tcp", "127.0.0.1:8999")
+	}()
+	time.Sleep(time.Second * 1)
+	s.Stop()
+}

@@ -154,37 +154,17 @@ func (c *Connection) Start() {
 	go c.StartWriter()
 	//按照用户传递进来的创建连接时需要处理的业务，执行钩子方法
 	c.TCPServer.CallOnConnStart(c)
+
+	select {
+	case <-c.ctx.Done():
+		c.finalizer()
+		return
+	}
 }
 
 //Stop 停止连接，结束当前连接状态M
 func (c *Connection) Stop() {
-
-	//如果用户注册了该链接的关闭回调业务，那么在此刻应该显示调用
-	c.TCPServer.CallOnConnStop(c)
-
-	c.Lock()
-	defer c.Unlock()
-
-	//如果当前链接已经关闭
-	if c.isClosed == true {
-		return
-	}
-
-	fmt.Println("Conn Stop()...ConnID = ", c.ConnID)
-
-	// 关闭socket链接
-	c.Conn.Close()
-	//关闭Writer
 	c.cancel()
-
-	//将链接从连接管理器中删除
-	c.TCPServer.GetConnMgr().Remove(c)
-
-	//关闭该链接全部管道
-	close(c.msgBuffChan)
-	//设置标志位
-	c.isClosed = true
-
 }
 
 //GetTCPConnection 从当前连接获取原始的socket TCPConn
@@ -280,4 +260,30 @@ func (c *Connection) RemoveProperty(key string) {
 //返回ctx，用于用户自定义的go程获取连接退出状态
 func (c *Connection) Context() context.Context {
 	return c.ctx
+}
+
+func (c *Connection) finalizer() {
+	//如果用户注册了该链接的关闭回调业务，那么在此刻应该显示调用
+	c.TCPServer.CallOnConnStop(c)
+
+	c.Lock()
+	defer c.Unlock()
+
+	//如果当前链接已经关闭
+	if c.isClosed == true {
+		return
+	}
+
+	fmt.Println("Conn Stop()...ConnID = ", c.ConnID)
+
+	// 关闭socket链接
+	_ = c.Conn.Close()
+
+	//将链接从连接管理器中删除
+	c.TCPServer.GetConnMgr().Remove(c)
+
+	//关闭该链接全部管道
+	close(c.msgBuffChan)
+	//设置标志位
+	c.isClosed = true
 }
