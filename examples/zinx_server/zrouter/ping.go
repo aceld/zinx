@@ -18,7 +18,7 @@ func (this *PingRouter) Handle(request ziface.IRequest) {
 	//先读取客户端的数据，再回写ping...ping...ping
 	zlog.Debug("recv from client : msgId=", request.GetMsgID(), ", data=", string(request.GetData()))
 
-	err := request.GetConnection().SendBuffMsg(0, []byte("ping...ping...ping"))
+	err := request.GetConnection().SendBuffMsg(0, []byte("ping...ping...ping[FromServer]"))
 	if err != nil {
 		zlog.Error(err)
 	}
