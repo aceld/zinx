@@ -36,16 +36,20 @@ func OnConnecionAdd(conn ziface.IConnection) {
 func OnConnectionLost(conn ziface.IConnection) {
 	//获取当前连接的PID属性
 	pID, _ := conn.GetProperty("pID")
+	var playerID int32
+	if pID != nil{
+		playerID = pID.(int32)
+	}
 
 	//根据pID获取对应的玩家对象
-	player := core.WorldMgrObj.GetPlayerByPID(pID.(int32))
+		player := core.WorldMgrObj.GetPlayerByPID(playerID)
 
 	//触发玩家下线业务
 	if player != nil {
 		player.LostConnection()
 	}
 
-	fmt.Println("====> Player ", pID, " left =====")
+	fmt.Println("====> Player ", playerID, " left =====")
 
 }
 
