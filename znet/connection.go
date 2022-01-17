@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/ziface"
@@ -208,6 +209,9 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 	c.RLock()
 	defer c.RUnlock()
+	idleTimeout := time.NewTimer(5 * time.Millisecond)
+	defer idleTimeout.Stop()
+
 	if c.isClosed == true {
 		return errors.New("Connection closed when send buff msg")
 	}
@@ -220,8 +224,15 @@ func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 		return errors.New("Pack error msg ")
 	}
 
+	// 发送超时
+	select {
+	case <-idleTimeout.C:
+		return errors.New("send buff msg timeout")
+	case c.msgBuffChan <- msg:
+		return nil
+	}
 	//写回客户端
-	c.msgBuffChan <- msg
+	//c.msgBuffChan <- msg
 
 	return nil
 }
