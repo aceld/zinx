@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aceld/zinx/utils"
-	"github.com/aceld/zinx/ziface"
+	"github.com/chnkenc/zinx-xiaoan/utils"
+	"github.com/chnkenc/zinx-xiaoan/ziface"
 )
 
 //Connection 链接
@@ -184,7 +184,7 @@ func (c *Connection) RemoteAddr() net.Addr {
 }
 
 //SendMsg 直接将Message数据发送数据给远程的TCP客户端
-func (c *Connection) SendMsg(msgID uint32, data []byte) error {
+func (c *Connection) SendMsg(msgID uint8, data []byte) error {
 	c.RLock()
 	defer c.RUnlock()
 	if c.isClosed == true {
@@ -206,7 +206,7 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 }
 
 //SendBuffMsg  发生BuffMsg
-func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
+func (c *Connection) SendBuffMsg(msgID uint8, data []byte) error {
 	c.RLock()
 	defer c.RUnlock()
 	idleTimeout := time.NewTimer(5 * time.Millisecond)

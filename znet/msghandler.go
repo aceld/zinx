@@ -4,21 +4,21 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/aceld/zinx/utils"
-	"github.com/aceld/zinx/ziface"
+	"github.com/chnkenc/zinx-xiaoan/utils"
+	"github.com/chnkenc/zinx-xiaoan/ziface"
 )
 
 // MsgHandle -
 type MsgHandle struct {
-	Apis           map[uint32]ziface.IRouter //存放每个MsgID 所对应的处理方法的map属性
-	WorkerPoolSize uint32                    //业务工作Worker池的数量
-	TaskQueue      []chan ziface.IRequest    //Worker负责取任务的消息队列
+	Apis           map[uint8]ziface.IRouter //存放每个MsgID 所对应的处理方法的map属性
+	WorkerPoolSize uint32                   //业务工作Worker池的数量
+	TaskQueue      []chan ziface.IRequest   //Worker负责取任务的消息队列
 }
 
 //NewMsgHandle 创建MsgHandle
 func NewMsgHandle() *MsgHandle {
 	return &MsgHandle{
-		Apis:           make(map[uint32]ziface.IRouter),
+		Apis:           make(map[uint8]ziface.IRouter),
 		WorkerPoolSize: utils.GlobalObject.WorkerPoolSize,
 		//一个worker对应一个queue
 		TaskQueue: make([]chan ziface.IRequest, utils.GlobalObject.WorkerPoolSize),
@@ -52,7 +52,7 @@ func (mh *MsgHandle) DoMsgHandler(request ziface.IRequest) {
 }
 
 //AddRouter 为消息添加具体的处理逻辑
-func (mh *MsgHandle) AddRouter(msgID uint32, router ziface.IRouter) {
+func (mh *MsgHandle) AddRouter(msgID uint8, router ziface.IRouter) {
 	//1 判断当前msg绑定的API处理方法是否已经存在
 	if _, ok := mh.Apis[msgID]; ok {
 		panic("repeated api , msgID = " + strconv.Itoa(int(msgID)))

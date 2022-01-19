@@ -1,6 +1,6 @@
 package znet
 
-import "github.com/aceld/zinx/ziface"
+import "github.com/chnkenc/zinx-xiaoan/ziface"
 
 type Option func(s *Server)
 

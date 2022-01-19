@@ -14,8 +14,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/zlog"
+	"github.com/chnkenc/zinx-xiaoan/ziface"
+	"github.com/chnkenc/zinx-xiaoan/zlog"
 )
 
 /*
@@ -35,7 +35,7 @@ type GlobalObj struct {
 		Zinx
 	*/
 	Version          string //当前Zinx版本号
-	MaxPacketSize    uint32 //都需数据包的最大值
+	MaxPacketSize    uint16 //都需数据包的最大值
 	MaxConn          int    //当前服务器主机允许的最大链接个数
 	WorkerPoolSize   uint32 //业务工作Worker池的数量
 	MaxWorkerTaskLen uint32 //业务工作Worker对应负责的任务队列最大任务存储数量

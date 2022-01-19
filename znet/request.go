@@ -1,6 +1,6 @@
 package znet
 
-import "github.com/aceld/zinx/ziface"
+import "github.com/chnkenc/zinx-xiaoan/ziface"
 
 //Request 请求
 type Request struct {
@@ -19,6 +19,6 @@ func (r *Request) GetData() []byte {
 }
 
 //GetMsgID 获取请求的消息的ID
-func (r *Request) GetMsgID() uint32 {
+func (r *Request) GetMsgID() uint8 {
 	return r.msg.GetMsgID()
 }

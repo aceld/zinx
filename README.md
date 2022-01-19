@@ -7,10 +7,12 @@ Zinx 是一个基于Golang的轻量级并发服务器框架
 
 > **说明**:目前zinx已经在很多企业进行开发使用，具体使用领域包括:后端模块的消息中转、长链接游戏服务器、Web框架中的消息处理插件等。zinx的定位是代码简洁，让更多的开发者迅速的了解框架的内脏细节并且可以快速基于zinx DIY(二次开发)一款适合自己企业场景的模块。
 
+> **备注**:目前该维护版本为适配小安共享电动车的版本
+
 ---
 ## zinx源码地址
 ### Github
-Git: https://github.com/aceld/zinx
+Git: https://github.com/chnkenc/zinx-xiaoan
 
 ### 码云(Gitee)
 Git: https://gitee.com/Aceld/zinx
@@ -68,7 +70,7 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 
 ```bash
 # 克隆项目
-$ git clone https://github.com/aceld/zinx.git
+$ git clone https://github.com/chnkenc/zinx-xiaoan.git
 
 # 进入服务端样例目录
 $ cd ./zinx/examples/zinx_server
@@ -179,8 +181,8 @@ func main() {
 ```go
 import (
 	"fmt"
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/znet"
+	"github.com/chnkenc/zinx-xiaoan/ziface"
+	"github.com/chnkenc/zinx-xiaoan/znet"
 )
 
 //ping test 自定义路由
@@ -211,7 +213,7 @@ import (
 	"io"
 	"net"
 	"time"
-	"github.com/aceld/zinx/znet"
+	"github.com/chnkenc/zinx-xiaoan/znet"
 )
 
 /*
@@ -398,7 +400,7 @@ func (c *Connection) RemoveProperty(key string)
 -  胡琪([@huqitt](https://github.com/huqitt))
 
 ---
-[zinx(websocket版本)](https://github.com/aceld/zinx/tree/wsserver)
+[zinx(websocket版本)](https://github.com/chnkenc/zinx-xiaoan/tree/wsserver)
 #### 开发者
 -  胡贵建([@huguijian](https://github.com/huguijian))
 
@@ -407,7 +409,7 @@ func (c *Connection) RemoveProperty(key string)
 感谢所有为zinx贡献的开发者
 
 
-<a href="https://github.com/aceld/zinx/graphs/contributors">
+<a href="https://github.com/chnkenc/zinx-xiaoan/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=aceld/zinx" />
 </a>    
 

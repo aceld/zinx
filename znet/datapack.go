@@ -3,13 +3,22 @@ package znet
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
+	"math/rand"
+	"time"
 
-	"github.com/aceld/zinx/utils"
-	"github.com/aceld/zinx/ziface"
+	"github.com/chnkenc/zinx-xiaoan/utils"
+	"github.com/chnkenc/zinx-xiaoan/ziface"
 )
 
-var defaultHeaderLen uint32 = 8
+var (
+	// 默认数据包头长度
+	defaultHeaderLen uint16 = 6
+
+	// 默认魔数
+	defualtMagicCode = "aa55"
+)
 
 //DataPack 封包拆包类实例，暂时不需要成员
 type DataPack struct{}
@@ -20,28 +29,49 @@ func NewDataPack() ziface.Packet {
 }
 
 //GetHeadLen 获取包头长度方法
-func (dp *DataPack) GetHeadLen() uint32 {
-	//ID uint32(4字节) +  DataLen uint32(4字节)
+func (dp *DataPack) GetHeadLen() uint16 {
+	// 魔数 uint16(2字节) +  命令字 uint8(1字节) + 序列号 uint8（1字节）+ 长度 uint16（2字节）
 	return defaultHeaderLen
 }
 
 //Pack 封包方法(压缩数据)
 func (dp *DataPack) Pack(msg ziface.IMessage) ([]byte, error) {
-	//创建一个存放bytes字节的缓冲
+	// 创建一个存放bytes字节的缓冲
 	dataBuff := bytes.NewBuffer([]byte{})
 
-	//写dataLen
-	if err := binary.Write(dataBuff, binary.LittleEndian, msg.GetDataLen()); err != nil {
+	// 写魔数
+	defaultMagicCodeByte, err := hex.DecodeString(defualtMagicCode)
+
+	if err != nil {
 		return nil, err
 	}
 
-	//写msgID
-	if err := binary.Write(dataBuff, binary.LittleEndian, msg.GetMsgID()); err != nil {
+	if err := binary.Write(dataBuff, binary.BigEndian, defaultMagicCodeByte); err != nil {
 		return nil, err
 	}
 
-	//写data数据
-	if err := binary.Write(dataBuff, binary.LittleEndian, msg.GetData()); err != nil {
+	// 写msgID（命令字）
+	if err := binary.Write(dataBuff, binary.BigEndian, msg.GetMsgID()); err != nil {
+		return nil, err
+	}
+
+	// 写序列号
+	serialSn := msg.GetSerialSn()
+	if serialSn == 0 {
+		serialSn = dp.GenerateSerialSn()
+	}
+
+	if err := binary.Write(dataBuff, binary.BigEndian, serialSn); err != nil {
+		return nil, err
+	}
+
+	// 写dataLen
+	if err := binary.Write(dataBuff, binary.BigEndian, msg.GetDataLen()); err != nil {
+		return nil, err
+	}
+
+	// 写data数据
+	if err := binary.Write(dataBuff, binary.BigEndian, msg.GetData()); err != nil {
 		return nil, err
 	}
 
@@ -73,4 +103,12 @@ func (dp *DataPack) Unpack(binaryData []byte) (ziface.IMessage, error) {
 
 	//这里只需要把head的数据拆包出来就可以了，然后再通过head的长度，再从conn读取一次数据
 	return msg, nil
+}
+
+// GenerateSerialSn 生成序列号
+func (dp *DataPack) GenerateSerialSn() uint8 {
+	rand.Seed(time.Now().UnixNano())
+	sn := rand.Intn(128)
+
+	return uint8(sn)
 }

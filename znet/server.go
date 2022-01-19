@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/aceld/zinx/utils"
-	"github.com/aceld/zinx/ziface"
+	"github.com/chnkenc/zinx-xiaoan/utils"
+	"github.com/chnkenc/zinx-xiaoan/ziface"
 )
 
 var zinxLogo = `                                        
@@ -140,7 +140,7 @@ func (s *Server) Serve() {
 }
 
 //AddRouter 路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
-func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
+func (s *Server) AddRouter(msgID uint8, router ziface.IRouter) {
 	s.msgHandler.AddRouter(msgID, router)
 }
 
