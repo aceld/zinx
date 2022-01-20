@@ -86,13 +86,18 @@ func (dp *DataPack) Unpack(binaryData []byte) (ziface.IMessage, error) {
 	//只解压head的信息，得到dataLen和msgID
 	msg := &Message{}
 
-	//读dataLen
-	if err := binary.Read(dataBuff, binary.LittleEndian, &msg.DataLen); err != nil {
+	// 读魔数
+	if err := binary.Read(dataBuff, binary.BigEndian, &msg.MagicCode); err != nil {
 		return nil, err
 	}
 
-	//读msgID
-	if err := binary.Read(dataBuff, binary.LittleEndian, &msg.ID); err != nil {
+	// 读命令字（msgID）
+	if err := binary.Read(dataBuff, binary.BigEndian, &msg.ID); err != nil {
+		return nil, err
+	}
+
+	// 读序列号
+	if err := binary.Read(dataBuff, binary.BigEndian, &msg.SerialSn); err != nil {
 		return nil, err
 	}
 
