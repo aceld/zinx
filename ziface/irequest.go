@@ -10,7 +10,7 @@
 // 当前文件描述:
 // @Title  irequest.go
 // @Description  提供连接请求全部接口声明
-// @Author  Aceld - Thu Mar 11 10:32:29 CST 2019
+// @Author  Ken.C - Thu Jan 20 16:31:18 CST 2022
 package ziface
 
 /*
@@ -18,7 +18,8 @@ package ziface
 	实际上是把客户端请求的链接信息 和 请求的数据 包装到了 Request里
 */
 type IRequest interface {
-	GetConnection() IConnection //获取请求连接信息
-	GetData() []byte            //获取请求消息的数据
-	GetMsgID() uint8            //获取请求的消息ID
+	GetConnection() IConnection // 获取请求连接信息
+	GetData() []byte            // 获取请求消息的数据
+	GetMsgID() uint8            // 获取请求的消息ID
+	GetSn() uint8               // 获取请求的消息的序列号
 }
