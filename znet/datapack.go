@@ -56,12 +56,12 @@ func (dp *DataPack) Pack(msg ziface.IMessage) ([]byte, error) {
 	}
 
 	// 写序列号
-	serialSn := msg.GetSerialSn()
-	if serialSn == 0 {
-		serialSn = dp.GenerateSerialSn()
+	sn := msg.GetSn()
+	if sn == 0 {
+		sn = dp.GenerateSn()
 	}
 
-	if err := binary.Write(dataBuff, binary.BigEndian, serialSn); err != nil {
+	if err := binary.Write(dataBuff, binary.BigEndian, sn); err != nil {
 		return nil, err
 	}
 
@@ -97,7 +97,7 @@ func (dp *DataPack) Unpack(binaryData []byte) (ziface.IMessage, error) {
 	}
 
 	// 读序列号
-	if err := binary.Read(dataBuff, binary.BigEndian, &msg.SerialSn); err != nil {
+	if err := binary.Read(dataBuff, binary.BigEndian, &msg.Sn); err != nil {
 		return nil, err
 	}
 
@@ -110,8 +110,8 @@ func (dp *DataPack) Unpack(binaryData []byte) (ziface.IMessage, error) {
 	return msg, nil
 }
 
-// GenerateSerialSn 生成序列号
-func (dp *DataPack) GenerateSerialSn() uint8 {
+// GenerateSn 生成序列号
+func (dp *DataPack) GenerateSn() uint8 {
 	rand.Seed(time.Now().UnixNano())
 	sn := rand.Intn(128)
 

@@ -19,7 +19,7 @@ package ziface
 type IMessage interface {
 	GetDataLen() uint16 // 获取消息数据段长度
 	GetMsgID() uint8    // 获取消息ID（命令字）
-	GetSerialSn() uint8 // 获取序列号
+	GetSn() uint8       // 获取序列号
 	GetData() []byte    // 获取消息内容
 
 	SetMsgID(uint8)    //设计消息ID
