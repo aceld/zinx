@@ -10,11 +10,12 @@ type Message struct {
 }
 
 //NewMsgPackage 创建一个Message消息包
-func NewMsgPackage(ID uint8, data []byte) *Message {
+func NewMsgPackage(ID, serialSn uint8, data []byte) *Message {
 	return &Message{
-		DataLen: uint16(len(data)),
-		ID:      ID,
-		Data:    data,
+		DataLen:  uint16(len(data)),
+		ID:       ID,
+		SerialSn: serialSn,
+		Data:     data,
 	}
 }
 

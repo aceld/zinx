@@ -184,7 +184,7 @@ func (c *Connection) RemoteAddr() net.Addr {
 }
 
 //SendMsg 直接将Message数据发送数据给远程的TCP客户端
-func (c *Connection) SendMsg(msgID uint8, data []byte) error {
+func (c *Connection) SendMsg(msgID, serialSn uint8, data []byte) error {
 	c.RLock()
 	defer c.RUnlock()
 	if c.isClosed == true {
@@ -193,7 +193,7 @@ func (c *Connection) SendMsg(msgID uint8, data []byte) error {
 
 	//将data封包，并且发送
 	dp := c.TCPServer.Packet()
-	msg, err := dp.Pack(NewMsgPackage(msgID, data))
+	msg, err := dp.Pack(NewMsgPackage(msgID, serialSn, data))
 	if err != nil {
 		fmt.Println("Pack error msg ID = ", msgID)
 		return errors.New("Pack error msg ")
@@ -206,7 +206,7 @@ func (c *Connection) SendMsg(msgID uint8, data []byte) error {
 }
 
 //SendBuffMsg  发生BuffMsg
-func (c *Connection) SendBuffMsg(msgID uint8, data []byte) error {
+func (c *Connection) SendBuffMsg(msgID, serialSn uint8, data []byte) error {
 	c.RLock()
 	defer c.RUnlock()
 	idleTimeout := time.NewTimer(5 * time.Millisecond)
@@ -218,7 +218,7 @@ func (c *Connection) SendBuffMsg(msgID uint8, data []byte) error {
 
 	//将data封包，并且发送
 	dp := c.TCPServer.Packet()
-	msg, err := dp.Pack(NewMsgPackage(msgID, data))
+	msg, err := dp.Pack(NewMsgPackage(msgID, serialSn, data))
 	if err != nil {
 		fmt.Println("Pack error msg ID = ", msgID)
 		return errors.New("Pack error msg ")
