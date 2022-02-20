@@ -192,11 +192,9 @@ func (d *DemoPacket) Pack(msg ziface.IMessage) ([]byte, error) {
 func (br *CloseConnectionBeforeSendMsgRouter) Handle(req ziface.IRequest) {
 	connection := req.GetConnection()
 
-	dp := &DemoPacket{}
 	msg := "Zinx server response message for CloseConnectionBeforeSendMsgRouter"
-	pack, _ := dp.Pack(NewMsgPackage(0, []byte(msg)))
 	connection.Stop()
-	_ = connection.SendMsg(1, pack)
+	_ = connection.SendMsg(1, []byte(msg))
 	fmt.Println("send: ", msg)
 }
 
@@ -217,8 +215,8 @@ func TestCloseConnectionBeforeSendMsg(t *testing.T) {
 		_, _ = conn.Write(pack)
 		fmt.Println("send: ", msg)
 		buffer := make([]byte, 1024)
-		read, _ := conn.Read(buffer)
-		fmt.Println("receive: ", string(buffer[:read]))
+		readLen, _ := conn.Read(buffer)
+		fmt.Println("received all data: ", string(buffer[dp.GetHeadLen():readLen]))
 		wg.Done()
 	}()
 	wg.Wait()
