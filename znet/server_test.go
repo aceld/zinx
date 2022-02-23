@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
 	"testing"
 	"time"
 
@@ -172,5 +173,52 @@ func TestServerDeadLock(t *testing.T) {
 		_, _ = net.Dial("tcp", "127.0.0.1:8999")
 	}()
 	time.Sleep(time.Second * 1)
+	s.Stop()
+}
+
+type CloseConnectionBeforeSendMsgRouter struct {
+	BaseRouter
+}
+
+type DemoPacket struct {
+	DataPack
+}
+
+func (d *DemoPacket) Pack(msg ziface.IMessage) ([]byte, error) {
+	time.Sleep(time.Second * 1)
+	return d.DataPack.Pack(msg)
+}
+
+func (br *CloseConnectionBeforeSendMsgRouter) Handle(req ziface.IRequest) {
+	connection := req.GetConnection()
+
+	msg := "Zinx server response message for CloseConnectionBeforeSendMsgRouter"
+	connection.Stop()
+	_ = connection.SendMsg(1, []byte(msg))
+	fmt.Println("send: ", msg)
+}
+
+func TestCloseConnectionBeforeSendMsg(t *testing.T) {
+	s := NewServer()
+	s.AddRouter(1, &CloseConnectionBeforeSendMsgRouter{})
+
+	s.Start()
+	time.Sleep(time.Second * 1)
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		conn, _ := net.Dial("tcp", "127.0.0.1:8999")
+		dp := NewDataPack()
+		msg := "Zinx client request message for CloseConnectionBeforeSendMsgRouter"
+		pack, _ := dp.Pack(NewMsgPackage(1, []byte(msg)))
+		_, _ = conn.Write(pack)
+		fmt.Println("send: ", msg)
+		buffer := make([]byte, 1024)
+		readLen, _ := conn.Read(buffer)
+		fmt.Println("received all data: ", string(buffer[dp.GetHeadLen():readLen]))
+		wg.Done()
+	}()
+	wg.Wait()
 	s.Stop()
 }

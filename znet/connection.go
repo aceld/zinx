@@ -26,8 +26,6 @@ type Connection struct {
 	//告知该链接已经退出/停止的channel
 	ctx    context.Context
 	cancel context.CancelFunc
-	//无缓冲管道，用于读、写两个goroutine之间的消息通信
-	msgChan chan []byte
 	//有缓冲管道，用于读、写两个goroutine之间的消息通信
 	msgBuffChan chan []byte
 
@@ -49,7 +47,6 @@ func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgH
 		ConnID:      connID,
 		isClosed:    false,
 		MsgHandler:  msgHandler,
-		msgChan:     make(chan []byte),
 		msgBuffChan: make(chan []byte, utils.GlobalObject.MaxMsgChanLen),
 		property:    nil,
 	}
@@ -66,13 +63,6 @@ func (c *Connection) StartWriter() {
 
 	for {
 		select {
-		case data := <-c.msgChan:
-			//有数据要写给客户端
-			if _, err := c.Conn.Write(data); err != nil {
-				fmt.Println("Send Data error:, ", err, " Conn Writer exit")
-				return
-			}
-			//fmt.Printf("Send data succ! data = %+v\n", data)
 		case data, ok := <-c.msgBuffChan:
 			if ok {
 				//有数据要写给客户端
@@ -200,9 +190,8 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 	}
 
 	//写回客户端
-	c.msgChan <- msg
-
-	return nil
+	_, err = c.Conn.Write(msg)
+	return err
 }
 
 //SendBuffMsg  发生BuffMsg
