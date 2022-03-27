@@ -11,11 +11,12 @@ package utils
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"os"
-
+	"github.com/aceld/zinx/utils/commandline/args"
+	"github.com/aceld/zinx/utils/commandline/uflag"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
+	"io/ioutil"
+	"os"
 )
 
 /*
@@ -106,6 +107,15 @@ func init() {
 	if err != nil {
 		pwd = "."
 	}
+
+	// 初始化配置模块flag
+	args.InitConfigFlag( pwd + "/conf/zinx.json","配置文件，如果没有设置，则默认为<exeDir>/conf/zinx.json")
+	// 初始化日志模块flag TODO
+	// 解析
+	uflag.Parse()
+	// 解析之后的操作
+	args.FlagHandle()
+
 	//初始化GlobalObject变量，设置一些默认值
 	GlobalObject = &GlobalObj{
 		Name:             "ZinxServerApp",
@@ -114,7 +124,7 @@ func init() {
 		Host:             "0.0.0.0",
 		MaxConn:          12000,
 		MaxPacketSize:    4096,
-		ConfFilePath:     pwd + "/conf/zinx.json",
+		ConfFilePath:     args.Args.ConfigFile ,
 		WorkerPoolSize:   10,
 		MaxWorkerTaskLen: 1024,
 		MaxMsgChanLen:    1024,
@@ -126,3 +136,4 @@ func init() {
 	//NOTE: 从配置文件中加载一些用户配置的参数
 	GlobalObject.Reload()
 }
+
