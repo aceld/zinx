@@ -18,8 +18,6 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/zlog"
 )
 
 /*
