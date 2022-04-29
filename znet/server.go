@@ -17,9 +17,9 @@ var zinxLogo = `
  ▄██▄▄▄▄▄  ▄▄▄██▄▄▄  ██    ██   ▄█▀▀█▄  
  ▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀  ▀▀    ▀▀  ▀▀▀  ▀▀▀ 
                                         `
-var topLine = `┌───────────────────────────────────────────────────┐`
+var topLine = `┌──────────────────────────────────────────────────────┐`
 var borderLine = `│`
-var bottomLine = `└───────────────────────────────────────────────────┘`
+var bottomLine = `└──────────────────────────────────────────────────────┘`
 
 //Server 接口实现，定义一个Server服务类
 type Server struct {
@@ -182,8 +182,8 @@ func (s *Server) Packet() ziface.Packet {
 func printLogo() {
 	fmt.Println(zinxLogo)
 	fmt.Println(topLine)
-	fmt.Println(fmt.Sprintf("%s [Github] https://github.com/aceld                 %s", borderLine, borderLine))
-	fmt.Println(fmt.Sprintf("%s [tutorial] https://www.kancloud.cn/aceld/zinx     %s", borderLine, borderLine))
+	fmt.Println(fmt.Sprintf("%s [Github] https://github.com/aceld                    %s", borderLine, borderLine))
+	fmt.Println(fmt.Sprintf("%s [tutorial] https://www.yuque.com/aceld/npyr8s/bgftov %s", borderLine, borderLine))
 	fmt.Println(bottomLine)
 	fmt.Printf("[Zinx] Version: %s, MaxConn: %d, MaxPacketSize: %d\n",
 		utils.GlobalObject.Version,
