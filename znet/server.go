@@ -1,11 +1,11 @@
 package znet
 
 import (
+	"errors"
 	"fmt"
-	"net"
-
 	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/ziface"
+	"net"
 )
 
 var zinxLogo = `                                        
@@ -40,6 +40,8 @@ type Server struct {
 	//该Server的连接断开时的Hook函数
 	OnConnStop func(conn ziface.IConnection)
 
+	exitChan chan struct{}
+
 	packet ziface.Packet
 }
 
@@ -54,6 +56,7 @@ func NewServer(opts ...Option) ziface.IServer {
 		Port:       utils.GlobalObject.TCPPort,
 		msgHandler: NewMsgHandle(),
 		ConnMgr:    NewConnManager(),
+		exitChan:   nil,
 		packet:     NewDataPack(),
 	}
 
@@ -69,6 +72,7 @@ func NewServer(opts ...Option) ziface.IServer {
 //Start 开启网络服务
 func (s *Server) Start() {
 	fmt.Printf("[START] Server name: %s,listenner at IP: %s, Port %d is starting\n", s.Name, s.IP, s.Port)
+	s.exitChan = make(chan struct{})
 
 	//开启一个go去做服务端Linster业务
 	go func() {
@@ -95,28 +99,42 @@ func (s *Server) Start() {
 		var cID uint32
 		cID = 0
 
-		//3 启动server网络连接业务
-		for {
-			//3.1 阻塞等待客户端建立连接请求
-			conn, err := listener.AcceptTCP()
+		go func() {
+			//3 启动server网络连接业务
+			for {
+				//3.1 阻塞等待客户端建立连接请求
+				conn, err := listener.AcceptTCP()
+				if err != nil {
+					if errors.Is(err, net.ErrClosed) {
+						fmt.Println("Listener closed")
+						return
+					}
+					fmt.Println("Accept err ", err)
+					continue
+				}
+				fmt.Println("Get conn remote addr = ", conn.RemoteAddr().String())
+
+				//3.2 设置服务器最大连接控制,如果超过最大连接，那么则关闭此新的连接
+				if s.ConnMgr.Len() >= utils.GlobalObject.MaxConn {
+					conn.Close()
+					continue
+				}
+
+				//3.3 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
+				dealConn := NewConnection(s, conn, cID, s.msgHandler)
+				cID++
+
+				//3.4 启动当前链接的处理业务
+				go dealConn.Start()
+			}
+		}()
+
+		select {
+		case <-s.exitChan:
+			err := listener.Close()
 			if err != nil {
-				fmt.Println("Accept err ", err)
-				continue
+				fmt.Println("Listener close err ", err)
 			}
-			fmt.Println("Get conn remote addr = ", conn.RemoteAddr().String())
-
-			//3.2 设置服务器最大连接控制,如果超过最大连接，那么则关闭此新的连接
-			if s.ConnMgr.Len() >= utils.GlobalObject.MaxConn {
-				conn.Close()
-				continue
-			}
-
-			//3.3 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
-			dealConn := NewConnection(s, conn, cID, s.msgHandler)
-			cID++
-
-			//3.4 启动当前链接的处理业务
-			go dealConn.Start()
 		}
 	}()
 }
@@ -127,6 +145,8 @@ func (s *Server) Stop() {
 
 	//将其他需要清理的连接信息或者其他信息 也要一并停止或者清理
 	s.ConnMgr.ClearConn()
+	s.exitChan <- struct{}{}
+	close(s.exitChan)
 }
 
 //Serve 运行服务
