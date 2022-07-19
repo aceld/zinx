@@ -422,7 +422,7 @@ func (c *Connection) RemoveProperty(key string)
 [https://github.com/aceld](https://github.com/aceld)
 
 `原创书籍`:
-[https://www.kancloud.cn/@aceld](https://www.kancloud.cn/@aceld)
+[https://www.yuque.com/aceld](https://www.yuque.com/aceld)
 
 ### Zinx技术讨论社区
 |  **微信群**   | **微信公众号**  | **QQ群资源分享**  |
