@@ -27,7 +27,6 @@ Git: https://gitee.com/Aceld/zinx
 
 [![zinx-youtube](https://s2.ax1x.com/2019/10/14/KSurCR.jpg)](https://www.youtube.com/watch?v=U95iF-HMWsU&list=PL_GrAPKmuajzeNI8HBTi-k5NQO1g0rM-A)
 
-> 注意：修正Github打不开图片方法 windows: https://zhuanlan.zhihu.com/p/107196957 , mac/Linux: 修改/etc/hosts文件即可 
 
 ## Zinx详细教程及文档
 
