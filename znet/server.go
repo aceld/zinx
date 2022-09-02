@@ -42,7 +42,7 @@ type Server struct {
 
 	exitChan chan struct{}
 
-	packet ziface.Packet
+	packet ziface.IDataPack
 }
 
 //NewServer 创建一个服务器句柄
@@ -196,7 +196,7 @@ func (s *Server) CallOnConnStop(conn ziface.IConnection) {
 	}
 }
 
-func (s *Server) Packet() ziface.Packet {
+func (s *Server) Packet() ziface.IDataPack {
 	return s.packet
 }
 

@@ -15,7 +15,7 @@ var defaultHeaderLen uint32 = 8
 type DataPack struct{}
 
 //NewDataPack 封包拆包实例初始化方法
-func NewDataPack() ziface.Packet {
+func NewDataPack() ziface.IDataPack {
 	return &DataPack{}
 }
 
