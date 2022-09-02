@@ -64,6 +64,9 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 
 ## 二、快速启动
 
+**版本**
+Golang 1.16+
+
 ```bash
 # 克隆项目
 $ git clone https://github.com/aceld/zinx.git

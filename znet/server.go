@@ -105,6 +105,7 @@ func (s *Server) Start() {
 				//3.1 阻塞等待客户端建立连接请求
 				conn, err := listener.AcceptTCP()
 				if err != nil {
+					//Go 1.16+
 					if errors.Is(err, net.ErrClosed) {
 						fmt.Println("Listener closed")
 						return
