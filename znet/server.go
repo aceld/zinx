@@ -6,6 +6,7 @@ import (
 	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/ziface"
 	"net"
+	"sync"
 )
 
 var zinxLogo = `                                        
@@ -43,6 +44,8 @@ type Server struct {
 	exitChan chan struct{}
 
 	packet ziface.Packet
+
+	wg sync.WaitGroup
 }
 
 //NewServer 创建一个服务器句柄
@@ -100,6 +103,9 @@ func (s *Server) Start() {
 		cID = 0
 
 		go func() {
+			s.wg.Add(1)
+			defer s.wg.Done()
+
 			//3 启动server网络连接业务
 			for {
 				//3.1 阻塞等待客户端建立连接请求
@@ -157,7 +163,7 @@ func (s *Server) Serve() {
 	//TODO Server.Serve() 是否在启动服务的时候 还要处理其他的事情呢 可以在这里添加
 
 	//阻塞,否则主Go退出， listenner的go将会退出
-	select {}
+	s.wg.Wait()
 }
 
 //AddRouter 路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
