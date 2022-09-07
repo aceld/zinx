@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/aceld/zinx/zpack"
 	"io"
 	"net"
-
-	"github.com/aceld/zinx/znet"
 )
 
 //只是负责测试datapack拆包，封包功能
@@ -28,7 +27,7 @@ func main() {
 		//处理客户端请求
 		go func(conn net.Conn) {
 			//创建封包拆包对象dp
-			dp := znet.NewDataPack()
+			dp := zpack.NewDataPack()
 			for {
 				//1 先读出流中的head部分
 				headData := make([]byte, dp.GetHeadLen())
@@ -46,7 +45,7 @@ func main() {
 
 				if msgHead.GetDataLen() > 0 {
 					//msg 是有data数据的，需要再次读取data数据
-					msg := msgHead.(*znet.Message)
+					msg := msgHead.(*zpack.Message)
 					msg.Data = make([]byte, msg.GetDataLen())
 
 					//根据dataLen从io中读取字节流

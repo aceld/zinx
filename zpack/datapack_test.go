@@ -1,7 +1,8 @@
-package znet
+package zpack
 
 import (
 	"fmt"
+	"github.com/aceld/zinx/ziface"
 	"io"
 	"net"
 	"testing"
@@ -31,7 +32,7 @@ func TestDataPack(t *testing.T) {
 			//处理客户端请求
 			go func(conn net.Conn) {
 				//创建封包拆包对象dp
-				dp := NewDataPack()
+				dp := Factory().NewPack(ziface.ZinxDataPack)
 				for {
 					//1 先读出流中的head部分
 					headData := make([]byte, dp.GetHeadLen())
@@ -74,7 +75,7 @@ func TestDataPack(t *testing.T) {
 		}
 
 		//创建一个封包对象 dp
-		dp := NewDataPack()
+		dp := Factory().NewPack(ziface.ZinxDataPack)
 
 		//封装一个msg1包
 		msg1 := &Message{

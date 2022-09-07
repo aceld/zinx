@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/aceld/zinx/zpack"
 	"io"
 	"net"
 	"sync"
@@ -183,7 +184,7 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 
 	//将data封包，并且发送
 	dp := c.TCPServer.Packet()
-	msg, err := dp.Pack(NewMsgPackage(msgID, data))
+	msg, err := dp.Pack(zpack.NewMsgPackage(msgID, data))
 	if err != nil {
 		fmt.Println("Pack error msg ID = ", msgID)
 		return errors.New("Pack error msg ")
@@ -207,7 +208,7 @@ func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 
 	//将data封包，并且发送
 	dp := c.TCPServer.Packet()
-	msg, err := dp.Pack(NewMsgPackage(msgID, data))
+	msg, err := dp.Pack(zpack.NewMsgPackage(msgID, data))
 	if err != nil {
 		fmt.Println("Pack error msg ID = ", msgID)
 		return errors.New("Pack error msg ")

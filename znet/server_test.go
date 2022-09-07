@@ -2,6 +2,7 @@ package znet
 
 import (
 	"fmt"
+	"github.com/aceld/zinx/zpack"
 	"io"
 	"net"
 	"sync"
@@ -30,8 +31,8 @@ func ClientTest(i uint32) {
 	}
 
 	for {
-		dp := NewDataPack()
-		msg, _ := dp.Pack(NewMsgPackage(i, []byte("client test message")))
+		dp := zpack.Factory().NewPack(ziface.ZinxDataPack)
+		msg, _ := dp.Pack(zpack.NewMsgPackage(i, []byte("client test message")))
 		_, err := conn.Write(msg)
 		if err != nil {
 			fmt.Println("client write err: ", err)
@@ -55,7 +56,7 @@ func ClientTest(i uint32) {
 
 		if msgHead.GetDataLen() > 0 {
 			//msg 是有data数据的，需要再次读取data数据
-			msg := msgHead.(*Message)
+			msg := msgHead.(*zpack.Message)
 			msg.Data = make([]byte, msg.GetDataLen())
 
 			//根据dataLen从io中读取字节流
@@ -181,7 +182,7 @@ type CloseConnectionBeforeSendMsgRouter struct {
 }
 
 type DemoPacket struct {
-	DataPack
+	zpack.DataPack
 }
 
 func (d *DemoPacket) Pack(msg ziface.IMessage) ([]byte, error) {
@@ -209,9 +210,9 @@ func TestCloseConnectionBeforeSendMsg(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		conn, _ := net.Dial("tcp", "127.0.0.1:8999")
-		dp := NewDataPack()
+		dp := zpack.Factory().NewPack(ziface.ZinxDataPack)
 		msg := "Zinx client request message for CloseConnectionBeforeSendMsgRouter"
-		pack, _ := dp.Pack(NewMsgPackage(1, []byte(msg)))
+		pack, _ := dp.Pack(zpack.NewMsgPackage(1, []byte(msg)))
 		_, _ = conn.Write(pack)
 		fmt.Println("send: ", msg)
 		buffer := make([]byte, 1024)

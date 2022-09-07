@@ -1,10 +1,9 @@
-package znet
+package zpack
 
 import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-
 	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/ziface"
 )

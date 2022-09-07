@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/zpack"
 	"net"
 )
 
@@ -57,7 +58,7 @@ func NewServer(opts ...Option) ziface.IServer {
 		msgHandler: NewMsgHandle(),
 		ConnMgr:    NewConnManager(),
 		exitChan:   nil,
-		packet:     NewDataPack(),
+		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack),
 	}
 
 	for _, opt := range opts {

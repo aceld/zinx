@@ -1,4 +1,4 @@
-package znet
+package zpack
 
 //Message 消息
 type Message struct {
@@ -14,6 +14,12 @@ func NewMsgPackage(ID uint32, data []byte) *Message {
 		ID:      ID,
 		Data:    data,
 	}
+}
+
+func (msg *Message) Init(ID uint32, data []byte) {
+	msg.ID = ID
+	msg.Data = data
+	msg.DataLen = uint32(len(data))
 }
 
 //GetDataLen 获取消息数据段长度
