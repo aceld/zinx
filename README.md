@@ -426,7 +426,7 @@ Thanks to all the developers who contributed to Zinx!
 ---
 ### About the author
 
-作者：`Aceld(刘丹冰)`
+`name`：`Aceld(刘丹冰)`
 
 `mail`:
 [danbing.at@gmail.com](mailto:danbing.at@gmail.com)
