@@ -1,62 +1,61 @@
-# <img width="80px" src="https://s2.ax1x.com/2019/10/09/u4yHo9.png" />
-English | [简体中文](README-CN.md)
+# <img width="80px" src="https://s2.ax1x.com/2019/10/09/u4yHo9.png" /> 
+
+[English](README.md) | 简体中文
 
 [![License](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](LICENSE) [![Gitter](https://img.shields.io/badge/在线交流-Gitter-green.svg)](https://gitter.im/zinx_go/community) [![zinx详细教程](https://img.shields.io/badge/zinx详细教程-简书-red.svg)](https://www.kancloud.cn/aceld/zinx) [![zinx原创书籍下载](https://img.shields.io/badge/原创书籍下载-KanCloud-black.svg)](https://www.kancloud.cn/@aceld)
 
+Zinx 是一个基于Golang的轻量级并发服务器框架
 
-Zinx is a lightweight concurrent server framework based on Golang.
+官网:http://zinx.me
 
-Website:http://zinx.me
-
-> **ps**:   
-> Zinx has been developed and used in many enterprises: Service of message transfer, Persistent Connection TCP/IP Server, The middleware of Web Service and so on. 
-> Zinx is positioned for code simplicity, Developers can use Zinx to redevelop a module suitable for their own enterprise scenarios.
+> **说明**:目前zinx已经在很多企业进行开发使用，具体使用领域包括:后端模块的消息中转、长链接游戏服务器、Web框架中的消息处理插件等。zinx的定位是代码简洁，让更多的开发者迅速的了解框架的内脏细节并且可以快速基于zinx DIY(二次开发)一款适合自己企业场景的模块。
 
 ---
-## The source address of Zinx
+## zinx源码地址
 ### Github
 Git: https://github.com/aceld/zinx
 
-### Gitee(China)
+### 码云(Gitee)
 Git: https://gitee.com/Aceld/zinx
 
 ---
 
-## Online Tutorial
-### [BiliBili]
+## 在线开发教程
+### [B站]
 
-[![zinx-BiliBili](https://s2.ax1x.com/2019/10/13/uv340S.jpg)](https://www.bilibili.com/video/av71067087)
+[![zinx-视频教程B站](https://s2.ax1x.com/2019/10/13/uv340S.jpg)](https://www.bilibili.com/video/av71067087)
 
 
 ### [YouTube]
+
 [![zinx-youtube](https://s2.ax1x.com/2019/10/14/KSurCR.jpg)](https://www.youtube.com/watch?v=U95iF-HMWsU&list=PL_GrAPKmuajzeNI8HBTi-k5NQO1g0rM-A)
 
 
-## The Document of Zinx
+## Zinx详细教程及文档
 
-### PC terminal
+### PC端文档
 
-[YuQue - Zinx Framework tutorial-Lightweight server based on Golang》](https://www.yuque.com/aceld)
+[语雀-《Zinx框架教程-基于Golang的轻量级并发服务器》](https://www.yuque.com/aceld)
 
 
-### Mobile terminal(WeChat)
+### 移动端文档
 ![gongzhonghao](https://s1.ax1x.com/2020/07/07/UFyUdx.th.jpg)
 
+    
+## 一、写在前面
 
-## I. One word that has been said before
+我们为什么要做Zinx，Golang目前在服务器的应用框架很多，但是应用在游戏领域或者其他长链接的领域的轻量级企业框架甚少。
 
-Why are we doing Zinx? There are a lot of frameworks for servers in The Go Programing Language, but very few lightweight enterprise frameworks for games or other persistent connection TCP/IP Server domains.
+设计Zinx的目的是我们可以通过Zinx框架来了解基于Golang编写一个TCP服务器的整体轮廓，让更多的Golang爱好者能深入浅出的去学习和认识这个领域。
 
-Zinx is designed so that developers can use the Zinx framework to understand the overall outline of writing a TCP server based on Golang, Let more Gopher can learn and understand this field in a simple way.
+Zinx框架的项目制作采用编码和学习教程同步进行，将开发的全部递进和迭代思维带入教程中，而不是一下子给大家一个非常完整的框架去学习，让很多人一头雾水，不知道该如何学起。
 
-The Zinx framework projects are done in parallel with the coding and learning tutorials, bringing all of the progressive and iterative thinking of development into the tutorials, rather than giving everyone a very complete framework to learn at once, leaving many people confused about how to learn.
+教程会一个版本一个版本迭代，每个版本的添加功能都是微小的，让一个服务框架小白，循序渐进的曲线方式了解服务器框架的领域。
 
-The tutorial will iterate from release to release, with minor additions to each release, giving a small, curvewise approach to the domain of the server framework.
+当然，最后希望Zinx会有更多的人加入，给我们提出宝贵的意见，让Zinx成为真正的解决企业的服务器框架！在此感谢您的关注！
 
-Of course, I hope that more people will join Zinx and give us valuable suggestions, so that Zinx can become a real solution server framework for enterprises! Thank you for your attention!
-
-**The honor of zinx**
-#### GVP Most Valuable Open Source Project of the Year at OSCHINA
+**zinx荣誉**
+#### 开源中国GVP年度最有价值开源项目
 
 ![GVP-zinx](https://s2.ax1x.com/2019/10/13/uvYVBV.jpg)
 
@@ -66,37 +65,37 @@ Of course, I hope that more people will join Zinx and give us valuable suggestio
 [![Stargazers over time](https://api.star-history.com/svg?repos=aceld/zinx&type=Date)](#zinx)
 
 
-## II. Quick start
+## 二、快速启动
 
-**Version**
+**版本**
 Golang 1.16+
 
 ```bash
-# clone from git
+# 克隆项目
 $ git clone https://github.com/aceld/zinx.git
 
-# cd the dir of Demo
+# 进入服务端样例目录
 $ cd ./zinx/examples/zinx_server
 
-# Build
+# 服务端编译
 $ make build
 
-# Build for docker image
+# 服务端容器化
 $ make image
 
-# start and run
+# 服务端启动
 $ make run 
 
-# cd the dir of Demo Client
+# 进入客户端样例目录
 $ cd ../zinx_client
 
-# run 
+# 启动客户端进行测试
 $ go run main.go 
 
 ```
 
 
-## III. Zinx architecture
+## 三、初探Zinx架构
 
 ![1-Zinx框架.png](https://camo.githubusercontent.com/903d1431358fa6f4634ebaae3b49a28d97e23d77/68747470733a2f2f75706c6f61642d696d616765732e6a69616e7368752e696f2f75706c6f61645f696d616765732f31313039333230352d633735666636383232333362323533362e706e673f696d6167654d6f6772322f6175746f2d6f7269656e742f7374726970253743696d61676556696577322f322f772f31323430)
 
@@ -104,17 +103,17 @@ $ go run main.go
 
 
 
-## IV. Zinx development API documentation
+## 四、Zinx开发API文档
 
-### (1) Quick start
+### （1）快速开始
 
-#### A. Demo
-1. Compile Demo example, in dir `zinx/example/zinx_server`, we get `server`, in `zinx/example/zinx_client`, we get`client`.
+#### A. 示例演示
+1. 编译demo示例，会在`zinx/example/zinx_server`下得到`server`, 在`zinx/example/zinx_client`下得到`client`.
 ```bash
 $ cd zinx/
 $ make
 ```
-2. run Demo server (don't close the terminal)
+2. 启动Demo server, 该终端不要关闭
 ```bash
 $ cd example/zinx_server
 $ ./server 
@@ -149,7 +148,7 @@ start Zinx server   zinx server Demo  succ, now listenning...
 ...
 ```
 
-3. Then open the new terminal and start the Client Demo to test communication
+3. 再打开新终端，启动client Demo测试通信
 ```bash
 $ cd example/zinx_client
 $ ./client
@@ -162,27 +161,25 @@ t
 ```
 
 #### B. server
-
-In the server application developed based on Zinx framework, the main function steps are relatively simple and only need 3 steps at most.
-
-1. Create the server object
-2. Configure user-defined routes and services
-3. Start the service
+基于Zinx框架开发的服务器应用，主函数步骤比较精简，最多只需要3步即可。
+1. 创建server句柄
+2. 配置自定义路由及业务
+3. 启动服务
 
 ```go
 func main() {
-	//1 Create the server object
+	//1 创建一个server句柄
 	s := znet.NewServer()
 
-	//2 Configure user-defined routes and services
+	//2 配置路由
 	s.AddRouter(0, &PingRouter{})
 
-	//3 Start the service
+	//3 开启服务
 	s.Serve()
 }
 ```
 
-The custom route and service configuration methods are as follows：
+其中自定义路由及业务配置方式如下：
 ```go
 import (
 	"fmt"
@@ -190,17 +187,17 @@ import (
 	"github.com/aceld/zinx/znet"
 )
 
-//ping test custom route
+//ping test 自定义路由
 type PingRouter struct {
 	znet.BaseRouter
 }
 
 //Ping Handle
 func (this *PingRouter) Handle(request ziface.IRequest) {
-	//Read the data from the client first
+	//先读取客户端的数据
 	fmt.Println("recv from client : msgId=", request.GetMsgID(), ", data=", string(request.GetData()))
-	
-	//To go back to write  "ping...ping...ping"
+
+    //再回写ping...ping...ping
 	err := request.GetConnection().SendBuffMsg(0, []byte("ping...ping...ping"))
 	if err != nil {
 		fmt.Println(err)
@@ -209,7 +206,7 @@ func (this *PingRouter) Handle(request ziface.IRequest) {
 ```
 
 #### C. client
-Zinx's message packet format processing uses `[MsgLength]|[MsgID]|[Data]` .
+Zinx的消息处理采用，`[MsgLength]|[MsgID]|[Data]`的封包格式
 ```go
 package main
 
@@ -222,12 +219,12 @@ import (
 )
 
 /*
-	Simulation Client
-*/
+	模拟客户端
+ */
 func main() {
 
 	fmt.Println("Client Test ... start")
-	//A test request is made after 3 seconds, giving the server a chance to start the service
+	//3秒之后发起测试请求，给服务端开启服务的机会
 	time.Sleep(3 * time.Second)
 
 	conn,err := net.Dial("tcp", "127.0.0.1:7777")
@@ -237,7 +234,7 @@ func main() {
 	}
 
 	for n := 3; n >= 0; n-- {
-		//Send a packet message
+		//发封包message消息
 		dp := znet.NewDataPack()
 		msg, _ := dp.Pack(znet.NewMsgPackage(0,[]byte("Zinx Client Test Message")))
 		_, err := conn.Write(msg)
@@ -246,14 +243,14 @@ func main() {
 			return
 		}
 
-		//Read the head part of the stream first
+		//先读出流中的head部分
 		headData := make([]byte, dp.GetHeadLen())
 		_, err = io.ReadFull(conn, headData) //ReadFull 会把msg填充满为止
 		if err != nil {
 			fmt.Println("read head error")
 			break
 		}
-		//Unpack the headData byte stream into MSG
+		//将headData字节流 拆包到msg中
 		msgHead, err := dp.Unpack(headData)
 		if err != nil {
 			fmt.Println("server unpack err:", err)
@@ -261,11 +258,11 @@ func main() {
 		}
 
 		if msgHead.GetDataLen() > 0 {
-			//msg has data data, which needs to be read again
+			//msg 是有data数据的，需要再次读取data数据
 			msg := msgHead.(*znet.Message)
 			msg.Data = make([]byte, msg.GetDataLen())
 
-			//Read the byte stream from the IO according to dataLen
+			//根据dataLen从io中读取字节流
 			_, err := io.ReadFull(conn, msg.Data)
 			if err != nil {
 				fmt.Println("server unpack data err:", err)
@@ -280,7 +277,7 @@ func main() {
 }
 ```
 
-### (2) Zinx configuration file
+### （2）Zinx配置文件
 ```json
 {
   "Name":"zinx v-0.10 demoApp",
@@ -293,100 +290,99 @@ func main() {
 }
 ```
 
-`Name`:Server Application Name
+`Name`:服务器应用名称
 
-`Host`:Server IP
+`Host`:服务器IP
 
-`TcpPort`:Server listening port
+`TcpPort`:服务器监听端口
 
-`MaxConn`:Maximum number of client links allowed
+`MaxConn`:允许的客户端链接最大数量
 
-`WorkerPoolSize`:Maximum number of working Goroutines in the work task pool
+`WorkerPoolSize`:工作任务池最大工作Goroutine数量
 
-`LogDir`: Log folder
+`LogDir`: 日志文件夹
 
-`LogFile`: Log file name (if not provided, log information is printed to Stderr)
+`LogFile`: 日志文件名称(如果不提供，则日志信息打印到Stderr)
 
 
-### (3) Server Module 
+### （3）服务器模块Server
 ```go
   func NewServer () ziface.IServer 
 ```
-Create a Zinx server object that serves as the primary hub for the current server application, including the following functions:
+创建一个Zinx服务器句柄，该句柄作为当前服务器应用程序的主枢纽，包括如下功能：
 
-#### A. Start the Server
+#### A. 开启服务
 ```go
   func (s *Server) Start()
 ```
-#### B. Stop the Server
+#### B. 停止服务
 ```go
   func (s *Server) Stop()
 ```
-#### C. Run the Server
+#### C. 运行服务
 ```go
   func (s *Server) Serve()
 ```
-#### D. Registered router
+#### D. 注册路由
 ```go
 func (s *Server) AddRouter (msgId uint32, router ziface.IRouter) 
 ```
-#### E. Register the link to create the Hook function
+#### E. 注册链接创建Hook函数
 ```go
 func (s *Server) SetOnConnStart(hookFunc func (ziface.IConnection))
 ```
-#### F. Register the link destruction Hook function
+#### F. 注册链接销毁Hook函数
 ```go
 func (s *Server) SetOnConnStop(hookFunc func (ziface.IConnection))
 ```
+### （4）路由模块
 
-### (4) Router Module
 ```go
-//When you implement Router, you embed the base class and then override the methods of the base class as needed.
+//实现router时，先嵌入这个基类，然后根据需要对这个基类的方法进行重写
 type BaseRouter struct {}
 
-//The BaseRouter's methods are null because some Router does not want to
-//have PreHandle or PostHandle. 
-//The Router inherits all BaseRouter's methods because PreHandle and PostHandle can be instantiated 
-//without implementing them
+//这里之所以BaseRouter的方法都为空，
+// 是因为有的Router不希望有PreHandle或PostHandle
+// 所以Router全部继承BaseRouter的好处是，不需要实现PreHandle和PostHandle也可以实例化
 func (br *BaseRouter)PreHandle(req ziface.IRequest){}
 func (br *BaseRouter)Handle(req ziface.IRequest){}
 func (br *BaseRouter)PostHandle(req ziface.IRequest){}
 ```
 
 
-### (5) Connection Module
-#### A. Get the socket net.TCPConn
+### （5）链接模块
+#### A. 获取原始的socket TCPConn
 ```go
   func (c *Connection) GetTCPConnection() *net.TCPConn 
 ```
-#### B. Get the Connection ID
+#### B. 获取链接ID
 ```go
   func (c *Connection) GetConnID() uint32 
 ```
-#### C. Get the remote client address 
+#### C. 获取远程客户端地址信息
 ```go
   func (c *Connection) RemoteAddr() net.Addr 
 ```
-#### D. send message
+#### D. 发送消息
 ```go
   func (c *Connection) SendMsg(msgId uint32, data []byte) error 
   func (c *Connection) SendBuffMsg(msgId uint32, data []byte) error
 ```
-#### E. Connection attributes
+#### E. 链接属性
 ```go
-//Setting connection attributes
+//设置链接属性
 func (c *Connection) SetProperty(key string, value interface{})
 
-//Getting connection attributes
+//获取链接属性
 func (c *Connection) GetProperty(key string) (interface{}, error)
 
-//remove connection attributes
+//移除链接属性
 func (c *Connection) RemoveProperty(key string) 
 ```
 
 ---
 
-#### Developers
+#### 开发者
 -   刘丹冰([@aceld](https://github.com/aceld))
 -   张超([@zhngcho](https://github.com/zhngcho))
 -   高智辉Roger([@adsian](https://github.com/adsian))
@@ -395,24 +391,25 @@ func (c *Connection) RemoveProperty(key string)
 
 
 ---
-[zinx(with C++)](https://github.com/marklion/zinx)
-#### Developers
+[zinx(C++版本)](https://github.com/marklion/zinx)
+#### 开发者
 -  刘洋([@marklion](https://github.com/marklion))
 
 
 ---
-[zinx(with Lua)](https://github.com/huqitt/zinx-lua)
-#### Developers
+[zinx(Lua版本)](https://github.com/huqitt/zinx-lua)
+#### 开发者
 -  胡琪([@huqitt](https://github.com/huqitt))
 
 ---
-[zinx(for websocket)](https://github.com/aceld/zinx/tree/wsserver)
-#### Developers
+[zinx(websocket版本)](https://github.com/aceld/zinx/tree/wsserver)
+#### 开发者
 -  胡贵建([@huguijian](https://github.com/huguijian))
 
 ---
 
-Thanks to all the developers who contributed to Zinx!
+感谢所有为zinx贡献的开发者
+
 
 <a href="https://github.com/aceld/zinx/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=aceld/zinx" />
@@ -420,7 +417,7 @@ Thanks to all the developers who contributed to Zinx!
 
 
 ---
-### About the author
+### 关于作者：
 
 作者：`Aceld(刘丹冰)`
 
@@ -430,10 +427,10 @@ Thanks to all the developers who contributed to Zinx!
 `github`:
 [https://github.com/aceld](https://github.com/aceld)
 
-`original work`:
+`原创书籍`:
 [https://www.yuque.com/aceld](https://www.yuque.com/aceld)
 
-### Zinx Technical Discussion Community
-|  **WeChat**   | **WeChat Public Account**  | **QQ Group**  |
+### Zinx技术讨论社区
+|  **微信群**   | **微信公众号**  | **QQ群资源分享**  |
 |  ----  | ----  | ----  |
 | <img src="https://s1.ax1x.com/2020/07/07/UF6rNV.png" width = "150" height = "180" alt="" align=center />  | <img src="https://s1.ax1x.com/2020/07/07/UFyUdx.th.jpg" height = "150"  alt="" align=center /> | <img src="https://s1.ax1x.com/2020/07/07/UF6Y9S.th.png" width = "150" height = "150" alt="" align=center /> |
