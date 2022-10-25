@@ -41,6 +41,8 @@ type Server struct {
 	OnConnStop func(conn ziface.IConnection)
 	// 退出通道
 	exitChan chan struct{}
+	// 日志处理器
+	logHandler ziface.ILog
 
 	packet ziface.Packet
 }
@@ -64,6 +66,9 @@ func NewServer(opts ...Option) ziface.IServer {
 		opt(s)
 	}
 
+	// 设置日志处理器
+	SetLogger(s.logHandler)
+
 	return s
 }
 
@@ -71,7 +76,7 @@ func NewServer(opts ...Option) ziface.IServer {
 
 // Start 开启网络服务
 func (s *Server) Start() {
-	fmt.Printf("[START] Server name: %s,listenner at IP: %s, Port %d is starting\n", s.Name, s.IP, s.Port)
+	logger.Info("[Zinx][Server][Start]Server Name: %s, IP: %s, Port %d", s.Name, s.IP, s.Port)
 	s.exitChan = make(chan struct{})
 
 	// 开启一个go去做服务端Linster业务
@@ -82,7 +87,7 @@ func (s *Server) Start() {
 		// 1：获取一个TCP的Addr
 		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 		if err != nil {
-			fmt.Println("resolve tcp addr err: ", err)
+			logger.Error("[Zinx][Server][Start]Resolve TCP Addr Error, Error: %v", err)
 			return
 		}
 
