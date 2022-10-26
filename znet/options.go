@@ -12,7 +12,7 @@ func WithPacket(pack ziface.Packet) Option {
 }
 
 // WithLogger 定义日志处理器
-func WithLogger(logger ziface.ILog) Option {
+func WithLogger(logger ziface.ILogger) Option {
 	return func(s *Server) {
 		s.logHandler = logger
 	}

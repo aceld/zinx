@@ -3,7 +3,6 @@ package znet
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -58,8 +57,16 @@ func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgH
 
 // StartWriter 写消息Goroutine， 用户将数据发送给客户端
 func (c *Connection) StartWriter() {
-	fmt.Println("[Writer Goroutine is running]")
-	defer fmt.Println(c.RemoteAddr().String(), "[conn Writer exit!]")
+	logger.Infof(
+		"[Zinx][Connection][StartWriter]Writer Goroutine is Running, ConnID: %d, Remote Addr: %s",
+		c.ConnID,
+		c.RemoteAddr().String(),
+	)
+	defer logger.Infof(
+		"[Zinx][Connection][StartWriter]Conn Writer Exit! ConnID: %d, Remote Addr: %s",
+		c.ConnID,
+		c.RemoteAddr().String(),
+	)
 
 	for {
 		select {
@@ -67,11 +74,20 @@ func (c *Connection) StartWriter() {
 			if ok {
 				// 有数据要写给客户端
 				if _, err := c.Conn.Write(data); err != nil {
-					fmt.Println("Send Buff Data error:, ", err, " Conn Writer exit")
+					logger.Errorf(
+						"[Zinx][Connection][StartWriter]Send Buff Data Error, Conn Writer Exit, ConnID: %d, Remote Addr: %s, Error: %v",
+						c.ConnID,
+						c.RemoteAddr().String(),
+						err,
+					)
 					return
 				}
 			} else {
-				fmt.Println("msgBuffChan is Closed")
+				logger.Errorf(
+					"[Zinx][Connection][StartWriter]msgBuffChan is Closed, ConnID: %d, Remote Addr: %s",
+					c.ConnID,
+					c.RemoteAddr().String(),
+				)
 				break
 			}
 		case <-c.ctx.Done():
@@ -82,8 +98,16 @@ func (c *Connection) StartWriter() {
 
 // StartReader 读消息Goroutine，用于从客户端中读取数据
 func (c *Connection) StartReader() {
-	fmt.Println("[Reader Goroutine is running]")
-	defer fmt.Println(c.RemoteAddr().String(), "[conn Reader exit!]")
+	logger.Infof(
+		"[Zinx][Connection][StartReader]Reader Goroutine is Running, ConnID: %d, Remote Addr: %s",
+		c.ConnID,
+		c.RemoteAddr().String(),
+	)
+	defer logger.Infof(
+		"[Zinx][Connection][StartReader]Conn Reader Exit! ConnID: %d, Remote Addr: %s",
+		c.ConnID,
+		c.RemoteAddr().String(),
+	)
 	defer c.Stop()
 
 	// 创建拆包解包的对象
@@ -96,7 +120,12 @@ func (c *Connection) StartReader() {
 			// 读取客户端的Msg head
 			headData := make([]byte, c.TCPServer.Packet().GetHeadLen())
 			if _, err := io.ReadFull(c.Conn, headData); err != nil {
-				fmt.Println("read msg head error ", err)
+				logger.Errorf(
+					"[Zinx][Connection][StartReader]Read Msg Head Error, ConnID: %d, Remote Addr: %s, Error: %v",
+					c.ConnID,
+					c.RemoteAddr().String(),
+					err,
+				)
 				return
 			}
 			// fmt.Printf("read headData %+v\n", headData)
@@ -104,7 +133,12 @@ func (c *Connection) StartReader() {
 			//拆包，得到msgID 和 datalen 放在msg中
 			msg, err := c.TCPServer.Packet().Unpack(headData)
 			if err != nil {
-				fmt.Println("unpack error ", err)
+				logger.Errorf(
+					"[Zinx][Connection][StartReader]Unpack Error, ConnID: %d, Remote Addr: %s, Error: %v",
+					c.ConnID,
+					c.RemoteAddr().String(),
+					err,
+				)
 				return
 			}
 
@@ -113,7 +147,12 @@ func (c *Connection) StartReader() {
 			if msg.GetDataLen() > 0 {
 				data = make([]byte, msg.GetDataLen())
 				if _, err := io.ReadFull(c.Conn, data); err != nil {
-					fmt.Println("read msg data error ", err)
+					logger.Errorf(
+						"[Zinx][Connection][StartReader]Read Msg Data Error, ConnID: %d, Remote Addr: %s, Error: %v",
+						c.ConnID,
+						c.RemoteAddr().String(),
+						err,
+					)
 					return
 				}
 			}
@@ -185,13 +224,25 @@ func (c *Connection) SendMsg(msgID, sn uint8, data []byte) error {
 	dp := c.TCPServer.Packet()
 	msg, err := dp.Pack(NewMsgPackage(msgID, sn, data))
 	if err != nil {
-		fmt.Println("Pack error msg ID = ", msgID)
+		logger.Errorf(
+			"[Zinx][Connection][SendMsg]Pack Error, ConnID: %d, Remote Addr: %s, Msg ID: %d, Error: %v",
+			c.ConnID,
+			c.RemoteAddr().String(),
+			msgID,
+			err,
+		)
 		return errors.New("Pack error msg ")
 	}
 
 	_, err = c.Conn.Write(msg)
 	if err != nil {
-		fmt.Println("Send data error, err: ", err)
+		logger.Errorf(
+			"[Zinx][Connection][SendMsg]Send Data Error, ConnID: %d, Remote Addr: %s, Msg ID: %d, Error: %v",
+			c.ConnID,
+			c.RemoteAddr().String(),
+			msgID,
+			err,
+		)
 		return err
 	}
 
@@ -213,7 +264,13 @@ func (c *Connection) SendBuffMsg(msgID, sn uint8, data []byte) error {
 	dp := c.TCPServer.Packet()
 	msg, err := dp.Pack(NewMsgPackage(msgID, sn, data))
 	if err != nil {
-		fmt.Println("Pack error msg ID = ", msgID)
+		logger.Errorf(
+			"[Zinx][Connection][SendBuffMsg]Pack Error, ConnID: %d, Msg ID: %d, Remote Addr: %s, Error: %v",
+			c.ConnID,
+			msgID,
+			c.RemoteAddr().String(),
+			err,
+		)
 		return errors.New("Pack error msg ")
 	}
 
@@ -278,7 +335,11 @@ func (c *Connection) finalizer() {
 		return
 	}
 
-	fmt.Println("Conn Stop()...ConnID = ", c.ConnID)
+	logger.Infof(
+		"[Zinx][Connection][finalizer]Conn Stop()...ConnID: %d, Remote Addr: %s",
+		c.ConnID,
+		c.RemoteAddr().String(),
+	)
 
 	// 关闭socket链接
 	_ = c.Conn.Close()

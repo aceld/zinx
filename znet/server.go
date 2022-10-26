@@ -42,7 +42,7 @@ type Server struct {
 	// 退出通道
 	exitChan chan struct{}
 	// 日志处理器
-	logHandler ziface.ILog
+	logHandler ziface.ILogger
 
 	packet ziface.Packet
 }
@@ -67,7 +67,7 @@ func NewServer(opts ...Option) ziface.IServer {
 	}
 
 	// 设置日志处理器
-	SetLogger(s.logHandler)
+	SetLogger(s.logHandler, LogLevel(utils.GlobalObject.LogLevel))
 
 	return s
 }
@@ -75,8 +75,11 @@ func NewServer(opts ...Option) ziface.IServer {
 //============== 实现 ziface.IServer 里的全部接口方法 ========
 
 // Start 开启网络服务
+// 流程： 1.启动工作池（根据数量启动Worker协程）-> 监听 -> 等待客户端连接 -> 为每个连接创建Reader和Writer->
+// 根据utils.GlobalObject.WorkerPoolSize判断是否利用工作池处理Reader消息 ->
+// MsgHandler处理消息（PreHandle, Handle, PostHandle）
 func (s *Server) Start() {
-	logger.Info("[Zinx][Server][Start]Server Name: %s, IP: %s, Port %d", s.Name, s.IP, s.Port)
+	logger.Infof("[Zinx][Server][Start]Server Name: %s, IP: %s, Port %d", s.Name, s.IP, s.Port)
 	s.exitChan = make(chan struct{})
 
 	// 开启一个go去做服务端Linster业务
@@ -87,7 +90,12 @@ func (s *Server) Start() {
 		// 1：获取一个TCP的Addr
 		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 		if err != nil {
-			logger.Error("[Zinx][Server][Start]Resolve TCP Addr Error, Error: %v", err)
+			logger.Errorf(
+				"[Zinx][Server][Start]Resolve TCP Addr Error, IP: %s, Port: %d, Error: %v",
+				s.IP,
+				s.Port,
+				err,
+			)
 			return
 		}
 
@@ -98,7 +106,12 @@ func (s *Server) Start() {
 		}
 
 		// 已经监听成功
-		fmt.Println("start Zinx server  ", s.Name, " succ, now listenning...")
+		logger.Infof(
+			"[Zinx][Server][Start]Success Start Zinx Server %s, Now Listenning... IP: %s, Port: %d",
+			s.Name,
+			s.IP,
+			s.Port,
+		)
 
 		go func() {
 			// TODO：server.go 应该有一个自动生成ID的方法
@@ -110,10 +123,10 @@ func (s *Server) Start() {
 				// 3.1：阻塞等待客户端建立连接请求
 				conn, err := listener.AcceptTCP()
 				if err != nil {
-					fmt.Println("Accept err ", err)
+					logger.Errorf("[Zinx][Server][Start]Accept TCP Error: %v", err)
 					continue
 				}
-				fmt.Println("Get conn remote addr = ", conn.RemoteAddr().String())
+				logger.Infof("[Zinx][Server][Start]Get Conn Remote Addr: %s", conn.RemoteAddr().String())
 
 				// 3.2：设置服务器最大连接控制,如果超过最大连接，那么则关闭此新的连接
 				if s.ConnMgr.Len() >= utils.GlobalObject.MaxConn {
@@ -135,7 +148,7 @@ func (s *Server) Start() {
 		case <-s.exitChan:
 			err := listener.Close()
 			if err != nil {
-				fmt.Println("Listener close err ", err)
+				logger.Errorf("[Zinx][Server][Start]Listener Close, Error: %v", err)
 			}
 		}
 	}()
@@ -143,12 +156,14 @@ func (s *Server) Start() {
 
 // Stop 停止服务
 func (s *Server) Stop() {
-	fmt.Println("[STOP] Zinx server , name ", s.Name)
+	logger.Infof("[Zinx][Server][Stop]Zinx Server %s, Ready to Stop...", s.Name)
 
 	// 将其他需要清理的连接信息或者其他信息 也要一并停止或者清理
 	s.ConnMgr.ClearConn()
 	s.exitChan <- struct{}{}
 	close(s.exitChan)
+
+	logger.Infof("[Zinx][Server][Stop]Zinx Server %s, Stopped", s.Name)
 }
 
 // Serve 运行服务
@@ -184,7 +199,7 @@ func (s *Server) SetOnConnStop(hookFunc func(ziface.IConnection)) {
 // CallOnConnStart 调用连接OnConnStart Hook函数
 func (s *Server) CallOnConnStart(conn ziface.IConnection) {
 	if s.OnConnStart != nil {
-		fmt.Println("---> CallOnConnStart....")
+		logger.Infof("[Zinx][Server][CallOnConnStart]---> CallOnConnStart....")
 		s.OnConnStart(conn)
 	}
 }
@@ -192,7 +207,7 @@ func (s *Server) CallOnConnStart(conn ziface.IConnection) {
 // CallOnConnStop 调用连接OnConnStop Hook函数
 func (s *Server) CallOnConnStop(conn ziface.IConnection) {
 	if s.OnConnStop != nil {
-		fmt.Println("---> CallOnConnStop....")
+		logger.Infof("[Zinx][Server][CallOnConnStart]---> CallOnConnStop....")
 		s.OnConnStop(conn)
 	}
 }

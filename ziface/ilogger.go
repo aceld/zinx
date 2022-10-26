@@ -1,0 +1,11 @@
+package ziface
+
+// ILogger 日志接口
+type ILogger interface {
+	Infof(foramt string, args ...interface{})  // 消息日志
+	Warnf(foramt string, args ...interface{})  // 警告日志
+	Errorf(foramt string, args ...interface{}) // 普通错误日志
+	Fatalf(foramt string, args ...interface{}) // 致命错误日志
+	Panicf(foramt string, args ...interface{}) // 崩溃日志
+	Debugf(foramt string, args ...interface{}) // Debug日志
+}
