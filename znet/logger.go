@@ -33,7 +33,7 @@ func LoadZapLogger(level LogLevel) ziface.ILogger {
 	zapConfig := zap.NewDevelopmentConfig()
 	zapLogLevel := zapcore.Level(level)
 	zapConfig.Level = zap.NewAtomicLevelAt(zapLogLevel)
-	zapConfig.EncoderConfig.EncodeTime = zapcore.RFC3339NanoTimeEncoder
+	zapConfig.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("[2006-01-02 15:04:05.000]")
 	zapLogger, _ := zapConfig.Build()
 	return zapLogger.Sugar()
 }
