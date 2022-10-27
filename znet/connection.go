@@ -140,12 +140,12 @@ func (c *Connection) StartReader() {
 //Start 启动连接，让当前连接开始工作
 func (c *Connection) Start() {
 	c.ctx, c.cancel = context.WithCancel(context.Background())
+	//按照用户传递进来的创建连接时需要处理的业务，执行钩子方法
+	c.TCPServer.CallOnConnStart(c)
 	//1 开启用户从客户端读取数据流程的Goroutine
 	go c.StartReader()
 	//2 开启用于写回客户端数据流程的Goroutine
 	go c.StartWriter()
-	//按照用户传递进来的创建连接时需要处理的业务，执行钩子方法
-	c.TCPServer.CallOnConnStart(c)
 
 	select {
 	case <-c.ctx.Done():
