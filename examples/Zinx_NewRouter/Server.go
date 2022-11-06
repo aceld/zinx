@@ -16,6 +16,7 @@ func Handle1(router ziface.IRouter, req ziface.IRequest) {
 
 // test handleRouter
 func Handle2(router ziface.IRouter, req ziface.IRequest) {
+	router.Next(req)
 	fmt.Println("2")
 	if err := req.GetConnection().SendMsg(0, []byte("test2")); err != nil {
 		fmt.Println(err)
@@ -25,6 +26,7 @@ func Handle2(router ziface.IRouter, req ziface.IRequest) {
 // test handleRouter
 func Handle3(router ziface.IRouter, req ziface.IRequest) {
 	fmt.Println("3")
+	router.Abort()
 	if err := req.GetConnection().SendMsg(0, []byte("test3")); err != nil {
 		fmt.Println(err)
 	}
