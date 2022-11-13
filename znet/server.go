@@ -105,7 +105,6 @@ func (s *Server) Start() {
 			//3 启动server网络连接业务
 			for {
 				//3.1 设置服务器最大连接控制,如果超过最大连接，那么则关闭此新的连接
-				fmt.Println("s.ConnMgr.Len():", s.ConnMgr.Len(), ",MaxConn:", utils.GlobalObject.MaxConn)
 				if s.ConnMgr.Len() >= utils.GlobalObject.MaxConn {
 					fmt.Println("Exceeded the maxConnNum:", utils.GlobalObject.MaxConn, ", Wait:", AcceptDelay.duration)
 					AcceptDelay.Delay()
