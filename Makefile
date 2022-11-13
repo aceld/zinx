@@ -27,7 +27,7 @@ build:
 	go build  -ldflags $(LD_FLAGS) -gcflags "-N"  -o $(CLIENT_DEMO_BIN) $(CLIENT_DEMO_PATH)/main.go
 
 test:
-	go test -v $(TEST_FILES)
+	go test -v -cover $(TEST_FILES)
 clean:
 	rm $(SERVER_DEMO_BIN)
 	rm $(CLIENT_DEMO_BIN)
