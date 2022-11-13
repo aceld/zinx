@@ -126,8 +126,6 @@ func (s *Server) Start() {
 
 				AcceptDelay.Reset()
 
-				fmt.Println("Get conn remote addr = ", conn.RemoteAddr().String())
-
 				//3.3 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 				dealConn := NewConnection(s, conn, cID, s.msgHandler)
 				cID++
