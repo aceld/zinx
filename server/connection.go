@@ -5,25 +5,24 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/youngsailor/zinx/configs"
+	"github.com/youngsailor/zinx/iserverface"
 	"net"
 	"sync"
 	"time"
-	"wsserver/configs"
-	"wsserver/iserverface"
 )
-
 
 type Connection struct {
 	//当前链接所属Server
 	Server iserverface.IServer
-	Conn              *websocket.Conn
-	connId            uint64
+	Conn   *websocket.Conn
+	connId uint64
 	//inChan            chan *Message
 	outChan           chan *Message
 	isClosed          bool
 	closeChan         chan byte
 	rooms             map[string]bool
-	MsgHandle iserverface.IMsgHandle
+	MsgHandle         iserverface.IMsgHandle
 	lastHeartBeatTime time.Time
 	//链接属性
 	property map[string]interface{}
@@ -34,17 +33,17 @@ type Connection struct {
 }
 
 //初始化链接服务
-func NewConnection(server iserverface.IServer,wsSocket *websocket.Conn, connId uint64,msgHandler iserverface.IMsgHandle) *Connection {
+func NewConnection(server iserverface.IServer, wsSocket *websocket.Conn, connId uint64, msgHandler iserverface.IMsgHandle) *Connection {
 	c := &Connection{
-		Server:				server,
-		Conn:          	   	wsSocket,
-		connId:            	connId,
-		MsgHandle:       	msgHandler,
+		Server:    server,
+		Conn:      wsSocket,
+		connId:    connId,
+		MsgHandle: msgHandler,
 		//inChan:            	make(chan *Message, configs.GConf.InChanSize),
-		outChan:           	make(chan *Message, configs.GConf.OutChanSize),
-		closeChan:         	make(chan byte),
-		lastHeartBeatTime: 	time.Now(),
-		rooms:             	make(map[string]bool),
+		outChan:           make(chan *Message, configs.GConf.OutChanSize),
+		closeChan:         make(chan byte),
+		lastHeartBeatTime: time.Now(),
+		rooms:             make(map[string]bool),
 	}
 	c.Server.GetConnMgr().Add(c)
 	return c
@@ -69,11 +68,12 @@ func (c *Connection) Close() {
 }
 
 //获取链接对象
-func (c *Connection) GetConnection() *websocket.Conn{
+func (c *Connection) GetConnection() *websocket.Conn {
 	return c.Conn
 }
+
 //获取链接ID
-func (c * Connection) GetConnID() uint64 {
+func (c *Connection) GetConnID() uint64 {
 	return c.connId
 }
 
@@ -110,7 +110,6 @@ func (c *Connection) RemoveProperty(key string) {
 	delete(c.property, key)
 }
 
-
 //读websocket
 func (c *Connection) readLoop() {
 	var (
@@ -128,8 +127,8 @@ func (c *Connection) readLoop() {
 		if err := json.Unmarshal(msgData, &MsgJon); err != nil {
 			fmt.Println("Error:", err)
 		}
-		if _,ok := MsgJon["msgType"];ok {
-			message :=NewMsg(MsgJon["msgType"].(string),msgType,msgData)
+		if _, ok := MsgJon["msgType"]; ok {
+			message := NewMsg(MsgJon["msgType"].(string), msgType, msgData)
 			//得到当前客户端请求的Request数据
 			req := Request{
 				conn: c,
@@ -145,11 +144,10 @@ func (c *Connection) readLoop() {
 				go c.MsgHandle.DoMsgHandler(&req)
 			}
 
-		}else{
+		} else {
 			fmt.Println("消息标识msgType不存在!")
 
 		}
-
 
 	}
 
@@ -160,7 +158,7 @@ ERR:
 //写websocket
 func (c *Connection) writeLoop() {
 	var (
-		err     error
+		err error
 	)
 	for {
 		select {
@@ -180,8 +178,8 @@ CLOSED:
 }
 
 // 发送消息
-func (c *Connection) SendMessage(msgType int,msgData []byte) (err error) {
-	message := NewMsg("outChan",msgType,msgData)
+func (c *Connection) SendMessage(msgType int, msgData []byte) (err error) {
+	message := NewMsg("outChan", msgType, msgData)
 	select {
 	case c.outChan <- message:
 	case <-c.closeChan:
@@ -203,7 +201,6 @@ func (c *Connection) ReadMessage() (message *Message,err error) {
 	return
 }
 **/
-
 
 //定时检测心跳包
 func (c *Connection) heartBeatChecker() {
@@ -253,5 +250,3 @@ func (c *Connection) KeepAlive() {
 
 	c.lastHeartBeatTime = now
 }
-
-

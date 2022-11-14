@@ -5,24 +5,23 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/lestrrat/go-file-rotatelogs"
 	"github.com/pkg/errors"
 	"github.com/rifflock/lfshook"
 	log "github.com/sirupsen/logrus"
+	"github.com/youngsailor/zinx/common"
+	"github.com/youngsailor/zinx/configs"
+	"github.com/youngsailor/zinx/iserverface"
+	"github.com/youngsailor/zinx/server"
+	"github.com/youngsailor/zinx/zlog"
 	"os"
 	"path"
 	"time"
-	"wsserver/common"
-	"wsserver/configs"
-	"wsserver/iserverface"
-	"wsserver/server"
-	"wsserver/zlog"
 )
 
 var (
 	configFile string
-
 )
+
 func ConfigLocalFilesystemLogger(logPath string, logFileName string, maxAge time.Duration, rotationTime time.Duration) {
 	baseLogPaht := path.Join(logPath, logFileName)
 	writer, err := rotatelogs.New(
@@ -73,22 +72,19 @@ func (this *PingRouter) Handle(request iserverface.IRequest) {
 	}
 }
 
-
-
 func main() {
 	initCmd()
 	ConfigLocalFilesystemLogger("./", "face-service.log", time.Duration(86400)*time.Second, time.Duration(604800)*time.Second)
 	var err error = nil
 	bindAddress := ""
 	if err = configs.LoadConfig(configFile); err != nil {
-		fmt.Println("Load config json error:",err)
+		fmt.Println("Load config json error:", err)
 	}
 	common.InitRedis()
 	server.GWServer = server.NewServer()
 
 	//配置路由
 	server.GWServer.AddRouter("ping", &PingRouter{})
-
 
 	bindAddress = fmt.Sprintf("%s:%d", configs.GConf.Ip, configs.GConf.Port)
 	gin.SetMode(gin.ReleaseMode)

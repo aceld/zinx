@@ -3,15 +3,16 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/youngsailor/zinx/iserverface"
 	"sync"
-	"wsserver/iserverface"
 )
+
 /*
 	连接管理模块
 */
 type ConnManager struct {
 	connections map[uint64]iserverface.IConnection //管理的连接信息
-	connLock    sync.RWMutex                  //读写连接的读写锁
+	connLock    sync.RWMutex                       //读写连接的读写锁
 }
 
 /*
@@ -84,24 +85,24 @@ func (connMgr *ConnManager) ClearConn() {
 
 func (connMgr *ConnManager) PushAll(msg []byte) {
 	for _, conn := range connMgr.connections {
-		conn.SendMessage(1,msg)
+		conn.SendMessage(1, msg)
 	}
 }
 
-func (connMgr *ConnManager) GetConnByProName(key string,val string) (iserverface.IConnection, error) {
+func (connMgr *ConnManager) GetConnByProName(key string, val string) (iserverface.IConnection, error) {
 	//保护共享资源Map 加读锁
 	connMgr.connLock.RLock()
 	defer connMgr.connLock.RUnlock()
 	var ConnID uint64
 	for connId, conn := range connMgr.connections {
 
-		if proVal,err :=conn.GetProperty("parkid"); err!=nil {
-			fmt.Println("获取属性出错",err)
-		}else{
+		if proVal, err := conn.GetProperty("parkid"); err != nil {
+			fmt.Println("获取属性出错", err)
+		} else {
 
-			if proVal==val {
+			if proVal == val {
 				ConnID = connId
-				break;
+				break
 			}
 		}
 	}

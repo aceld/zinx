@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/youngsailor/zinx/configs"
+	"github.com/youngsailor/zinx/iserverface"
 	"net/http"
 	"sync/atomic"
 	"time"
-	"wsserver/configs"
-	"wsserver/iserverface"
 )
 
 type Server struct {
@@ -36,12 +36,12 @@ var (
 
 func NewServer() iserverface.IServer {
 	return &Server{
-		Name:        configs.GConf.Name,
-		IPversion:   configs.GConf.IpVersion,
-		IP:          configs.GConf.Ip,
-		Port:        configs.GConf.Port,
-		ConnMgr:     NewConnManager(),
-		MsgHandler:  NewMsgHandle(),
+		Name:       configs.GConf.Name,
+		IPversion:  configs.GConf.IpVersion,
+		IP:         configs.GConf.Ip,
+		Port:       configs.GConf.Port,
+		ConnMgr:    NewConnManager(),
+		MsgHandler: NewMsgHandle(),
 	}
 }
 
@@ -51,14 +51,13 @@ func (s *Server) Start(c *gin.Context) {
 	//开启一个go去做服务端Linster业务
 	go func() {
 
-
 		//TODO server.go 应该有一个自动生成ID的方法
 		curConnId := uint64(time.Now().Unix())
 		connId := atomic.AddUint64(&curConnId, 1)
 		//3.1 阻塞等待客户端建立连接请求
 		var (
-			err      error
-			wsSocket *websocket.Conn
+			err        error
+			wsSocket   *websocket.Conn
 			wsUpgrader = websocket.Upgrader{
 				// 允许所有CORS跨域请求
 				CheckOrigin: func(r *http.Request) bool {
@@ -73,18 +72,17 @@ func (s *Server) Start(c *gin.Context) {
 		fmt.Println("Get conn remote addr = ", wsSocket.RemoteAddr().String())
 		//3 启动server网络连接业务
 
-
 		//3.2 设置服务器最大连接控制,如果超过最大连接，那么则关闭此新的连接
 		/*
-		if s.ConnMgr.Len() >= configs.GConf.MaxConn {
-			wsSocket.Close()
-			continue
-		}
-		**/
+			if s.ConnMgr.Len() >= configs.GConf.MaxConn {
+				wsSocket.Close()
+				continue
+			}
+			**/
 		//3.3 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 		dealConn := NewConnection(s, wsSocket, connId, s.MsgHandler)
 
-		fmt.Println("Current connId:",connId)
+		fmt.Println("Current connId:", connId)
 		//3.4 启动当前链接的处理业务
 		go dealConn.Start()
 
@@ -144,4 +142,3 @@ func (s *Server) CallOnConnStop(conn iserverface.IConnection) {
 		s.OnConnStop(conn)
 	}
 }
-
