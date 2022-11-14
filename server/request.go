@@ -1,6 +1,6 @@
 package server
 
-import "github.com/youngsailor/zinx/iserverface"
+import "github.com/aceld/zinx/iserverface"
 
 type Request struct {
 	conn iserverface.IConnection //已经和客户端建立好的 链接

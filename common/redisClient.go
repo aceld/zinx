@@ -2,8 +2,8 @@ package common
 
 import (
 	"fmt"
+	"github.com/aceld/zinx/configs"
 	"github.com/go-redis/redis"
-	"github.com/youngsailor/zinx/configs"
 )
 
 var (

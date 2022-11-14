@@ -2,10 +2,10 @@ package server
 
 import (
 	"fmt"
+	"github.com/aceld/zinx/configs"
+	"github.com/aceld/zinx/iserverface"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/youngsailor/zinx/configs"
-	"github.com/youngsailor/zinx/iserverface"
 	"net/http"
 	"sync/atomic"
 	"time"
@@ -89,7 +89,7 @@ func (s *Server) Start(c *gin.Context) {
 	}()
 }
 
-//停止服务
+// 停止服务
 func (s *Server) Stop() {
 	fmt.Println("[STOP] Websocket server , name ", s.Name)
 
@@ -97,7 +97,7 @@ func (s *Server) Stop() {
 	s.ConnMgr.ClearConn()
 }
 
-//运行服务
+// 运行服务
 func (s *Server) Serve(c *gin.Context) {
 	s.Start(c)
 
@@ -107,27 +107,27 @@ func (s *Server) Serve(c *gin.Context) {
 	select {}
 }
 
-//路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
+// 路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
 func (s *Server) AddRouter(msgId string, router iserverface.IRouter) {
 	s.MsgHandler.AddRouter(msgId, router)
 }
 
-//得到链接管理
+// 得到链接管理
 func (s *Server) GetConnMgr() iserverface.IConnMgr {
 	return s.ConnMgr
 }
 
-//设置该Server的连接创建时Hook函数
+// 设置该Server的连接创建时Hook函数
 func (s *Server) SetOnConnStart(hookFunc func(iserverface.IConnection)) {
 	s.OnConnStart = hookFunc
 }
 
-//设置该Server的连接断开时的Hook函数
+// 设置该Server的连接断开时的Hook函数
 func (s *Server) SetOnConnStop(hookFunc func(iserverface.IConnection)) {
 	s.OnConnStop = hookFunc
 }
 
-//调用连接OnConnStart Hook函数
+// 调用连接OnConnStart Hook函数
 func (s *Server) CallOnConnStart(conn iserverface.IConnection) {
 	if s.OnConnStart != nil {
 		fmt.Println("---> CallOnConnStart....")
@@ -135,7 +135,7 @@ func (s *Server) CallOnConnStart(conn iserverface.IConnection) {
 	}
 }
 
-//调用连接OnConnStop Hook函数
+// 调用连接OnConnStop Hook函数
 func (s *Server) CallOnConnStop(conn iserverface.IConnection) {
 	if s.OnConnStop != nil {
 		fmt.Println("---> CallOnConnStop....")

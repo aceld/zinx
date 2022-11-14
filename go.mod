@@ -1,4 +1,4 @@
-module github.com/youngsailor/zinx
+module github.com/aceld/zinx
 
 go 1.14
 
