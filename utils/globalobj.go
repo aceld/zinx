@@ -11,12 +11,14 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
+
 	"github.com/aceld/zinx/utils/commandline/args"
 	"github.com/aceld/zinx/utils/commandline/uflag"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
-	"io/ioutil"
-	"os"
 )
 
 /*
@@ -76,7 +78,7 @@ func PathExists(path string) (bool, error) {
 func (g *GlobalObj) Reload() {
 
 	if confFileExists, _ := PathExists(g.ConfFilePath); confFileExists != true {
-		//fmt.Println("Config File ", g.ConfFilePath , " is not exist!!")
+		fmt.Println("Config File ", g.ConfFilePath, " is not exist!!")
 		return
 	}
 
@@ -86,6 +88,7 @@ func (g *GlobalObj) Reload() {
 	}
 	//将json数据解析到struct中
 	err = json.Unmarshal(data, g)
+	fmt.Println("globalObj:", g)
 	if err != nil {
 		panic(err)
 	}
@@ -109,7 +112,7 @@ func init() {
 	}
 
 	// 初始化配置模块flag
-	args.InitConfigFlag( pwd + "/conf/zinx.json","配置文件，如果没有设置，则默认为<exeDir>/conf/zinx.json")
+	args.InitConfigFlag(pwd+"/conf/zinx.json", "配置文件，如果没有设置，则默认为<exeDir>/conf/zinx.json")
 	// 初始化日志模块flag TODO
 	// 解析
 	uflag.Parse()
@@ -124,7 +127,7 @@ func init() {
 		Host:             "0.0.0.0",
 		MaxConn:          12000,
 		MaxPacketSize:    4096,
-		ConfFilePath:     args.Args.ConfigFile ,
+		ConfFilePath:     args.Args.ConfigFile,
 		WorkerPoolSize:   10,
 		MaxWorkerTaskLen: 1024,
 		MaxMsgChanLen:    1024,
@@ -136,4 +139,3 @@ func init() {
 	//NOTE: 从配置文件中加载一些用户配置的参数
 	GlobalObject.Reload()
 }
-
