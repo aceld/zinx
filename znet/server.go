@@ -68,6 +68,27 @@ func NewServer(opts ...Option) ziface.IServer {
 	return s
 }
 
+func NewUserConfServer(config *utils.UserConf, opts ...Option) ziface.IServer {
+	//打印logo
+	printLogo()
+
+	s := &Server{
+		Name:       config.Name,
+		IPVersion:  config.TCPVersion,
+		IP:         config.Host,
+		Port:       config.TCPPort,
+		msgHandler: NewMsgHandle(),
+		ConnMgr:    NewConnManager(),
+		exitChan:   nil,
+		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack),
+	}
+
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
+}
+
 //============== 实现 ziface.IServer 里的全部接口方法 ========
 
 //Start 开启网络服务
@@ -162,8 +183,11 @@ func (s *Server) Serve() {
 }
 
 //AddRouter 路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
-func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
-	s.msgHandler.AddRouter(msgID, router)
+//func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
+//	s.msgHandler.AddRouter(msgID, router)
+//}
+func (s *Server) AddRouter(msgId uint32, router ...ziface.RouterHandler) {
+	s.msgHandler.AddRouter(msgId, router...)
 }
 
 //GetConnMgr 得到链接管理

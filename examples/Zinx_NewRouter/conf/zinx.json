@@ -1,0 +1,9 @@
+{
+  "Name":"zinx server Demo",
+  "Host":"127.0.0.1",
+  "TcpPort":8999,
+  "MaxConn":3,
+  "WorkerPoolSize":10,
+  "LogDir": "./mylog",
+  "LogFile":"zinx.log"
+}
