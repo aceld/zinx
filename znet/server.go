@@ -69,6 +69,31 @@ func NewServer(opts ...Option) ziface.IServer {
 	return s
 }
 
+//NewServer 创建一个服务器句柄
+func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
+	//打印logo
+	printLogo()
+
+	s := &Server{
+		Name:       config.Name,
+		IPVersion:  config.TcpVersion,
+		IP:         config.Host,
+		Port:       config.TcpPort,
+		msgHandler: NewMsgHandle(),
+		ConnMgr:    NewConnManager(),
+		exitChan:   nil,
+		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack),
+	}
+	//更替打包方式
+	for _, opt := range opts {
+		opt(s)
+	}
+	//刷新用户配置到全局配置变量
+	utils.UserConfToGlobal(config)
+
+	return s
+}
+
 //============== 实现 ziface.IServer 里的全部接口方法 ========
 
 //Start 开启网络服务
