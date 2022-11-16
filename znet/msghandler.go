@@ -9,33 +9,19 @@ import (
 )
 
 // MsgHandle -
-//type MsgHandle struct {
-//	Apis           map[uint32]ziface.IRouter //存放每个MsgID 所对应的处理方法的map属性
-//	WorkerPoolSize uint32                    //业务工作Worker池的数量
-//	TaskQueue      []chan ziface.IRequest    //Worker负责取任务的消息队列
-//}
-//
-////NewMsgHandle 创建MsgHandle
-//func NewMsgHandle() *MsgHandle {
-//	return &MsgHandle{
-//		Apis:           make(map[uint32]ziface.IRouter),
-//		WorkerPoolSize: utils.GlobalObject.WorkerPoolSize,
-//		//一个worker对应一个queue
-//		TaskQueue: make([]chan ziface.IRequest, utils.GlobalObject.WorkerPoolSize),
-//	}
-//}
-
 type MsgHandle struct {
-	Apis           map[uint32]*Router     //存放每个MsgID 所对应的处理方法的切片
-	WorkerPoolSize uint32                 //业务工作Worker池的数量
-	TaskQueue      []chan ziface.IRequest //Worker负责取任务的消息队列
+	Apis           map[uint32]ziface.IRouter //存放每个MsgID 所对应的处理方法的map属性
+	WorkerPoolSize uint32                    //业务工作Worker池的数量
+	TaskQueue      []chan ziface.IRequest    //Worker负责取任务的消息队列
 }
 
+//NewMsgHandle 创建MsgHandle
 func NewMsgHandle() *MsgHandle {
 	return &MsgHandle{
-		Apis:           make(map[uint32]*Router),
+		Apis:           make(map[uint32]ziface.IRouter),
 		WorkerPoolSize: utils.GlobalObject.WorkerPoolSize,
-		TaskQueue:      make([]chan ziface.IRequest, utils.GlobalObject.WorkerPoolSize), //一个消息队列对应一个worker池子
+		//一个worker对应一个queue
+		TaskQueue: make([]chan ziface.IRequest, utils.GlobalObject.WorkerPoolSize),
 	}
 }
 
@@ -51,53 +37,29 @@ func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
 	mh.TaskQueue[workerID] <- request
 }
 
-//
-////DoMsgHandler 马上以非阻塞方式处理消息
-//func (mh *MsgHandle) DoMsgHandler(request ziface.IRequest) {
-//	handler, ok := mh.Apis[request.GetMsgID()]
-//	if !ok {
-//		fmt.Println("api msgID = ", request.GetMsgID(), " is not FOUND!")
-//		return
-//	}
-//
-//	//执行对应处理方法
-//	handler.PreHandle(request)
-//	handler.Handle(request)
-//	handler.PostHandle(request)
-//}
-//
-////AddRouter 为消息添加具体的处理逻辑
-//func (mh *MsgHandle) AddRouter(msgID uint32, router ziface.IRouter) {
-//	//1 判断当前msg绑定的API处理方法是否已经存在
-//	if _, ok := mh.Apis[msgID]; ok {
-//		panic("repeated api , msgID = " + strconv.Itoa(int(msgID)))
-//	}
-//	//2 添加msg与api的绑定关系
-//	mh.Apis[msgID] = router
-//	fmt.Println("Add api msgID = ", msgID)
-//}
-
-func (m *MsgHandle) DoMsgHandler(request ziface.IRequest) {
-	router, ok := m.Apis[request.GetMsgID()]
+//DoMsgHandler 马上以非阻塞方式处理消息
+func (mh *MsgHandle) DoMsgHandler(request ziface.IRequest) {
+	handler, ok := mh.Apis[request.GetMsgID()]
 	if !ok {
-		fmt.Println("not find Router In Apis")
+		fmt.Println("api msgID = ", request.GetMsgID(), " is not FOUND!")
 		return
 	}
-	router.Reindx()
-	router.Next(request)
+
+	//执行对应处理方法
+	handler.PreHandle(request)
+	handler.Handle(request)
+	handler.PostHandle(request)
 }
 
-func (m *MsgHandle) AddRouter(msgId uint32, handler ...ziface.RouterHandler) {
+//AddRouter 为消息添加具体的处理逻辑
+func (mh *MsgHandle) AddRouter(msgID uint32, router ziface.IRouter) {
 	//1 判断当前msg绑定的API处理方法是否已经存在
-	if _, ok := m.Apis[msgId]; ok {
-		panic("repeated api , msgId = " + strconv.Itoa(int(msgId)))
+	if _, ok := mh.Apis[msgID]; ok {
+		panic("repeated api , msgID = " + strconv.Itoa(int(msgID)))
 	}
-
 	//2 添加msg与api的绑定关系
-	m.Apis[msgId] = &Router{}
-	m.Apis[msgId].Reset()
-	m.Apis[msgId].AddHandler(handler...)
-	fmt.Println("Add api msgId = ", msgId)
+	mh.Apis[msgID] = router
+	fmt.Println("Add api msgID = ", msgID)
 }
 
 //StartOneWorker 启动一个Worker工作流程
