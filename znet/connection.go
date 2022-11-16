@@ -122,8 +122,9 @@ func (c *Connection) StartReader() {
 
 			//得到当前客户端请求的Request数据
 			req := Request{
-				conn: c,
-				msg:  msg,
+				conn:  c,
+				msg:   msg,
+				index: 0,
 			}
 
 			if utils.GlobalObject.WorkerPoolSize > 0 {
