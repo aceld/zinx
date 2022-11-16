@@ -68,11 +68,9 @@ func (connMgr *ConnManager) ClearConn() {
 	connMgr.connLock.Lock()
 
 	//停止并删除全部的连接信息
-	for connID, conn := range connMgr.connections {
+	for _, conn := range connMgr.connections {
 		//停止
 		conn.Stop()
-		//删除
-		delete(connMgr.connections, connID)
 	}
 	connMgr.connLock.Unlock()
 	fmt.Println("Clear All Connections successfully: conn num = ", connMgr.Len())
@@ -87,12 +85,10 @@ func (connMgr *ConnManager) ClearOneConn(connID uint32) {
 	if conn, ok := connections[connID]; ok {
 		//停止
 		conn.Stop()
-		//删除
-		delete(connections, connID)
+
 		fmt.Println("Clear Connections ID:  ", connID, "succeed")
 		return
 	}
 
 	fmt.Println("Clear Connections ID:  ", connID, "err")
-	return
 }
