@@ -289,7 +289,9 @@ func (c *Connection) finalizer() {
 	c.TCPServer.GetConnMgr().Remove(c)
 
 	//关闭该链接全部管道
-	close(c.msgBuffChan)
+	if c.msgBuffChan != nil {
+		close(c.msgBuffChan)
+	}
 	//设置标志位
 	c.isClosed = true
 }
