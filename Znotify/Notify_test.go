@@ -65,7 +65,6 @@ func Clinet() {
 				return
 			}
 			select {}
-			//fmt.Println("==> Recv Msg: ID=", NewMsg.GetMsgId(), ", len=", NewMsg.GetDataLen(), ", data=", string(NewMsg.GetData()))
 		}(i)
 	}
 }
@@ -102,7 +101,6 @@ func ClinetJoin() {
 					return
 				}
 				select {}
-				//fmt.Println("==> Recv Msg: ID=", NewMsg.GetMsgId(), ", len=", NewMsg.GetDataLen(), ", data=", string(NewMsg.GetData()))
 			}(i)
 			i++
 		}
