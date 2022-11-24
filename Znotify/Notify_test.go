@@ -110,9 +110,9 @@ func ClinetJoin() {
 
 func TestAA(t *testing.T) {
 	time.AfterFunc(5*time.Second, func() {
-		fmt.Println(len(nt.cimap))
 	})
 	time.Sleep(6 * time.Second)
+	nt.ConnNums()
 }
 
 func BenchmarkNotify(b *testing.B) {
@@ -121,5 +121,5 @@ func BenchmarkNotify(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		nt.NotifyAll(1, []byte("雪下的是盐"))
 	}
-	fmt.Println(len(nt.cimap))
+	nt.ConnNums()
 }

@@ -12,10 +12,14 @@ type notify struct {
 	sync.RWMutex
 }
 
-func NewNotify() *notify {
+func NewNotify() ziface.Inotify {
 	return &notify{
 		cimap: make(map[uint64]ziface.IConnection, 5000),
 	}
+}
+
+func (n *notify) ConnNums() int {
+	return len(n.cimap)
 }
 
 func (n *notify) HasIdConn(Id uint64) bool {
