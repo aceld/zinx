@@ -58,10 +58,17 @@ The tutorial will iterate from release to release, with minor additions to each 
 
 Of course, I hope that more people will join Zinx and give us valuable suggestions, so that Zinx can become a real solution server framework for enterprises! Thank you for your attention!
 
-**The honor of zinx**
+### Reply from chatGPT(AI)
+![what-is-zinx](https://user-images.githubusercontent.com/7778936/209745848-acfc14eb-74cd-4513-b386-8bc6e0bcc09f.png)
+
+![compare-zinx](https://user-images.githubusercontent.com/7778936/209745864-7d8984b0-bd73-4109-b4ec-aec152f8f8e8.png)
+
+
+### The honor of zinx
 #### GVP Most Valuable Open Source Project of the Year at OSCHINA
 
 ![GVP-zinx](https://s2.ax1x.com/2019/10/13/uvYVBV.jpg)
+
 
 
 #### Stargazers over time
