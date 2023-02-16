@@ -48,7 +48,7 @@ func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgH
 		ConnID:      connID,
 		isClosed:    false,
 		MsgHandler:  msgHandler,
-		msgBuffChan: make(chan []byte, utils.GlobalObject.MaxMsgChanLen),
+		msgBuffChan: nil,
 		property:    nil,
 	}
 
@@ -145,8 +145,6 @@ func (c *Connection) Start() {
 	c.TCPServer.CallOnConnStart(c)
 	//1 开启用户从客户端读取数据流程的Goroutine
 	go c.StartReader()
-	//2 开启用于写回客户端数据流程的Goroutine
-	go c.StartWriter()
 
 	select {
 	case <-c.ctx.Done():
@@ -200,6 +198,12 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 	c.RLock()
 	defer c.RUnlock()
+	if c.msgBuffChan == nil {
+		c.msgBuffChan = make(chan []byte, utils.GlobalObject.MaxMsgChanLen)
+		//开启用于写回客户端数据流程的Goroutine
+		//此方法只读取MsgBuffChan中的数据没调用SendBuffMsg可以分配内存和启用协程
+		go c.StartWriter()
+	}
 	idleTimeout := time.NewTimer(5 * time.Millisecond)
 	defer idleTimeout.Stop()
 
@@ -285,7 +289,9 @@ func (c *Connection) finalizer() {
 	c.TCPServer.GetConnMgr().Remove(c)
 
 	//关闭该链接全部管道
-	close(c.msgBuffChan)
+	if c.msgBuffChan != nil {
+		close(c.msgBuffChan)
+	}
 	//设置标志位
 	c.isClosed = true
 }
