@@ -12,13 +12,14 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
-
 	"github.com/aceld/zinx/utils/commandline/args"
 	"github.com/aceld/zinx/utils/commandline/uflag"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
+	"io/ioutil"
+	"os"
+	"reflect"
+	"testing"
 )
 
 /*
@@ -88,7 +89,7 @@ func (g *GlobalObj) Reload() {
 	}
 	//将json数据解析到struct中
 	err = json.Unmarshal(data, g)
-	fmt.Println("globalObj:", g)
+
 	if err != nil {
 		panic(err)
 	}
@@ -100,6 +101,22 @@ func (g *GlobalObj) Reload() {
 	if g.LogDebugClose == true {
 		zlog.CloseDebug()
 	}
+}
+
+//提示详细
+func (g *GlobalObj) Show() {
+	//提示当前配置信息
+	objVal := reflect.ValueOf(g).Elem()
+	objType := reflect.TypeOf(*g)
+
+	fmt.Println("===== Zinx Global Config =====")
+	for i := 0; i < objVal.NumField(); i++ {
+		field := objVal.Field(i)
+		typeField := objType.Field(i)
+
+		fmt.Printf("%s: %v\n", typeField.Name, field.Interface())
+	}
+	fmt.Println("==============================")
 }
 
 /*
@@ -114,8 +131,11 @@ func init() {
 	// 初始化配置模块flag
 	args.InitConfigFlag(pwd+"/conf/zinx.json", "配置文件，如果没有设置，则默认为<exeDir>/conf/zinx.json")
 	// 初始化日志模块flag TODO
+
 	// 解析
+	testing.Init() //防止 go test 出现"flag provided but not defined: -test.paniconexit0"等错误
 	uflag.Parse()
+
 	// 解析之后的操作
 	args.FlagHandle()
 

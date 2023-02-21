@@ -66,6 +66,9 @@ func NewServer(opts ...Option) ziface.IServer {
 		opt(s)
 	}
 
+	//提示当前配置信息
+	utils.GlobalObject.Show()
+
 	return s
 }
 
@@ -90,6 +93,9 @@ func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
 	}
 	//刷新用户配置到全局配置变量
 	utils.UserConfToGlobal(config)
+
+	//提示当前配置信息
+	utils.GlobalObject.Show()
 
 	return s
 }

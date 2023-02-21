@@ -1,4 +1,4 @@
-package Notify
+package znotify
 
 import (
 	"errors"
@@ -7,12 +7,17 @@ import (
 	"sync"
 )
 
+//建立一个用户自定义ID和连接映射的结构
+//map会存在 并发问题，大量数据循环读取问题
+//暂时先用map结构存储，但是应该不是最好的选择，抛砖引玉
+type ConnIDMap map[uint64]ziface.IConnection
+
 type notify struct {
 	cimap ConnIDMap
 	sync.RWMutex
 }
 
-func NewNotify() ziface.Inotify {
+func NewZNotify() ziface.Inotify {
 	return &notify{
 		cimap: make(map[uint64]ziface.IConnection, 5000),
 	}

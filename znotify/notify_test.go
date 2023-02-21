@@ -1,4 +1,4 @@
-package Notify
+package znotify
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var nt = NewNotify()
+var nt = NewZNotify()
 
 type router struct {
 	znet.BaseRouter
@@ -69,13 +69,7 @@ func Clinet() {
 	}
 }
 
-func init() {
-	go Server()
-	go Clinet()
-	go ClinetJoin()
-}
-
-func ClinetJoin() {
+func ClientJoin() {
 	t := time.NewTicker(50 * time.Millisecond)
 	i := 10000
 	for {
@@ -116,10 +110,17 @@ func TestAA(t *testing.T) {
 }
 
 func BenchmarkNotify(b *testing.B) {
-	time.Sleep(5 * time.Second)
+	fmt.Println("Begin BenchmarkNotify")
+	time.Sleep(60 * time.Second)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		nt.NotifyAll(1, []byte("雪下的是盐"))
 	}
 	nt.ConnNums()
+}
+
+func init() {
+	go Server()
+	//go Clinet()
+	//go ClientJoin()
 }
