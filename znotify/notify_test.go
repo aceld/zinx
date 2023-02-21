@@ -121,6 +121,6 @@ func BenchmarkNotify(b *testing.B) {
 
 func init() {
 	go Server()
-	//go Clinet()
-	//go ClientJoin()
+	go Clinet()
+	go ClientJoin()
 }
