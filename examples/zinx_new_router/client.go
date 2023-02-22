@@ -16,7 +16,7 @@ func main() {
 	//3秒之后发起测试请求，给服务端开启服务的机会
 	time.Sleep(3 * time.Second)
 
-	conn, err := net.Dial("tcp", "127.0.0.1:8999")
+	conn, err := net.Dial("tcp", "127.0.0.1:7777")
 	if err != nil {
 		fmt.Println("client start err, exit!")
 		return
@@ -30,7 +30,7 @@ func main() {
 		return
 	}
 
-	for i := 0; i < 3; i++ {
+	for {
 		//先读出流中的head部分
 		headData := make([]byte, dp.GetHeadLen())
 		_, err = io.ReadFull(conn, headData)
@@ -60,8 +60,5 @@ func main() {
 
 			fmt.Printf("==> Client receive Msg: ID = %d, len = %d , data = %s\n", msg.ID, msg.DataLen, msg.Data)
 		}
-
 	}
-
-	time.Sleep(time.Second)
 }

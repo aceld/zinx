@@ -1,13 +1,37 @@
 package znet
 
-import "github.com/aceld/zinx/ziface"
+import (
+	"github.com/aceld/zinx/ziface"
+	"sync"
+)
+
+const (
+	PRE_HANDLE  ziface.HandleStep = iota //PreHandle 预处理
+	HANDLE                               //Handle 处理
+	POST_HANDLE                          //PostHandle 后处理
+
+	HANDLE_OVER
+)
 
 //Request 请求
 type Request struct {
-	conn   ziface.IConnection //已经和客户端建立好的 链接
-	msg    ziface.IMessage    //客户端请求的数据
-	router ziface.IRouter     //请求处理的函数
-	index  int8               //用来控制路由函数执行
+	conn     ziface.IConnection //已经和客户端建立好的 链接
+	msg      ziface.IMessage    //客户端请求的数据
+	router   ziface.IRouter     //请求处理的函数
+	steps    ziface.HandleStep  //用来控制路由函数执行
+	stepLock *sync.RWMutex      //并发互斥
+	needNext bool
+}
+
+func NewRequest(conn ziface.IConnection, msg ziface.IMessage) *Request {
+	req := new(Request)
+	req.steps = PRE_HANDLE
+	req.conn = conn
+	req.msg = msg
+	req.stepLock = new(sync.RWMutex)
+	req.needNext = true
+
+	return req
 }
 
 //GetConnection 获取请求连接信息
@@ -29,21 +53,46 @@ func (r *Request) BindRouter(router ziface.IRouter) {
 	r.router = router
 }
 
-func (r *Request) Next() {
-	r.index++
-	for r.index < 4 {
-		switch r.index {
-		case 1:
+func (r *Request) next() {
+	if r.needNext == false {
+		r.needNext = true
+		return
+	}
+
+	r.stepLock.Lock()
+	r.steps++
+	r.stepLock.Unlock()
+}
+
+func (r *Request) Goto(step ziface.HandleStep) {
+	r.stepLock.Lock()
+	r.steps = step
+	r.needNext = false
+	r.stepLock.Unlock()
+}
+
+func (r *Request) Call() {
+
+	if r.router == nil {
+		return
+	}
+
+	for r.steps < HANDLE_OVER {
+		switch r.steps {
+		case PRE_HANDLE:
 			r.router.PreHandle(r)
-		case 2:
+		case HANDLE:
 			r.router.Handle(r)
-		case 3:
+		case POST_HANDLE:
 			r.router.PostHandle(r)
 		}
-		r.index++
+
+		r.next()
 	}
 }
 
 func (r *Request) Abort() {
-	r.index = 4
+	r.stepLock.Lock()
+	r.steps = HANDLE_OVER
+	r.stepLock.Unlock()
 }

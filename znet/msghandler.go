@@ -44,15 +44,10 @@ func (mh *MsgHandle) DoMsgHandler(request ziface.IRequest) {
 		fmt.Println("api msgID = ", request.GetMsgID(), " is not FOUND!")
 		return
 	}
-	//绑定路由
+	//Request请求绑定Router对应关系
 	request.BindRouter(handler)
-	//request中未赋值的index默认值是0
-	request.Next()
-
 	//执行对应处理方法
-	//handler.PreHandle(request)
-	//handler.Handle(request)
-	//handler.PostHandle(request)
+	request.Call()
 }
 
 //AddRouter 为消息添加具体的处理逻辑
