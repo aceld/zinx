@@ -14,12 +14,12 @@ import (
 	"github.com/aceld/zinx/ziface"
 )
 
-//Connection 链接
+//Connection Tcp-Connection
 type Connection struct {
 	//当前Conn属于哪个Server
-	TCPServer ziface.IServer
+	Server ziface.IServer
 	//当前连接的socket TCP套接字
-	Conn *net.TCPConn
+	conn net.Conn
 	//当前连接的ID 也可以称作为SessionID，ID全局唯一
 	ConnID uint32
 	//消息管理MsgID和对应处理方法的消息管理模块
@@ -43,8 +43,8 @@ type Connection struct {
 func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandle) *Connection {
 	//初始化Conn属性
 	c := &Connection{
-		TCPServer:   server,
-		Conn:        conn,
+		Server:      server,
+		conn:        conn,
 		ConnID:      connID,
 		isClosed:    false,
 		MsgHandler:  msgHandler,
@@ -53,7 +53,7 @@ func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgH
 	}
 
 	//将新创建的Conn添加到链接管理中
-	c.TCPServer.GetConnMgr().Add(c)
+	c.Server.GetConnMgr().Add(c)
 	return c
 }
 
@@ -67,7 +67,7 @@ func (c *Connection) StartWriter() {
 		case data, ok := <-c.msgBuffChan:
 			if ok {
 				//有数据要写给客户端
-				if _, err := c.Conn.Write(data); err != nil {
+				if _, err := c.conn.Write(data); err != nil {
 					fmt.Println("Send Buff Data error:, ", err, " Conn Writer exit")
 					return
 				}
@@ -95,15 +95,15 @@ func (c *Connection) StartReader() {
 		default:
 
 			//读取客户端的Msg head
-			headData := make([]byte, c.TCPServer.Packet().GetHeadLen())
-			if _, err := io.ReadFull(c.Conn, headData); err != nil {
+			headData := make([]byte, c.Server.Packet().GetHeadLen())
+			if _, err := io.ReadFull(c.conn, headData); err != nil {
 				fmt.Println("read msg head error ", err)
 				return
 			}
 			//fmt.Printf("read headData %+v\n", headData)
 
 			//拆包，得到msgID 和 datalen 放在msg中
-			msg, err := c.TCPServer.Packet().Unpack(headData)
+			msg, err := c.Server.Packet().Unpack(headData)
 			if err != nil {
 				fmt.Println("unpack error ", err)
 				return
@@ -113,7 +113,7 @@ func (c *Connection) StartReader() {
 			var data []byte
 			if msg.GetDataLen() > 0 {
 				data = make([]byte, msg.GetDataLen())
-				if _, err := io.ReadFull(c.Conn, data); err != nil {
+				if _, err := io.ReadFull(c.conn, data); err != nil {
 					fmt.Println("read msg data error ", err)
 					return
 				}
@@ -138,7 +138,7 @@ func (c *Connection) StartReader() {
 func (c *Connection) Start() {
 	c.ctx, c.cancel = context.WithCancel(context.Background())
 	//按照用户传递进来的创建连接时需要处理的业务，执行钩子方法
-	c.TCPServer.CallOnConnStart(c)
+	c.Server.CallOnConnStart(c)
 	//1 开启用户从客户端读取数据流程的Goroutine
 	go c.StartReader()
 
@@ -154,9 +154,8 @@ func (c *Connection) Stop() {
 	c.cancel()
 }
 
-//GetTCPConnection 从当前连接获取原始的socket TCPConn
-func (c *Connection) GetTCPConnection() *net.TCPConn {
-	return c.Conn
+func (c *Connection) GetConnection() net.Conn {
+	return c.conn
 }
 
 //GetConnID 获取当前连接ID
@@ -166,7 +165,7 @@ func (c *Connection) GetConnID() uint32 {
 
 //RemoteAddr 获取远程客户端地址信息
 func (c *Connection) RemoteAddr() net.Addr {
-	return c.Conn.RemoteAddr()
+	return c.conn.RemoteAddr()
 }
 
 //SendMsg 直接将Message数据发送数据给远程的TCP客户端
@@ -178,7 +177,7 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 	}
 
 	//将data封包，并且发送
-	dp := c.TCPServer.Packet()
+	dp := c.Server.Packet()
 	msg, err := dp.Pack(zpack.NewMsgPackage(msgID, data))
 	if err != nil {
 		fmt.Println("Pack error msg ID = ", msgID)
@@ -186,7 +185,7 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 	}
 
 	//写回客户端
-	_, err = c.Conn.Write(msg)
+	_, err = c.conn.Write(msg)
 	return err
 }
 
@@ -208,7 +207,7 @@ func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 	}
 
 	//将data封包，并且发送
-	dp := c.TCPServer.Packet()
+	dp := c.Server.Packet()
 	msg, err := dp.Pack(zpack.NewMsgPackage(msgID, data))
 	if err != nil {
 		fmt.Println("Pack error msg ID = ", msgID)
@@ -222,8 +221,6 @@ func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 	case c.msgBuffChan <- msg:
 		return nil
 	}
-	//写回客户端
-	//c.msgBuffChan <- msg
 
 	return nil
 }
@@ -266,7 +263,7 @@ func (c *Connection) Context() context.Context {
 
 func (c *Connection) finalizer() {
 	//如果用户注册了该链接的关闭回调业务，那么在此刻应该显示调用
-	c.TCPServer.CallOnConnStop(c)
+	c.Server.CallOnConnStop(c)
 
 	c.Lock()
 	defer c.Unlock()
@@ -279,10 +276,10 @@ func (c *Connection) finalizer() {
 	fmt.Println("Conn Stop()...ConnID = ", c.ConnID)
 
 	// 关闭socket链接
-	_ = c.Conn.Close()
+	_ = c.conn.Close()
 
 	//将链接从连接管理器中删除
-	c.TCPServer.GetConnMgr().Remove(c)
+	c.Server.GetConnMgr().Remove(c)
 
 	//关闭该链接全部管道
 	if c.msgBuffChan != nil {
