@@ -68,27 +68,25 @@ func (connMgr *ConnManager) ClearConn() {
 	connMgr.connLock.Lock()
 
 	//停止并删除全部的连接信息
-	for _, conn := range connMgr.connections {
+	for connID, conn := range connMgr.connections {
 		//停止
 		conn.Stop()
+		delete(connMgr.connections, connID)
 	}
 	connMgr.connLock.Unlock()
 	fmt.Println("Clear All Connections successfully: conn num = ", connMgr.Len())
 }
 
-//ClearOneConn  利用ConnID获取一个链接 并且删除
-func (connMgr *ConnManager) ClearOneConn(connID uint32) {
-	connMgr.connLock.Lock()
-	defer connMgr.connLock.Unlock()
+// GetAllConnID 获取所有连接的ID
+func (connMgr *ConnManager) GetAllConnID() []uint32 {
+	connMgr.connLock.RLock()
+	defer connMgr.connLock.RUnlock()
 
-	connections := connMgr.connections
-	if conn, ok := connections[connID]; ok {
-		//停止
-		conn.Stop()
+	ids := make([]uint32, 0, len(connMgr.connections))
 
-		fmt.Println("Clear Connections ID:  ", connID, "succeed")
-		return
+	for id := range connMgr.connections {
+		ids = append(ids, id)
 	}
 
-	fmt.Println("Clear Connections ID:  ", connID, "err")
+	return ids
 }

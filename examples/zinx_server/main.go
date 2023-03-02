@@ -7,12 +7,11 @@
 package main
 
 import (
-	"github.com/aceld/zinx/examples/zinx_server/zrouter"
+	"github.com/aceld/zinx/examples/zinx_server/s_router"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/znet"
 )
-
 
 //创建连接的时候执行
 func DoConnectionBegin(conn ziface.IConnection) {
@@ -52,8 +51,8 @@ func main() {
 	s.SetOnConnStop(DoConnectionLost)
 
 	//配置路由
-	s.AddRouter(0, &zrouter.PingRouter{})
-	s.AddRouter(1, &zrouter.HelloZinxRouter{})
+	s.AddRouter(0, &s_router.PingRouter{})
+	s.AddRouter(1, &s_router.HelloZinxRouter{})
 
 	//开启服务
 	s.Serve()

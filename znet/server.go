@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
+	"os/signal"
 
 	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/ziface"
@@ -38,13 +40,13 @@ type Server struct {
 	//当前Server的链接管理器
 	ConnMgr ziface.IConnManager
 	//该Server的连接创建时Hook函数
-	OnConnStart func(conn ziface.IConnection)
+	onConnStart func(conn ziface.IConnection)
 	//该Server的连接断开时的Hook函数
-	OnConnStop func(conn ziface.IConnection)
-
-	exitChan chan struct{}
-
+	onConnStop func(conn ziface.IConnection)
+	//数据报文封包方式
 	packet ziface.IDataPack
+	//异步捕获链接关闭状态
+	exitChan chan struct{}
 }
 
 //NewServer 创建一个服务器句柄
@@ -59,7 +61,8 @@ func NewServer(opts ...Option) ziface.IServer {
 		msgHandler: NewMsgHandle(),
 		ConnMgr:    NewConnManager(),
 		exitChan:   nil,
-		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack),
+		//默认使用zinx的TLV封包方式
+		packet: zpack.Factory().NewPack(ziface.ZinxDataPack),
 	}
 
 	for _, opt := range opts {
@@ -158,7 +161,7 @@ func (s *Server) Start() {
 				AcceptDelay.Reset()
 
 				//3.3 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
-				dealConn := NewConnection(s, conn, cID, s.msgHandler)
+				dealConn := newServerConn(s, conn, cID)
 				cID++
 
 				//3.4 启动当前链接的处理业务
@@ -193,7 +196,12 @@ func (s *Server) Serve() {
 	//TODO Server.Serve() 是否在启动服务的时候 还要处理其他的事情呢 可以在这里添加
 
 	//阻塞,否则主Go退出， listenner的go将会退出
-	select {}
+	//select {}
+	c := make(chan os.Signal, 1)
+	//监听指定信号 ctrl+c kill信号
+	signal.Notify(c, os.Interrupt, os.Kill)
+	sig := <-c
+	fmt.Println(s.Name, " Serve Interrupt, signal = ", sig)
 }
 
 //AddRouter 路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
@@ -208,32 +216,34 @@ func (s *Server) GetConnMgr() ziface.IConnManager {
 
 //SetOnConnStart 设置该Server的连接创建时Hook函数
 func (s *Server) SetOnConnStart(hookFunc func(ziface.IConnection)) {
-	s.OnConnStart = hookFunc
+	s.onConnStart = hookFunc
 }
 
 //SetOnConnStop 设置该Server的连接断开时的Hook函数
 func (s *Server) SetOnConnStop(hookFunc func(ziface.IConnection)) {
-	s.OnConnStop = hookFunc
+	s.onConnStop = hookFunc
 }
 
-//CallOnConnStart 调用连接OnConnStart Hook函数
-func (s *Server) CallOnConnStart(conn ziface.IConnection) {
-	if s.OnConnStart != nil {
-		fmt.Println("---> CallOnConnStart....")
-		s.OnConnStart(conn)
-	}
+//GetOnConnStart 得到该Server的连接创建时Hook函数
+func (s *Server) GetOnConnStart() func(ziface.IConnection) {
+	return s.onConnStart
 }
 
-//CallOnConnStop 调用连接OnConnStop Hook函数
-func (s *Server) CallOnConnStop(conn ziface.IConnection) {
-	if s.OnConnStop != nil {
-		fmt.Println("---> CallOnConnStop....")
-		s.OnConnStop(conn)
-	}
+//得到该Server的连接断开时的Hook函数
+func (s *Server) GetOnConnStop() func(ziface.IConnection) {
+	return s.onConnStop
 }
 
-func (s *Server) Packet() ziface.IDataPack {
+func (s *Server) GetPacket() ziface.IDataPack {
 	return s.packet
+}
+
+func (s *Server) SetPacket(packet ziface.IDataPack) {
+	s.packet = packet
+}
+
+func (s *Server) GetMsgHandler() ziface.IMsgHandle {
+	return s.msgHandler
 }
 
 func printLogo() {

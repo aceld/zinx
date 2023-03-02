@@ -2,13 +2,11 @@ package znet
 
 import (
 	"fmt"
-	"strconv"
-
 	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/ziface"
 )
 
-// MsgHandle -
+// MsgHandle 对消息的处理回调模块
 type MsgHandle struct {
 	Apis           map[uint32]ziface.IRouter //存放每个MsgID 所对应的处理方法的map属性
 	WorkerPoolSize uint32                    //业务工作Worker池的数量
@@ -54,11 +52,12 @@ func (mh *MsgHandle) DoMsgHandler(request ziface.IRequest) {
 func (mh *MsgHandle) AddRouter(msgID uint32, router ziface.IRouter) {
 	//1 判断当前msg绑定的API处理方法是否已经存在
 	if _, ok := mh.Apis[msgID]; ok {
-		panic("repeated api , msgID = " + strconv.Itoa(int(msgID)))
+		msgErr := fmt.Sprintf("%+v\n", "repeated api , msgID = ", msgID)
+		panic(msgErr)
 	}
 	//2 添加msg与api的绑定关系
 	mh.Apis[msgID] = router
-	fmt.Println("Add api msgID = ", msgID)
+	fmt.Printf("Add api msgID = %+v\n", msgID)
 }
 
 //StartOneWorker 启动一个Worker工作流程
