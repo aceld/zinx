@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/zlog"
 	"sync"
 )
 
@@ -75,7 +76,7 @@ func (n *notify) NotifyAll(MsgId uint32, data []byte) error {
 	for Id, v := range n.cimap {
 		err := v.SendMsg(MsgId, data)
 		if err != nil {
-			fmt.Printf("Notify to %d err:%s \n", Id, err)
+			zlog.Ins().ErrorF("Notify to %d err:%s \n", Id, err)
 			return err
 		}
 	}
@@ -88,7 +89,7 @@ func (n *notify) notifyAll(MsgId uint32, data []byte) error {
 	for Id, v := range n.cimap {
 		err := v.SendMsg(MsgId, data)
 		if err != nil {
-			fmt.Printf("Notify to %d err:%s \n", Id, err)
+			zlog.Ins().ErrorF("Notify to %d err:%s \n", Id, err)
 			return err
 		}
 	}
@@ -117,7 +118,7 @@ func (n *notify) NotifyBuffToConnByID(Id uint64, MsgId uint32, data []byte) erro
 	}
 	err = Conn.SendBuffMsg(MsgId, data)
 	if err != nil {
-		fmt.Printf("Notify to %d err:%s \n", Id, err)
+		zlog.Ins().ErrorF("Notify to %d err:%s \n", Id, err)
 		return err
 	}
 	return nil
@@ -129,7 +130,7 @@ func (n *notify) NotifyBuffAll(MsgId uint32, data []byte) error {
 	for Id, v := range n.cimap {
 		err := v.SendBuffMsg(MsgId, data)
 		if err != nil {
-			fmt.Printf("Notify to %d err:%s \n", Id, err)
+			zlog.Ins().ErrorF("Notify to %d err:%s \n", Id, err)
 			return err
 		}
 	}

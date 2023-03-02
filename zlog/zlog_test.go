@@ -37,3 +37,6 @@ func TestStdZLog(t *testing.T) {
 	zlog.Debug("===> 我不应该出现~！")
 	zlog.Error("===> zinx Error  after debug close !!!!")
 }
+
+func TestZLogger(t *testing.T) {
+}

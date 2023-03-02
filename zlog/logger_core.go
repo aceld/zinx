@@ -61,15 +61,15 @@ var levels = []string{
 	"[FATAL]",
 }
 
-type ZinxLogger struct {
-	mu sync.Mutex 		//确保多协程读写文件，防止文件内容混乱，做到协程安全
-	prefix string 		//每行log日志的前缀字符串,拥有日志标记
-	flag int 			//日志标记位
-	out io.Writer 		//日志输出的文件描述符
-	buf bytes.Buffer 	//输出的缓冲区
-	file *os.File 		//当前日志绑定的输出文件
-	debugClose bool 	//是否打印调试debug信息
-	calldDepth int 		//获取日志文件名和代码上述的runtime.Call 的函数调用层数
+type ZinxLoggerCore struct {
+	mu         sync.Mutex   //确保多协程读写文件，防止文件内容混乱，做到协程安全
+	prefix     string       //每行log日志的前缀字符串,拥有日志标记
+	flag       int          //日志标记位
+	out        io.Writer    //日志输出的文件描述符
+	buf        bytes.Buffer //输出的缓冲区
+	file       *os.File     //当前日志绑定的输出文件
+	debugClose bool         //是否打印调试debug信息
+	calldDepth int          //获取日志文件名和代码上述的runtime.Call 的函数调用层数
 }
 
 /*
@@ -78,10 +78,10 @@ type ZinxLogger struct {
 	prefix: 日志的前缀
 	flag: 当前日志头部信息的标记位
 */
-func NewZinxLog(out io.Writer, prefix string, flag int) *ZinxLogger {
+func NewZinxLog(out io.Writer, prefix string, flag int) *ZinxLoggerCore {
 
 	//默认 debug打开， calledDepth深度为2,ZinxLogger对象调用日志打印方法最多调用两层到达output函数
-	zlog := &ZinxLogger{out: out, prefix: prefix, flag: flag, file: nil, debugClose: false, calldDepth: 2}
+	zlog := &ZinxLoggerCore{out: out, prefix: prefix, flag: flag, file: nil, debugClose: false, calldDepth: 2}
 	//设置log对象 回收资源 析构方法(不设置也可以，go的Gc会自动回收，强迫症没办法)
 	runtime.SetFinalizer(zlog, CleanZinxLog)
 	return zlog
@@ -90,14 +90,14 @@ func NewZinxLog(out io.Writer, prefix string, flag int) *ZinxLogger {
 /*
    回收日志处理
 */
-func CleanZinxLog(log *ZinxLogger) {
+func CleanZinxLog(log *ZinxLoggerCore) {
 	log.closeFile()
 }
 
 /*
    制作当条日志数据的 格式头信息
 */
-func (log *ZinxLogger) formatHeader(t time.Time, file string, line int, level int) {
+func (log *ZinxLoggerCore) formatHeader(t time.Time, file string, line int, level int) {
 	var buf *bytes.Buffer = &log.buf
 	//如果当前前缀字符串不为空，那么需要先写前缀
 	if log.prefix != "" {
@@ -165,7 +165,7 @@ func (log *ZinxLogger) formatHeader(t time.Time, file string, line int, level in
 /*
    输出日志文件,原方法
 */
-func (log *ZinxLogger) OutPut(level int, s string) error {
+func (log *ZinxLoggerCore) OutPut(level int, s string) error {
 
 	now := time.Now() // 得到当前时间
 	var file string   //当前调用日志接口的文件名称
@@ -202,14 +202,14 @@ func (log *ZinxLogger) OutPut(level int, s string) error {
 }
 
 // ====> Debug <====
-func (log *ZinxLogger) Debugf(format string, v ...interface{}) {
+func (log *ZinxLoggerCore) Debugf(format string, v ...interface{}) {
 	if log.debugClose == true {
 		return
 	}
 	_ = log.OutPut(LogDebug, fmt.Sprintf(format, v...))
 }
 
-func (log *ZinxLogger) Debug(v ...interface{}) {
+func (log *ZinxLoggerCore) Debug(v ...interface{}) {
 	if log.debugClose == true {
 		return
 	}
@@ -217,58 +217,58 @@ func (log *ZinxLogger) Debug(v ...interface{}) {
 }
 
 // ====> Info <====
-func (log *ZinxLogger) Infof(format string, v ...interface{}) {
+func (log *ZinxLoggerCore) Infof(format string, v ...interface{}) {
 	_ = log.OutPut(LogInfo, fmt.Sprintf(format, v...))
 }
 
-func (log *ZinxLogger) Info(v ...interface{}) {
+func (log *ZinxLoggerCore) Info(v ...interface{}) {
 	_ = log.OutPut(LogInfo, fmt.Sprintln(v...))
 }
 
 // ====> Warn <====
-func (log *ZinxLogger) Warnf(format string, v ...interface{}) {
+func (log *ZinxLoggerCore) Warnf(format string, v ...interface{}) {
 	_ = log.OutPut(LogWarn, fmt.Sprintf(format, v...))
 }
 
-func (log *ZinxLogger) Warn(v ...interface{}) {
+func (log *ZinxLoggerCore) Warn(v ...interface{}) {
 	_ = log.OutPut(LogWarn, fmt.Sprintln(v...))
 }
 
 // ====> Error <====
-func (log *ZinxLogger) Errorf(format string, v ...interface{}) {
+func (log *ZinxLoggerCore) Errorf(format string, v ...interface{}) {
 	_ = log.OutPut(LogError, fmt.Sprintf(format, v...))
 }
 
-func (log *ZinxLogger) Error(v ...interface{}) {
+func (log *ZinxLoggerCore) Error(v ...interface{}) {
 	_ = log.OutPut(LogError, fmt.Sprintln(v...))
 }
 
 // ====> Fatal 需要终止程序 <====
-func (log *ZinxLogger) Fatalf(format string, v ...interface{}) {
+func (log *ZinxLoggerCore) Fatalf(format string, v ...interface{}) {
 	_ = log.OutPut(LogFatal, fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
 
-func (log *ZinxLogger) Fatal(v ...interface{}) {
+func (log *ZinxLoggerCore) Fatal(v ...interface{}) {
 	_ = log.OutPut(LogFatal, fmt.Sprintln(v...))
 	os.Exit(1)
 }
 
 // ====> Panic  <====
-func (log *ZinxLogger) Panicf(format string, v ...interface{}) {
+func (log *ZinxLoggerCore) Panicf(format string, v ...interface{}) {
 	s := fmt.Sprintf(format, v...)
 	_ = log.OutPut(LogPanic, s)
 	panic(s)
 }
 
-func (log *ZinxLogger) Panic(v ...interface{}) {
+func (log *ZinxLoggerCore) Panic(v ...interface{}) {
 	s := fmt.Sprintln(v...)
 	_ = log.OutPut(LogPanic, s)
 	panic(s)
 }
 
 // ====> Stack  <====
-func (log *ZinxLogger) Stack(v ...interface{}) {
+func (log *ZinxLoggerCore) Stack(v ...interface{}) {
 	s := fmt.Sprint(v...)
 	s += "\n"
 	buf := make([]byte, LOG_MAX_BUF)
@@ -279,35 +279,35 @@ func (log *ZinxLogger) Stack(v ...interface{}) {
 }
 
 //获取当前日志bitmap标记
-func (log *ZinxLogger) Flags() int {
+func (log *ZinxLoggerCore) Flags() int {
 	log.mu.Lock()
 	defer log.mu.Unlock()
 	return log.flag
 }
 
 //重新设置日志Flags bitMap 标记位
-func (log *ZinxLogger) ResetFlags(flag int) {
+func (log *ZinxLoggerCore) ResetFlags(flag int) {
 	log.mu.Lock()
 	defer log.mu.Unlock()
 	log.flag = flag
 }
 
 //添加flag标记
-func (log *ZinxLogger) AddFlag(flag int) {
+func (log *ZinxLoggerCore) AddFlag(flag int) {
 	log.mu.Lock()
 	defer log.mu.Unlock()
 	log.flag |= flag
 }
 
 //设置日志的 用户自定义前缀字符串
-func (log *ZinxLogger) SetPrefix(prefix string) {
+func (log *ZinxLoggerCore) SetPrefix(prefix string) {
 	log.mu.Lock()
 	defer log.mu.Unlock()
 	log.prefix = prefix
 }
 
 //设置日志文件输出
-func (log *ZinxLogger) SetLogFile(fileDir string, fileName string) {
+func (log *ZinxLoggerCore) SetLogFile(fileDir string, fileName string) {
 	var file *os.File
 
 	//创建日志文件夹
@@ -332,7 +332,7 @@ func (log *ZinxLogger) SetLogFile(fileDir string, fileName string) {
 }
 
 //关闭日志绑定的文件
-func (log *ZinxLogger) closeFile() {
+func (log *ZinxLoggerCore) closeFile() {
 	if log.file != nil {
 		_ = log.file.Close()
 		log.file = nil
@@ -340,18 +340,18 @@ func (log *ZinxLogger) closeFile() {
 	}
 }
 
-func (log *ZinxLogger) CloseDebug() {
+func (log *ZinxLoggerCore) CloseDebug() {
 	log.debugClose = true
 }
 
-func (log *ZinxLogger) OpenDebug() {
+func (log *ZinxLoggerCore) OpenDebug() {
 	log.debugClose = false
 }
 
 // ================== 以下是一些工具方法 ==========
 
 //判断日志文件是否存在
-func (log *ZinxLogger) checkFileExist(filename string) bool {
+func (log *ZinxLoggerCore) checkFileExist(filename string) bool {
 	exist := true
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		exist = false

@@ -2,7 +2,7 @@ package znet
 
 import (
 	"errors"
-	"fmt"
+	"github.com/aceld/zinx/zlog"
 	"sync"
 
 	"github.com/aceld/zinx/ziface"
@@ -25,21 +25,20 @@ func NewConnManager() *ConnManager {
 func (connMgr *ConnManager) Add(conn ziface.IConnection) {
 
 	connMgr.connLock.Lock()
-	//将conn连接添加到ConnMananger中
-	connMgr.connections[conn.GetConnID()] = conn
+	connMgr.connections[conn.GetConnID()] = conn //将conn连接添加到ConnMananger中
 	connMgr.connLock.Unlock()
 
-	fmt.Println("connection add to ConnManager successfully: conn num = ", connMgr.Len())
+	zlog.Ins().InfoF("connection add to ConnManager successfully: conn num = %d", connMgr.Len())
 }
 
 //Remove 删除连接
 func (connMgr *ConnManager) Remove(conn ziface.IConnection) {
 
 	connMgr.connLock.Lock()
-	//删除连接信息
-	delete(connMgr.connections, conn.GetConnID())
+	delete(connMgr.connections, conn.GetConnID()) //删除连接信息
 	connMgr.connLock.Unlock()
-	fmt.Println("connection Remove ConnID=", conn.GetConnID(), " successfully: conn num = ", connMgr.Len())
+
+	zlog.Ins().InfoF("connection Remove ConnID=%d successfully: conn num = %d", conn.GetConnID(), connMgr.Len())
 }
 
 //Get 利用ConnID获取链接
@@ -52,14 +51,15 @@ func (connMgr *ConnManager) Get(connID uint32) (ziface.IConnection, error) {
 	}
 
 	return nil, errors.New("connection not found")
-
 }
 
 //Len 获取当前连接
 func (connMgr *ConnManager) Len() int {
+
 	connMgr.connLock.RLock()
 	length := len(connMgr.connections)
 	connMgr.connLock.RUnlock()
+
 	return length
 }
 
@@ -74,7 +74,8 @@ func (connMgr *ConnManager) ClearConn() {
 		delete(connMgr.connections, connID)
 	}
 	connMgr.connLock.Unlock()
-	fmt.Println("Clear All Connections successfully: conn num = ", connMgr.Len())
+
+	zlog.Ins().InfoF("Clear All Connections successfully: conn num = %d", connMgr.Len())
 }
 
 // GetAllConnID 获取所有连接的ID

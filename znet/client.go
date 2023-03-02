@@ -1,9 +1,9 @@
 package znet
 
 import (
-	"fmt"
 	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/zpack"
 	"net"
 )
@@ -62,27 +62,27 @@ func (c *Client) Start() {
 		conn, err := net.DialTCP("tcp", nil, addr)
 		if err != nil {
 			//创建链接失败
-			fmt.Println("client connect to server failed, err:", err)
+			zlog.Ins().ErrorF("client connect to server failed, err:%v", err)
 			panic(err)
 			return
 		}
 
 		//创建Connection对象
 		c.conn = newClientConn(c, conn)
-		fmt.Printf("[START] Zinx Client LocalAddr: %s, RemoteAddr: %s\n", conn.LocalAddr(), conn.RemoteAddr())
+		zlog.Ins().InfoF("[START] Zinx Client LocalAddr: %s, RemoteAddr: %s\n", conn.LocalAddr(), conn.RemoteAddr())
 
 		//启动链接
 		go c.conn.Start()
 
 		select {
 		case <-c.exitChan:
-			fmt.Println("[START] exit.")
+			zlog.Ins().InfoF("client exit.")
 		}
 	}()
 }
 
 func (c *Client) Stop() {
-	fmt.Println("[STOP] Zinx Client LocalAddr: %s, RemoteAddr: %s\n", c.conn.LocalAddr(), c.conn.RemoteAddr())
+	zlog.Ins().InfoF("[STOP] Zinx Client LocalAddr: %s, RemoteAddr: %s\n", c.conn.LocalAddr(), c.conn.RemoteAddr())
 	c.conn.Stop()
 }
 

@@ -41,7 +41,7 @@ func (df *DelayFunc) String() string {
 func (df *DelayFunc) Call() {
 	defer func() {
 		if err := recover(); err != nil {
-			zlog.Error(df.String(), "Call err: ", err)
+			zlog.Ins().ErrorF("%s Call err: %v", df.String(), err)
 		}
 	}()
 

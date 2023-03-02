@@ -15,10 +15,9 @@ import (
 
 //创建连接的时候执行
 func DoConnectionBegin(conn ziface.IConnection) {
-	zlog.Debug("DoConnecionBegin is Called ... ")
+	zlog.Ins().InfoF("DoConnecionBegin is Called ...")
 
 	//设置两个链接属性，在连接创建之后
-	zlog.Debug("Set conn Name, Home done!")
 	conn.SetProperty("Name", "Aceld")
 	conn.SetProperty("Home", "https://www.kancloud.cn/@aceld")
 
@@ -32,14 +31,14 @@ func DoConnectionBegin(conn ziface.IConnection) {
 func DoConnectionLost(conn ziface.IConnection) {
 	//在连接销毁之前，查询conn的Name，Home属性
 	if name, err := conn.GetProperty("Name"); err == nil {
-		zlog.Error("Conn Property Name = ", name)
+		zlog.Ins().InfoF("Conn Property Name = %v", name)
 	}
 
 	if home, err := conn.GetProperty("Home"); err == nil {
-		zlog.Error("Conn Property Home = ", home)
+		zlog.Ins().InfoF("Conn Property Home = %v", home)
 	}
 
-	zlog.Debug("DoConneciotnLost is Called ... ")
+	zlog.Ins().InfoF("Conn is Lost")
 }
 
 func main() {

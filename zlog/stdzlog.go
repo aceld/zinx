@@ -12,6 +12,11 @@ package zlog
 /*
    全局默认提供一个Log对外句柄，可以直接使用API系列调用
    全局日志对象 StdZinxLog
+   注意：本文件方法不支持自定义，无法替换日志记录模式，如果需要自定义Logger:
+
+   请使用如下方法:
+   zlog.SetLogger(yourLogger)
+   zlog.Ins().InfoF()等方法
 */
 
 import "os"

@@ -3,6 +3,7 @@ package znet
 import (
 	"errors"
 	"fmt"
+	"github.com/aceld/zinx/zlog"
 	"net"
 	"os"
 	"os/signal"
@@ -107,7 +108,7 @@ func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
 
 //Start 开启网络服务
 func (s *Server) Start() {
-	fmt.Printf("[START] Server name: %s,listenner at IP: %s, Port %d is starting\n", s.Name, s.IP, s.Port)
+	zlog.Ins().InfoF("[START] Server name: %s,listenner at IP: %s, Port %d is starting", s.Name, s.IP, s.Port)
 	s.exitChan = make(chan struct{})
 
 	//开启一个go去做服务端Linster业务
@@ -118,7 +119,7 @@ func (s *Server) Start() {
 		//1 获取一个TCP的Addr
 		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 		if err != nil {
-			fmt.Println("resolve tcp addr err: ", err)
+			zlog.Ins().ErrorF("[START] resolve tcp addr err: %v\n", err)
 			return
 		}
 
@@ -129,7 +130,7 @@ func (s *Server) Start() {
 		}
 
 		//已经监听成功
-		fmt.Println("start Zinx server  ", s.Name, " succ, now listenning...")
+		zlog.Ins().InfoF("[START] start Zinx server  %s succ, now listenning...", s.Name)
 
 		//TODO server.go 应该有一个自动生成ID的方法
 		var cID uint32
@@ -140,7 +141,7 @@ func (s *Server) Start() {
 			for {
 				//3.1 设置服务器最大连接控制,如果超过最大连接，则等待
 				if s.ConnMgr.Len() >= utils.GlobalObject.MaxConn {
-					fmt.Println("Exceeded the maxConnNum:", utils.GlobalObject.MaxConn, ", Wait:", AcceptDelay.duration)
+					zlog.Ins().InfoF("Exceeded the maxConnNum:%d, Wait:%d", utils.GlobalObject.MaxConn, AcceptDelay.duration)
 					AcceptDelay.Delay()
 					continue
 				}
@@ -150,10 +151,10 @@ func (s *Server) Start() {
 				if err != nil {
 					//Go 1.16+
 					if errors.Is(err, net.ErrClosed) {
-						fmt.Println("Listener closed")
+						zlog.Ins().ErrorF("Listener closed")
 						return
 					}
-					fmt.Println("Accept err ", err)
+					zlog.Ins().ErrorF("Accept err: %v", err)
 					AcceptDelay.Delay()
 					continue
 				}
@@ -173,7 +174,7 @@ func (s *Server) Start() {
 		case <-s.exitChan:
 			err := listener.Close()
 			if err != nil {
-				fmt.Println("Listener close err ", err)
+				zlog.Ins().ErrorF("listener close err: %v", err)
 			}
 		}
 	}()
@@ -181,7 +182,7 @@ func (s *Server) Start() {
 
 //Stop 停止服务
 func (s *Server) Stop() {
-	fmt.Println("[STOP] Zinx server , name ", s.Name)
+	zlog.Ins().InfoF("[STOP] Zinx server , name %s", s.Name)
 
 	//将其他需要清理的连接信息或者其他信息 也要一并停止或者清理
 	s.ConnMgr.ClearConn()
@@ -201,7 +202,7 @@ func (s *Server) Serve() {
 	//监听指定信号 ctrl+c kill信号
 	signal.Notify(c, os.Interrupt, os.Kill)
 	sig := <-c
-	fmt.Println(s.Name, " Serve Interrupt, signal = ", sig)
+	zlog.Ins().InfoF("[SERVE] Zinx server , name %s, Serve Interrupt, signal = %v", s.Name, sig)
 }
 
 //AddRouter 路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
@@ -258,5 +259,4 @@ func printLogo() {
 		utils.GlobalObject.MaxPacketSize)
 }
 
-func init() {
-}
+func init() {}

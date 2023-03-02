@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/zlog"
 )
 
 // MsgHandle 对消息的处理回调模块
@@ -30,7 +31,7 @@ func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
 
 	//得到需要处理此条连接的workerID
 	workerID := request.GetConnection().GetConnID() % mh.WorkerPoolSize
-	//fmt.Println("Add ConnID=", request.GetConnection().GetConnID()," request msgID=", request.GetMsgID(), "to workerID=", workerID)
+	//zlog.Ins().DebugF("Add ConnID=%d request msgID=%d to workerID=%d", request.GetConnection().GetConnID(), request.GetMsgID(), workerID)
 	//将请求消息发送给任务队列
 	mh.TaskQueue[workerID] <- request
 }
@@ -39,7 +40,7 @@ func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
 func (mh *MsgHandle) DoMsgHandler(request ziface.IRequest) {
 	handler, ok := mh.Apis[request.GetMsgID()]
 	if !ok {
-		fmt.Println("api msgID = ", request.GetMsgID(), " is not FOUND!")
+		zlog.Ins().ErrorF("api msgID = %d is not FOUND!", request.GetMsgID())
 		return
 	}
 	//Request请求绑定Router对应关系
@@ -57,12 +58,12 @@ func (mh *MsgHandle) AddRouter(msgID uint32, router ziface.IRouter) {
 	}
 	//2 添加msg与api的绑定关系
 	mh.Apis[msgID] = router
-	fmt.Printf("Add api msgID = %+v\n", msgID)
+	zlog.Ins().InfoF("Add api msgID = %d", msgID)
 }
 
 //StartOneWorker 启动一个Worker工作流程
 func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest) {
-	fmt.Println("Worker ID = ", workerID, " is started.")
+	zlog.Ins().InfoF("Worker ID = %d is started.", workerID)
 	//不断的等待队列中的消息
 	for {
 		select {

@@ -79,7 +79,7 @@ func PathExists(path string) (bool, error) {
 func (g *GlobalObj) Reload() {
 
 	if confFileExists, _ := PathExists(g.ConfFilePath); confFileExists != true {
-		fmt.Println("Config File ", g.ConfFilePath, " is not exist!!")
+		zlog.Ins().ErrorF("Config File %s is not exist!!", g.ConfFilePath)
 		return
 	}
 
