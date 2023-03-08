@@ -6,6 +6,7 @@ import (
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/zpack"
 	"net"
+	"time"
 )
 
 type Client struct {
@@ -79,6 +80,32 @@ func (c *Client) Start() {
 			zlog.Ins().InfoF("client exit.")
 		}
 	}()
+}
+
+//启动心跳检测
+func (c *Client) StartHeartBeat(interval time.Duration) {
+	checker := NewHeartbeatCheckerC(interval, c)
+
+	//添加心跳检测的路由
+	c.AddRouter(checker.msgID, checker.router)
+
+	go checker.Start()
+}
+
+//启动心跳检测(自定义回调)
+func (c *Client) StartHeartBeatWithOption(interval time.Duration, option *ziface.HeartBeatOption) {
+	checker := NewHeartbeatCheckerC(interval, c)
+
+	if option != nil {
+		checker.SetHeartbeatMsgFunc(option.MakeMsg)
+		checker.SetOnRemoteNotAlive(option.OnRemoteNotAlive)
+		checker.BindRouter(option.HeadBeatMsgID, option.Router)
+	}
+
+	//添加心跳检测的路由
+	c.AddRouter(checker.msgID, checker.router)
+
+	go checker.Start()
 }
 
 func (c *Client) Stop() {

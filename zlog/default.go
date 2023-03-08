@@ -6,7 +6,7 @@ import (
 	"github.com/aceld/zinx/ziface"
 )
 
-var zDefualtLog ziface.ILogger = new(zinxDefaultLog)
+var zLogInstance ziface.ILogger = new(zinxDefaultLog)
 
 type zinxDefaultLog struct{}
 
@@ -38,9 +38,9 @@ func (log *zinxDefaultLog) DebugFX(ctx context.Context, format string, v ...inte
 }
 
 func SetLogger(newlog ziface.ILogger) {
-	zDefualtLog = newlog
+	zLogInstance = newlog
 }
 
 func Ins() ziface.ILogger {
-	return zDefualtLog
+	return zLogInstance
 }

@@ -21,7 +21,7 @@ import (
 //定义连接接口
 type IConnection interface {
 	Start()                   //启动连接，让当前连接开始工作
-	Stop()                    //停止连接，结束当前连接状态M
+	Stop()                    //停止连接，结束当前连接状态
 	Context() context.Context //返回ctx，用于用户自定义的go程获取连接退出状态
 
 	GetConnection() net.Conn //从当前连接获取原始的socket TCPConn
@@ -35,4 +35,22 @@ type IConnection interface {
 	SetProperty(key string, value interface{})   //设置链接属性
 	GetProperty(key string) (interface{}, error) //获取链接属性
 	RemoveProperty(key string)                   //移除链接属性
+	IsAlive() bool                               //判断当前连接是否存活
 }
+
+//用户自定义的心跳检测消息处理方法
+type HeartBeatMsgFunc func(IConnection) []byte
+
+//用户自定义的远程连接不存活时的处理方法
+type OnRemoteNotAlive func(IConnection)
+
+type HeartBeatOption struct {
+	MakeMsg          HeartBeatMsgFunc //用户自定义的心跳检测消息处理方法
+	OnRemoteNotAlive OnRemoteNotAlive //用户自定义的远程连接不存活时的处理方法
+	HeadBeatMsgID    uint32           //用户自定义的心跳检测消息ID
+	Router           IRouter          //用户自定义的心跳检测消息业务处理路由
+}
+
+const (
+	HeartBeatDefaultMsgID uint32 = 99999
+)

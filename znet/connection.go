@@ -47,6 +47,8 @@ type Connection struct {
 	onConnStop func(conn ziface.IConnection)
 	//数据报文封包方式
 	packet ziface.IDataPack
+	//最后一次活动时间
+	lastActivityTime time.Time
 }
 
 //newServerConn :for Server, 创建一个Server服务端特性的连接的方法
@@ -103,11 +105,14 @@ func (c *Connection) StartWriter() {
 		select {
 		case data, ok := <-c.msgBuffChan:
 			if ok {
-				//有数据要写给客户端
+				//有数据要写给对端
 				if _, err := c.conn.Write(data); err != nil {
 					zlog.Ins().ErrorF("Send Buff Data error:, %s Conn Writer exit", err)
 					return
 				}
+
+				//写对端成功, 更新链接活动时间
+				c.updateActivity()
 			} else {
 				zlog.Ins().ErrorF("msgBuffChan is Closed")
 				break
@@ -138,6 +143,9 @@ func (c *Connection) StartReader() {
 				return
 			}
 			zlog.Ins().DebugF("read headData %+v\n", headData)
+
+			//更新链接活动时间
+			c.updateActivity()
 
 			//拆包，得到msgID 和 datalen 放在msg中
 			msg, err := c.packet.Unpack(headData)
@@ -228,19 +236,29 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 
 	//写回客户端
 	_, err = c.conn.Write(msg)
-	return err
+	if err != nil {
+		zlog.Ins().ErrorF("SendMsg err msg ID = %d, data = %+v, err = %+v", msgID, string(msg), err)
+		return err
+	}
+
+	//写对端成功, 更新链接活动时间
+	c.updateActivity()
+
+	return nil
 }
 
 //SendBuffMsg  发生BuffMsg
 func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 	c.msgLock.RLock()
 	defer c.msgLock.RUnlock()
+
 	if c.msgBuffChan == nil {
 		c.msgBuffChan = make(chan []byte, utils.GlobalObject.MaxMsgChanLen)
 		//开启用于写回客户端数据流程的Goroutine
 		//此方法只读取MsgBuffChan中的数据没调用SendBuffMsg可以分配内存和启用协程
 		go c.StartWriter()
 	}
+
 	idleTimeout := time.NewTimer(5 * time.Millisecond)
 	defer idleTimeout.Stop()
 
@@ -262,8 +280,6 @@ func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 	case c.msgBuffChan <- msg:
 		return nil
 	}
-
-	return nil
 }
 
 //SetProperty 设置链接属性
@@ -348,18 +364,14 @@ func (c *Connection) callOnConnStop() {
 	}
 }
 
-/*
 func (c *Connection) IsAlive() bool {
 	if c.isClosed {
 		return false
 	}
 	// 检查连接最后一次活动时间，如果超过心跳间隔，则认为连接已经死亡
-	return time.Now().Unix()-c.GetLastActivityTime().Unix() < int64(utils.GlobalObject.HeartbeatInterval.Seconds())
+	return time.Now().Sub(c.lastActivityTime) < utils.GlobalObject.HeartbeatMaxDuration()
 }
 
-// GetLastActivityTime方法用于获取最后一次活动时间
-func (c *Connection) GetLastActivityTime() time.Time {
-	return time.Now()
+func (c *Connection) updateActivity() {
+	c.lastActivityTime = time.Now()
 }
-
-*/

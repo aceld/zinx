@@ -20,6 +20,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
 /*
@@ -56,6 +57,11 @@ type GlobalObj struct {
 	LogDir        string //日志所在文件夹 默认"./log"
 	LogFile       string //日志文件名称   默认""  --如果没有设置日志文件，打印信息将打印至stderr
 	LogDebugClose bool   //是否关闭Debug日志级别调试信息 默认false  -- 默认打开debug信息
+
+	/*
+		Keepalive
+	*/
+	HeartbeatMax int //最长心跳检测间隔时间(单位：秒),超过改时间间隔，则认为超时，从配置文件读取
 }
 
 /*
@@ -89,7 +95,6 @@ func (g *GlobalObj) Reload() {
 	}
 	//将json数据解析到struct中
 	err = json.Unmarshal(data, g)
-
 	if err != nil {
 		panic(err)
 	}
@@ -117,6 +122,10 @@ func (g *GlobalObj) Show() {
 		fmt.Printf("%s: %v\n", typeField.Name, field.Interface())
 	}
 	fmt.Println("==============================")
+}
+
+func (g *GlobalObj) HeartbeatMaxDuration() time.Duration {
+	return time.Duration(g.HeartbeatMax) * time.Second
 }
 
 /*
@@ -154,6 +163,7 @@ func init() {
 		LogDir:           pwd + "/log",
 		LogFile:          "",
 		LogDebugClose:    false,
+		HeartbeatMax:     10, //默认心跳检测最长间隔为10秒
 	}
 
 	//NOTE: 从配置文件中加载一些用户配置的参数

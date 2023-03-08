@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/ziface"
@@ -245,6 +246,36 @@ func (s *Server) SetPacket(packet ziface.IDataPack) {
 
 func (s *Server) GetMsgHandler() ziface.IMsgHandle {
 	return s.msgHandler
+}
+
+// StartHeartBeat 启动心跳检测
+// interval 每次发送心跳的时间间隔
+// msgID    心跳检测消息的msgID
+func (s *Server) StartHeartBeat(interval time.Duration) {
+	checker := NewHeartbeatCheckerS(interval, s)
+
+	//添加心跳检测的路由
+	s.AddRouter(checker.msgID, checker.router)
+
+	go checker.Start()
+}
+
+// StartHeartBeatWithFunc 启动心跳检测
+// msgFunc  心跳检测消息的自定义生成函数,不需要自定义可以传nil
+// notAlive 检测到地方停止心跳的自定义处理函数,不需要自定义可以传nil
+func (s *Server) StartHeartBeatWithOption(interval time.Duration, option *ziface.HeartBeatOption) {
+	checker := NewHeartbeatCheckerS(interval, s)
+
+	if option != nil {
+		checker.SetHeartbeatMsgFunc(option.MakeMsg)
+		checker.SetOnRemoteNotAlive(option.OnRemoteNotAlive)
+		checker.BindRouter(option.HeadBeatMsgID, option.Router)
+	}
+
+	//添加心跳检测的路由
+	s.AddRouter(checker.msgID, checker.router)
+
+	go checker.Start()
 }
 
 func printLogo() {
