@@ -153,7 +153,6 @@ func (c *Connection) StartReader() {
 				zlog.Ins().ErrorF("unpack error %s", err)
 				return
 			}
-			zlog.Ins().DebugF("read msg %+v\n", msg)
 
 			//根据 dataLen 读取 data，放在msg.Data中
 			var data []byte
@@ -165,6 +164,7 @@ func (c *Connection) StartReader() {
 				}
 			}
 			msg.SetData(data)
+			zlog.Ins().DebugF("read msg %+v\n", msg)
 
 			//得到当前客户端请求的Request数据
 			req := NewRequest(c, msg)
