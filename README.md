@@ -37,12 +37,6 @@ Git: https://gitee.com/Aceld/zinx
 | <img src="https://s1.ax1x.com/2022/09/23/xkQcng.png" width = "100" height = "100" alt="" align=center />| [![zinx-youtube](https://s2.ax1x.com/2019/10/14/KSurCR.jpg)](https://www.youtube.com/watch?v=U95iF-HMWsU&list=PL_GrAPKmuajzeNI8HBTi-k5NQO1g0rM-A)| 
 
 
-## The Document of Zinx
-
-[YuQue - 《Zinx Documentation》](https://www.yuque.com/aceld/tsgooa/sbvzgczh3hqz8q3l)
-
-
-
 ### Mobile terminal(WeChat)
 ![gongzhonghao](https://s1.ax1x.com/2020/07/07/UFyUdx.th.jpg)
 
@@ -87,21 +81,61 @@ Of course, I hope that more people will join Zinx and give us valuable suggestio
 
 ## III. Zinx development API documentation
 
-### (1) Quick start
 
-**Version**
-Golang 1.16+
+## The Document of Zinx
 
-#### A. Demo
-1. Compile Demo example, in dir `zinx/example/zinx_server`, we get `server`, in `zinx/example/zinx_client`, we get`client`.
+[YuQue - 《Zinx Documentation》](https://www.yuque.com/aceld/tsgooa/sbvzgczh3hqz8q3l)
+
+### (1) QuickStart
+
+DownLoad zinx Source
+
 ```bash
-$ cd zinx/
-$ make
+$go get github.com/aceld/zinx
 ```
-2. run Demo server (don't close the terminal)
+
+> note: Golang Version 1.16+
+
+#### Zinx-Server
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/znet"
+)
+
+// PingRouter MsgId=1 
+type PingRouter struct {
+	znet.BaseRouter
+}
+
+//Ping Handle MsgId=1
+func (r *PingRouter) Handle(request ziface.IRequest) {
+	//read client data
+	fmt.Println("recv from client : msgId=", request.GetMsgID(), ", data=", string(request.GetData()))
+}
+
+func main() {
+	//1 Create a server service
+	s := znet.NewServer()
+
+	//2 configure routing
+	s.AddRouter(1, &PingRouter{})
+
+	//3 start service
+	s.Serve()
+}
+```
+
+Run Server
+
 ```bash
-$ cd example/zinx_server
-$ ./server 
+$ go run server.go
+```
+
+```bash
                                         
               ██                        
               ▀▀                        
@@ -111,158 +145,111 @@ $ ./server
  ▄██▄▄▄▄▄  ▄▄▄██▄▄▄  ██    ██   ▄█▀▀█▄  
  ▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀  ▀▀    ▀▀  ▀▀▀  ▀▀▀ 
                                         
-┌───────────────────────────────────────────────────┐
-│ [Github] https://github.com/aceld                 │
-│ [tutorial] https://www.kancloud.cn/aceld/zinx     │
-└───────────────────────────────────────────────────┘
-[Zinx] Version: V0.11, MaxConn: 3, MaxPacketSize: 4096
-Add api msgId =  0
-Add api msgId =  1
-[START] Server name: zinx server Demo,listenner at IP: 127.0.0.1, Port 8999 is starting
-Worker ID =  0  is started.
-Worker ID =  1  is started.
-Worker ID =  2  is started.
-Worker ID =  3  is started.
-Worker ID =  4  is started.
-Worker ID =  7  is started.
-Worker ID =  6  is started.
-Worker ID =  8  is started.
-Worker ID =  9  is started.
-Worker ID =  5  is started.
-start Zinx server   zinx server Demo  succ, now listenning...
-...
+┌──────────────────────────────────────────────────────┐
+│ [Github] https://github.com/aceld                    │
+│ [tutorial] https://www.yuque.com/aceld/npyr8s/bgftov │
+└──────────────────────────────────────────────────────┘
+[Zinx] Version: V1.0, MaxConn: 12000, MaxPacketSize: 4096
+===== Zinx Global Config =====
+TCPServer: <nil>
+Host: 0.0.0.0
+TCPPort: 8999
+Name: ZinxServerApp
+Version: V1.0
+MaxPacketSize: 4096
+MaxConn: 12000
+WorkerPoolSize: 10
+MaxWorkerTaskLen: 1024
+MaxMsgChanLen: 1024
+ConfFilePath: /Users/Aceld/go/src/zinx-usage/quick_start/conf/zinx.json
+LogDir: /Users/Aceld/go/src/zinx-usage/quick_start/log
+LogFile: 
+LogDebugClose: false
+HeartbeatMax: 10
+==============================
+2023/03/09 18:39:49 [INFO]msghandler.go:61: Add api msgID = 1
+2023/03/09 18:39:49 [INFO]server.go:112: [START] Server name: ZinxServerApp,listenner at IP: 0.0.0.0, Port 8999 is starting
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 0 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 1 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 3 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 2 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 4 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 6 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 7 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 8 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 9 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 5 is started.
+2023/03/09 18:39:49 [INFO]server.go:134: [START] start Zinx server  ZinxServerApp succ, now listenning...
+
 ```
 
-3. Then open the new terminal and start the Client Demo to test communication
-```bash
-$ cd example/zinx_client
-$ ./client
-==> Test Router:[Ping] Recv Msg: ID= 2 , len= 21 , data= DoConnection BEGIN... ==> Test Router:[Ping] Recv Msg: ID= 0 , len= 18 , data= ping...ping...ping 
-==> Test Router:[Ping] Recv Msg: ID= 0 , len= 18 , data= ping...ping...ping
-==> Test Router:[Ping] Recv Msg: ID= 0 , len= 18 , data= ping...ping...ping
-...
-t
 
-```
 
-#### B. server
+#### Zinx-Client
 
-In the server application developed based on Zinx framework, the main function steps are relatively simple and only need 3 steps at most.
-
-1. Create the server object
-2. Configure user-defined routes and services
-3. Start the service
-
-```go
-func main() {
-	//1 Create the server object
-	s := znet.NewServer()
-
-	//2 Configure user-defined routes and services
-	s.AddRouter(0, &PingRouter{})
-
-	//3 Start the service
-	s.Serve()
-}
-```
-
-The custom route and service configuration methods are as follows：
-```go
-import (
-	"fmt"
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/znet"
-)
-
-//ping test custom route
-type PingRouter struct {
-	znet.BaseRouter
-}
-
-//Ping Handle
-func (this *PingRouter) Handle(request ziface.IRequest) {
-	//Read the data from the client first
-	fmt.Println("recv from client : msgId=", request.GetMsgID(), ", data=", string(request.GetData()))
-	
-	//To go back to write  "ping...ping...ping"
-	err := request.GetConnection().SendBuffMsg(0, []byte("ping...ping...ping"))
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-```
-
-#### C. client
-Zinx's message packet format processing uses `[MsgLength]|[MsgID]|[Data]` .
 ```go
 package main
 
 import (
 	"fmt"
-	"io"
-	"net"
-	"time"
+	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
+	"time"
 )
 
-/*
-	Simulation Client
-*/
-func main() {
-
-	fmt.Println("Client Test ... start")
-	//A test request is made after 3 seconds, giving the server a chance to start the service
-	time.Sleep(3 * time.Second)
-
-	conn,err := net.Dial("tcp", "127.0.0.1:7777")
-	if err != nil {
-		fmt.Println("client start err, exit!")
-		return
-	}
-
-	for n := 3; n >= 0; n-- {
-		//Send a packet message
-		dp := znet.NewDataPack()
-		msg, _ := dp.Pack(znet.NewMsgPackage(0,[]byte("Zinx Client Test Message")))
-		_, err := conn.Write(msg)
-		if err !=nil {
-			fmt.Println("write error err ", err)
-			return
-		}
-
-		//Read the head part of the stream first
-		headData := make([]byte, dp.GetHeadLen())
-		_, err = io.ReadFull(conn, headData) //ReadFull 会把msg填充满为止
+//Client custom business
+func pingLoop(conn ziface.IConnection) {
+	for {
+		err := conn.SendMsg(1, []byte("Ping...Ping...Ping...[FromClient]"))
 		if err != nil {
-			fmt.Println("read head error")
+			fmt.Println(err)
 			break
 		}
-		//Unpack the headData byte stream into MSG
-		msgHead, err := dp.Unpack(headData)
-		if err != nil {
-			fmt.Println("server unpack err:", err)
-			return
-		}
 
-		if msgHead.GetDataLen() > 0 {
-			//msg has data data, which needs to be read again
-			msg := msgHead.(*znet.Message)
-			msg.Data = make([]byte, msg.GetDataLen())
-
-			//Read the byte stream from the IO according to dataLen
-			_, err := io.ReadFull(conn, msg.Data)
-			if err != nil {
-				fmt.Println("server unpack data err:", err)
-				return
-			}
-
-			fmt.Println("==> Recv Msg: ID=", msg.Id, ", len=", msg.DataLen, ", data=", string(msg.Data))
-		}
-
-		time.Sleep(1*time.Second)
+		time.Sleep(1 * time.Second)
 	}
 }
+
+//Executed when a connection is created
+func onClientStart(conn ziface.IConnection) {
+	fmt.Println("onClientStart is Called ... ")
+	go pingLoop(conn)
+}
+
+func main() {
+	//Create a client client
+	client := znet.NewClient("127.0.0.1", 8999)
+
+	//Set the hook function after the link is successfully established
+	client.SetOnConnStart(onClientStart)
+
+	//start the client
+	client.Start()
+
+	//Prevent the process from exiting, waiting for an interrupt signal
+	select {}
+}
 ```
+
+Run Client
+
+```bash
+$ go run client.go 
+2023/03/09 19:04:54 [INFO]client.go:73: [START] Zinx Client LocalAddr: 127.0.0.1:55294, RemoteAddr: 127.0.0.1:8999
+2023/03/09 19:04:54 [INFO]connection.go:354: ZINX CallOnConnStart....
+```
+
+Terminal of Zinx Print:
+```bash
+recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
+recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
+recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
+recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
+recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
+recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
+...
+```
+
 
 ### (2) Zinx configuration file
 ```json
@@ -291,82 +278,6 @@ func main() {
 
 `LogFile`: Log file name (if not provided, log information is printed to Stderr)
 
-
-### (3) Server Module 
-```go
-  func NewServer () ziface.IServer 
-```
-Create a Zinx server object that serves as the primary hub for the current server application, including the following functions:
-
-#### A. Start the Server
-```go
-  func (s *Server) Start()
-```
-#### B. Stop the Server
-```go
-  func (s *Server) Stop()
-```
-#### C. Run the Server
-```go
-  func (s *Server) Serve()
-```
-#### D. Registered router
-```go
-func (s *Server) AddRouter (msgId uint32, router ziface.IRouter) 
-```
-#### E. Register the link to create the Hook function
-```go
-func (s *Server) SetOnConnStart(hookFunc func (ziface.IConnection))
-```
-#### F. Register the link destruction Hook function
-```go
-func (s *Server) SetOnConnStop(hookFunc func (ziface.IConnection))
-```
-
-### (4) Router Module
-```go
-//When you implement Router, you embed the base class and then override the methods of the base class as needed.
-type BaseRouter struct {}
-
-//The BaseRouter's methods are null because some Router does not want to
-//have PreHandle or PostHandle. 
-//The Router inherits all BaseRouter's methods because PreHandle and PostHandle can be instantiated 
-//without implementing them
-func (br *BaseRouter)PreHandle(req ziface.IRequest){}
-func (br *BaseRouter)Handle(req ziface.IRequest){}
-func (br *BaseRouter)PostHandle(req ziface.IRequest){}
-```
-
-
-### (5) Connection Module
-#### A. Get the socket net.TCPConn
-```go
-  func (c *Connection) GetTCPConnection() *net.TCPConn 
-```
-#### B. Get the Connection ID
-```go
-  func (c *Connection) GetConnID() uint32 
-```
-#### C. Get the remote client address 
-```go
-  func (c *Connection) RemoteAddr() net.Addr 
-```
-#### D. send message
-```go
-  func (c *Connection) SendMsg(msgId uint32, data []byte) error 
-  func (c *Connection) SendBuffMsg(msgId uint32, data []byte) error
-```
-#### E. Connection attributes
-```go
-//Setting connection attributes
-func (c *Connection) SetProperty(key string, value interface{})
-
-//Getting connection attributes
-func (c *Connection) GetProperty(key string) (interface{}, error)
-
-//remove connection attributes
-func (c *Connection) RemoveProperty(key string) 
-```
 
 ---
 
