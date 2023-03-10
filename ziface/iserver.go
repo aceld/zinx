@@ -1,11 +1,12 @@
 // Package ziface 主要提供zinx全部抽象层接口定义.
 // 包括:
-//		IServer 服务mod接口
-//		IRouter 路由mod接口
-//		IConnection 连接mod层接口
-//      IMessage 消息mod接口
-//		IDataPack 消息拆解接口
-//      IMsgHandler 消息处理及协程池接口
+//
+//			IServer 服务mod接口
+//			IRouter 路由mod接口
+//			IConnection 连接mod层接口
+//	     IMessage 消息mod接口
+//			IDataPack 消息拆解接口
+//	     IMsgHandler 消息处理及协程池接口
 //
 // 当前文件描述:
 // @Title  iserver.go
@@ -15,7 +16,7 @@ package ziface
 
 import "time"
 
-//定义服务接口
+// 定义服务接口
 type IServer interface {
 	Start()                                                   //启动服务器方法
 	Stop()                                                    //停止服务器方法
@@ -31,4 +32,5 @@ type IServer interface {
 	SetPacket(IDataPack)                                      //设置Server绑定的数据协议封包方式
 	StartHeartBeat(time.Duration)                             //启动心跳检测
 	StartHeartBeatWithOption(time.Duration, *HeartBeatOption) //启动心跳检测(自定义回调)
+	AddInterceptor(interceptor Interceptor)                   //添加协议解析拦截器
 }
