@@ -70,37 +70,8 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 [![Stargazers over time](https://api.star-history.com/svg?repos=aceld/zinx&type=Date)](#zinx)
 
 
-## 二、快速启动
 
-**版本**
-Golang 1.16+
-
-```bash
-# 克隆项目
-$ git clone https://github.com/aceld/zinx.git
-
-# 进入服务端样例目录
-$ cd ./zinx/examples/zinx_server
-
-# 服务端编译
-$ make build
-
-# 服务端容器化
-$ make image
-
-# 服务端启动
-$ make run 
-
-# 进入客户端样例目录
-$ cd ../zinx_client
-
-# 启动客户端进行测试
-$ go run main.go 
-
-```
-
-
-## 三、初探Zinx架构
+## 二、初探Zinx架构
 
 ![1-Zinx框架.png](https://camo.githubusercontent.com/903d1431358fa6f4634ebaae3b49a28d97e23d77/68747470733a2f2f75706c6f61642d696d616765732e6a69616e7368752e696f2f75706c6f61645f696d616765732f31313039333230352d633735666636383232333362323533362e706e673f696d6167654d6f6772322f6175746f2d6f7269656e742f7374726970253743696d61676556696577322f322f772f31323430)
 ![流程图](https://github.com/wenyoufu/testaaaaaa/blob/abc8a50078a86aed37e8af6082d1d867bc165c32/%E6%9C%AA%E5%91%BD%E5%90%8D%E6%B5%81%E7%A8%8B%E5%9B%BE%20(1).jpg?raw=true)
@@ -108,9 +79,12 @@ $ go run main.go
 
 
 
-## 四、Zinx开发API文档
+## 三、Zinx开发API文档
 
 ### （1）快速开始
+
+**版本**
+Golang 1.16+
 
 #### A. 示例演示
 1. 编译demo示例，会在`zinx/example/zinx_server`下得到`server`, 在`zinx/example/zinx_client`下得到`client`.
