@@ -76,37 +76,7 @@ Of course, I hope that more people will join Zinx and give us valuable suggestio
 [![Stargazers over time](https://api.star-history.com/svg?repos=aceld/zinx&type=Date)](#zinx)
 
 
-## II. Quick start
-
-**Version**
-Golang 1.16+
-
-```bash
-# clone from git
-$ git clone https://github.com/aceld/zinx.git
-
-# cd the dir of Demo
-$ cd ./zinx/examples/zinx_server
-
-# Build
-$ make build
-
-# Build for docker image
-$ make image
-
-# start and run
-$ make run 
-
-# cd the dir of Demo Client
-$ cd ../zinx_client
-
-# run 
-$ go run main.go 
-
-```
-
-
-## III. Zinx architecture
+## II. Zinx architecture
 ![Zinx框架](https://user-images.githubusercontent.com/7778936/220058446-0ad45112-2225-4b71-b0d8-69a7f3cee5ca.jpg)
 
 ![流程图](https://raw.githubusercontent.com/wenyoufu/testaaaaaa/master/%E6%B5%81%E7%A8%8B%E5%9B%BE-en.jpg)
@@ -114,9 +84,12 @@ $ go run main.go
 
 
 
-## IV. Zinx development API documentation
+## III. Zinx development API documentation
 
 ### (1) Quick start
+
+**Version**
+Golang 1.16+
 
 #### A. Demo
 1. Compile Demo example, in dir `zinx/example/zinx_server`, we get `server`, in `zinx/example/zinx_client`, we get`client`.
