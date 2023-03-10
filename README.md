@@ -28,6 +28,8 @@ Git: https://gitee.com/Aceld/zinx
 
 ## Online Tutorial
 
+[YuQue - 《Zinx Framework tutorial-Lightweight server based on Golang》](https://www.yuque.com/aceld)
+
 | platform | online video | 
 | ---- | ---- | 
 | <img src="https://s1.ax1x.com/2022/09/22/xFePUK.png" width = "100" height = "100" alt="" align=center />| [![zinx-BiliBili](https://s2.ax1x.com/2019/10/13/uv340S.jpg)](https://www.bilibili.com/video/av71067087)| 
@@ -37,9 +39,8 @@ Git: https://gitee.com/Aceld/zinx
 
 ## The Document of Zinx
 
-### PC terminal
+[YuQue - 《Zinx Documentation》](https://www.yuque.com/aceld/tsgooa/sbvzgczh3hqz8q3l)
 
-[YuQue - Zinx Framework tutorial-Lightweight server based on Golang》](https://www.yuque.com/aceld)
 
 
 ### Mobile terminal(WeChat)
