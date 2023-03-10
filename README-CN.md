@@ -26,6 +26,11 @@ Git: https://gitee.com/Aceld/zinx
 
 ## 在线开发教程
 
+### 文字教程
+[语雀-《Zinx框架教程-基于Golang的轻量级并发服务器》](https://www.yuque.com/aceld)
+
+### 视频教程
+
 | platform | online video | 
 | ---- | ---- | 
 | <img src="https://s1.ax1x.com/2022/09/22/xFePUK.png" width = "100" height = "100" alt="" align=center />| [![zinx-BiliBili](https://s2.ax1x.com/2019/10/13/uv340S.jpg)](https://www.bilibili.com/video/av71067087)| 
@@ -33,14 +38,7 @@ Git: https://gitee.com/Aceld/zinx
 | <img src="https://s1.ax1x.com/2022/09/23/xkQcng.png" width = "100" height = "100" alt="" align=center />| [![zinx-youtube](https://s2.ax1x.com/2019/10/14/KSurCR.jpg)](https://www.youtube.com/watch?v=U95iF-HMWsU&list=PL_GrAPKmuajzeNI8HBTi-k5NQO1g0rM-A)| 
 
 
-## Zinx详细教程及文档
-
-### PC端文档
-
-[语雀-《Zinx框架教程-基于Golang的轻量级并发服务器》](https://www.yuque.com/aceld)
-
-
-### 移动端文档
+### 移动端
 ![gongzhonghao](https://s1.ax1x.com/2020/07/07/UFyUdx.th.jpg)
 
     
@@ -79,23 +77,65 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 
 
 
-## 三、Zinx开发API文档
+## 三、Zinx开发接口文档
+
+[《Zinx 开发接口文档》](https://www.yuque.com/aceld/tsgooa/sbvzgczh3hqz8q3l)
+
 
 ### （1）快速开始
 
 **版本**
 Golang 1.16+
 
-#### A. 示例演示
-1. 编译demo示例，会在`zinx/example/zinx_server`下得到`server`, 在`zinx/example/zinx_client`下得到`client`.
+DownLoad zinx Source
+
 ```bash
-$ cd zinx/
-$ make
+$go get github.com/aceld/zinx
 ```
-2. 启动Demo server, 该终端不要关闭
+
+> note: Golang Version 1.16+
+
+#### Zinx-Server
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/znet"
+)
+
+// PingRouter MsgId=1的路由
+type PingRouter struct {
+	znet.BaseRouter
+}
+
+//Ping Handle MsgId=1的路由处理方法
+func (r *PingRouter) Handle(request ziface.IRequest) {
+	//读取客户端的数据
+	fmt.Println("recv from client : msgId=", request.GetMsgID(), ", data=", string(request.GetData()))
+}
+
+func main() {
+	//1 创建一个server服务
+	s := znet.NewServer()
+
+	//2 配置路由
+	s.AddRouter(1, &PingRouter{})
+
+	//3 启动服务
+	s.Serve()
+}
+
+```
+
+Run Server
+
 ```bash
-$ cd example/zinx_server
-$ ./server 
+$ go run server.go
+```
+
+```bash
                                         
               ██                        
               ▀▀                        
@@ -105,156 +145,112 @@ $ ./server
  ▄██▄▄▄▄▄  ▄▄▄██▄▄▄  ██    ██   ▄█▀▀█▄  
  ▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀  ▀▀    ▀▀  ▀▀▀  ▀▀▀ 
                                         
-┌───────────────────────────────────────────────────┐
-│ [Github] https://github.com/aceld                 │
-│ [tutorial] https://www.kancloud.cn/aceld/zinx     │
-└───────────────────────────────────────────────────┘
-[Zinx] Version: V0.11, MaxConn: 3, MaxPacketSize: 4096
-Add api msgId =  0
-Add api msgId =  1
-[START] Server name: zinx server Demo,listenner at IP: 127.0.0.1, Port 8999 is starting
-Worker ID =  0  is started.
-Worker ID =  1  is started.
-Worker ID =  2  is started.
-Worker ID =  3  is started.
-Worker ID =  4  is started.
-Worker ID =  7  is started.
-Worker ID =  6  is started.
-Worker ID =  8  is started.
-Worker ID =  9  is started.
-Worker ID =  5  is started.
-start Zinx server   zinx server Demo  succ, now listenning...
-...
+┌──────────────────────────────────────────────────────┐
+│ [Github] https://github.com/aceld                    │
+│ [tutorial] https://www.yuque.com/aceld/npyr8s/bgftov │
+└──────────────────────────────────────────────────────┘
+[Zinx] Version: V1.0, MaxConn: 12000, MaxPacketSize: 4096
+===== Zinx Global Config =====
+TCPServer: <nil>
+Host: 0.0.0.0
+TCPPort: 8999
+Name: ZinxServerApp
+Version: V1.0
+MaxPacketSize: 4096
+MaxConn: 12000
+WorkerPoolSize: 10
+MaxWorkerTaskLen: 1024
+MaxMsgChanLen: 1024
+ConfFilePath: /Users/Aceld/go/src/zinx-usage/quick_start/conf/zinx.json
+LogDir: /Users/Aceld/go/src/zinx-usage/quick_start/log
+LogFile: 
+LogDebugClose: false
+HeartbeatMax: 10
+==============================
+2023/03/09 18:39:49 [INFO]msghandler.go:61: Add api msgID = 1
+2023/03/09 18:39:49 [INFO]server.go:112: [START] Server name: ZinxServerApp,listenner at IP: 0.0.0.0, Port 8999 is starting
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 0 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 1 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 3 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 2 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 4 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 6 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 7 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 8 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 9 is started.
+2023/03/09 18:39:49 [INFO]msghandler.go:66: Worker ID = 5 is started.
+2023/03/09 18:39:49 [INFO]server.go:134: [START] start Zinx server  ZinxServerApp succ, now listenning...
+
 ```
 
-3. 再打开新终端，启动client Demo测试通信
-```bash
-$ cd example/zinx_client
-$ ./client
-==> Test Router:[Ping] Recv Msg: ID= 2 , len= 21 , data= DoConnection BEGIN... ==> Test Router:[Ping] Recv Msg: ID= 0 , len= 18 , data= ping...ping...ping 
-==> Test Router:[Ping] Recv Msg: ID= 0 , len= 18 , data= ping...ping...ping
-==> Test Router:[Ping] Recv Msg: ID= 0 , len= 18 , data= ping...ping...ping
-...
-t
 
-```
 
-#### B. server
-基于Zinx框架开发的服务器应用，主函数步骤比较精简，最多只需要3步即可。
-1. 创建server句柄
-2. 配置自定义路由及业务
-3. 启动服务
+#### Zinx-Client
 
-```go
-func main() {
-	//1 创建一个server句柄
-	s := znet.NewServer()
-
-	//2 配置路由
-	s.AddRouter(0, &PingRouter{})
-
-	//3 开启服务
-	s.Serve()
-}
-```
-
-其中自定义路由及业务配置方式如下：
-```go
-import (
-	"fmt"
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/znet"
-)
-
-//ping test 自定义路由
-type PingRouter struct {
-	znet.BaseRouter
-}
-
-//Ping Handle
-func (this *PingRouter) Handle(request ziface.IRequest) {
-	//先读取客户端的数据
-	fmt.Println("recv from client : msgId=", request.GetMsgID(), ", data=", string(request.GetData()))
-
-    //再回写ping...ping...ping
-	err := request.GetConnection().SendBuffMsg(0, []byte("ping...ping...ping"))
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-```
-
-#### C. client
-Zinx的消息处理采用，`[MsgLength]|[MsgID]|[Data]`的封包格式
 ```go
 package main
 
 import (
 	"fmt"
-	"io"
-	"net"
-	"time"
+	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
+	"time"
 )
 
-/*
-	模拟客户端
- */
-func main() {
-
-	fmt.Println("Client Test ... start")
-	//3秒之后发起测试请求，给服务端开启服务的机会
-	time.Sleep(3 * time.Second)
-
-	conn,err := net.Dial("tcp", "127.0.0.1:7777")
-	if err != nil {
-		fmt.Println("client start err, exit!")
-		return
-	}
-
-	for n := 3; n >= 0; n-- {
-		//发封包message消息
-		dp := znet.NewDataPack()
-		msg, _ := dp.Pack(znet.NewMsgPackage(0,[]byte("Zinx Client Test Message")))
-		_, err := conn.Write(msg)
-		if err !=nil {
-			fmt.Println("write error err ", err)
-			return
-		}
-
-		//先读出流中的head部分
-		headData := make([]byte, dp.GetHeadLen())
-		_, err = io.ReadFull(conn, headData) //ReadFull 会把msg填充满为止
+//客户端自定义业务
+func pingLoop(conn ziface.IConnection) {
+	for {
+		err := conn.SendMsg(1, []byte("Ping...Ping...Ping...[FromClient]"))
 		if err != nil {
-			fmt.Println("read head error")
+			fmt.Println(err)
 			break
 		}
-		//将headData字节流 拆包到msg中
-		msgHead, err := dp.Unpack(headData)
-		if err != nil {
-			fmt.Println("server unpack err:", err)
-			return
-		}
 
-		if msgHead.GetDataLen() > 0 {
-			//msg 是有data数据的，需要再次读取data数据
-			msg := msgHead.(*znet.Message)
-			msg.Data = make([]byte, msg.GetDataLen())
-
-			//根据dataLen从io中读取字节流
-			_, err := io.ReadFull(conn, msg.Data)
-			if err != nil {
-				fmt.Println("server unpack data err:", err)
-				return
-			}
-
-			fmt.Println("==> Recv Msg: ID=", msg.Id, ", len=", msg.DataLen, ", data=", string(msg.Data))
-		}
-
-		time.Sleep(1*time.Second)
+		time.Sleep(1 * time.Second)
 	}
 }
+
+//创建连接的时候执行
+func onClientStart(conn ziface.IConnection) {
+	fmt.Println("onClientStart is Called ... ")
+	go pingLoop(conn)
+}
+
+func main() {
+	//创建Client客户端
+	client := znet.NewClient("127.0.0.1", 8999)
+
+	//设置链接建立成功后的钩子函数
+	client.SetOnConnStart(onClientStart)
+
+	//启动客户端
+	client.Start()
+
+	//防止进程退出，等待中断信号
+	select {}
+}
+
 ```
+
+Run Client
+
+```bash
+$ go run client.go 
+2023/03/09 19:04:54 [INFO]client.go:73: [START] Zinx Client LocalAddr: 127.0.0.1:55294, RemoteAddr: 127.0.0.1:8999
+2023/03/09 19:04:54 [INFO]connection.go:354: ZINX CallOnConnStart....
+```
+
+Terminal of Zinx Print:
+```bash
+recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
+recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
+recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
+recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
+recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
+recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
+...
+```
+
 
 ### （2）Zinx配置文件
 ```json
@@ -283,81 +279,6 @@ func main() {
 
 `LogFile`: 日志文件名称(如果不提供，则日志信息打印到Stderr)
 
-
-### （3）服务器模块Server
-```go
-  func NewServer () ziface.IServer 
-```
-创建一个Zinx服务器句柄，该句柄作为当前服务器应用程序的主枢纽，包括如下功能：
-
-#### A. 开启服务
-```go
-  func (s *Server) Start()
-```
-#### B. 停止服务
-```go
-  func (s *Server) Stop()
-```
-#### C. 运行服务
-```go
-  func (s *Server) Serve()
-```
-#### D. 注册路由
-```go
-func (s *Server) AddRouter (msgId uint32, router ziface.IRouter) 
-```
-#### E. 注册链接创建Hook函数
-```go
-func (s *Server) SetOnConnStart(hookFunc func (ziface.IConnection))
-```
-#### F. 注册链接销毁Hook函数
-```go
-func (s *Server) SetOnConnStop(hookFunc func (ziface.IConnection))
-```
-### （4）路由模块
-
-```go
-//实现router时，先嵌入这个基类，然后根据需要对这个基类的方法进行重写
-type BaseRouter struct {}
-
-//这里之所以BaseRouter的方法都为空，
-// 是因为有的Router不希望有PreHandle或PostHandle
-// 所以Router全部继承BaseRouter的好处是，不需要实现PreHandle和PostHandle也可以实例化
-func (br *BaseRouter)PreHandle(req ziface.IRequest){}
-func (br *BaseRouter)Handle(req ziface.IRequest){}
-func (br *BaseRouter)PostHandle(req ziface.IRequest){}
-```
-
-
-### （5）链接模块
-#### A. 获取原始的socket TCPConn
-```go
-  func (c *Connection) GetTCPConnection() *net.TCPConn 
-```
-#### B. 获取链接ID
-```go
-  func (c *Connection) GetConnID() uint32 
-```
-#### C. 获取远程客户端地址信息
-```go
-  func (c *Connection) RemoteAddr() net.Addr 
-```
-#### D. 发送消息
-```go
-  func (c *Connection) SendMsg(msgId uint32, data []byte) error 
-  func (c *Connection) SendBuffMsg(msgId uint32, data []byte) error
-```
-#### E. 链接属性
-```go
-//设置链接属性
-func (c *Connection) SetProperty(key string, value interface{})
-
-//获取链接属性
-func (c *Connection) GetProperty(key string) (interface{}, error)
-
-//移除链接属性
-func (c *Connection) RemoveProperty(key string) 
-```
 
 ---
 
