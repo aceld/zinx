@@ -59,6 +59,7 @@ func (this *TLVInterceptor) Intercept(chain ziface.Chain) ziface.Response {
 					_data.Length = binary.BigEndian.Uint32(data[4:8])
 					_data.Value = string(data[8 : 8+_data.Length])
 					iMessage.SetMsgID(_data.Tag)
+					iRequest.SetResponse(_data)
 					fmt.Println("2-TLV", _data)
 				}
 			}

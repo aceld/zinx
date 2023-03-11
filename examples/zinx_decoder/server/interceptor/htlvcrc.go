@@ -63,6 +63,7 @@ func (this *HtlvcrcInterceptor) Intercept(chain ziface.Chain) ziface.Response {
 					htlvData.data = data[3 : 3+htlvData.length]
 					htlvData.crc = data[htlvData.length+3 : datasize]
 					iMessage.SetMsgID(uint32(htlvData.funcode))
+					iRequest.SetResponse(htlvData)
 					fmt.Println("2htlvData", htlvData)
 				}
 			}
