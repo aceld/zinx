@@ -183,7 +183,7 @@ type EncoderData struct {
 	//小端模式：是指数据的高字节保存在内存的高地址中，而数据的低字节保存在内存的低地址中，高地址部分权值高，低地址部分权值低，和我们的日常逻辑方法一致。
 	//不了解的自行查阅一下资料
 	byteOrder              binary.ByteOrder
-	maxFrameLength         int   //最大帧长度
+	maxFrameLength         int64 //最大帧长度
 	lengthFieldOffset      int   //长度字段偏移量
 	lengthFieldLength      int   //长度域字段的字节数
 	lengthFieldEndOffset   int   //长度字段结束位置的偏移量  lengthFieldOffset+lengthFieldLength
@@ -196,7 +196,7 @@ type EncoderData struct {
 	in                     *bytes.Buffer
 }
 
-func NewLengthFieldFrameDecoder(maxFrameLength, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip int) LengthFieldFrameDecoder {
+func NewLengthFieldFrameDecoder(maxFrameLength int64, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip int) LengthFieldFrameDecoder {
 	return &EncoderData{
 		maxFrameLength:       maxFrameLength,
 		lengthFieldOffset:    lengthFieldOffset,

@@ -233,6 +233,58 @@ func (c *Connection) LocalAddr() net.Addr {
 	return c.conn.LocalAddr()
 }
 
+func (c *Connection) Send(data []byte) error {
+	c.msgLock.RLock()
+	defer c.msgLock.RUnlock()
+	if c.isClosed == true {
+		return errors.New("connection closed when send msg")
+	}
+
+	//写回客户端
+	_, err := c.conn.Write(data)
+	if err != nil {
+		zlog.Ins().ErrorF("SendMsg err data = %+v, err = %+v", data, err)
+		return err
+	}
+
+	//写对端成功, 更新链接活动时间
+	c.updateActivity()
+
+	return nil
+}
+
+func (c *Connection) SendToQueue(data []byte) error {
+	c.msgLock.RLock()
+	defer c.msgLock.RUnlock()
+
+	if c.msgBuffChan == nil {
+		c.msgBuffChan = make(chan []byte, utils.GlobalObject.MaxMsgChanLen)
+		//开启用于写回客户端数据流程的Goroutine
+		//此方法只读取MsgBuffChan中的数据没调用SendBuffMsg可以分配内存和启用协程
+		go c.StartWriter()
+	}
+
+	idleTimeout := time.NewTimer(5 * time.Millisecond)
+	defer idleTimeout.Stop()
+
+	if c.isClosed == true {
+		return errors.New("Connection closed when send buff msg")
+	}
+
+	if data == nil {
+		zlog.Ins().ErrorF("Pack data is nil")
+		return errors.New("Pack data is nil")
+	}
+
+	// 发送超时
+	select {
+	case <-idleTimeout.C:
+		return errors.New("send buff msg timeout")
+	case c.msgBuffChan <- data:
+		return nil
+	}
+}
+
 // SendMsg 直接将Message数据发送数据给远程的TCP客户端
 func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 	c.msgLock.RLock()

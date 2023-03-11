@@ -22,20 +22,26 @@ package interceptor
 
 import (
 	"fmt"
+	"github.com/aceld/zinx/zcode"
 	"github.com/aceld/zinx/ziface"
+	"math"
 )
 
 const HEADER_SIZE = 5
 
 type Data struct {
-	head    byte
-	funcode byte
-	length  byte
-	data    []byte
-	crc     []byte
+	head    byte   //头码
+	funcode byte   //功能码
+	length  byte   //数据长度
+	data    []byte //数据内容
+	crc     []byte //CRC校验
 }
 
 type HtlvcrcInterceptor struct {
+}
+
+func (this *HtlvcrcInterceptor) GetDecoder() ziface.Interceptor {
+	return zcode.NewLengthFieldFrameInterceptor(math.MaxUint8+4, 2, 1, 2, 0)
 }
 
 func (this *HtlvcrcInterceptor) Intercept(chain ziface.Chain) ziface.Response {
