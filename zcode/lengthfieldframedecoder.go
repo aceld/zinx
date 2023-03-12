@@ -11,6 +11,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"sync"
 )
 
 // EncoderData
@@ -193,7 +194,8 @@ type EncoderData struct {
 	discardingTooLongFrame bool  //true 表示开启丢弃模式，false 正常工作模式
 	tooLongFrameLength     int64 //当某个数据包的长度超过maxLength，则开启丢弃模式，此字段记录需要丢弃的数据长度
 	bytesToDiscard         int64 //记录还剩余多少字节需要丢弃
-	in                     *bytes.Buffer
+	in                     []byte
+	lock                   sync.Mutex
 }
 
 func NewLengthFieldFrameDecoder(maxFrameLength int64, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip int) LengthFieldFrameDecoder {
@@ -205,7 +207,7 @@ func NewLengthFieldFrameDecoder(maxFrameLength int64, lengthFieldOffset, lengthF
 		initialBytesToStrip:  initialBytesToStrip,
 		lengthFieldEndOffset: lengthFieldOffset + lengthFieldLength,
 		byteOrder:            binary.BigEndian,
-		in:                   bytes.NewBuffer([]byte{}),
+		in:                   make([]byte, 0),
 	}
 }
 
@@ -225,7 +227,7 @@ func (this *EncoderData) discardingTooLongFrameFunc(buffer *bytes.Buffer) {
 	bytesToDiscard := this.bytesToDiscard
 	//获取当前可以丢弃的字节数，有可能出现半包
 	localBytesToDiscard := math.Min(float64(bytesToDiscard), float64(buffer.Len()))
-	fmt.Println("--->", bytesToDiscard, buffer.Len(), localBytesToDiscard)
+	//fmt.Println("--->", bytesToDiscard, buffer.Len(), localBytesToDiscard)
 	localBytesToDiscard = 2
 	//丢弃
 	buffer.Next(int(localBytesToDiscard))
@@ -334,7 +336,8 @@ func (this *EncoderData) failOnFrameLengthLessThanInitialBytesToStrip(in *bytes.
 }
 
 // https://blog.csdn.net/qq_39280718/article/details/125762004
-func (this *EncoderData) decode(in *bytes.Buffer) []byte {
+func (this *EncoderData) decode(buf []byte) []byte {
+	in := bytes.NewBuffer(buf)
 	//丢弃模式
 	if this.discardingTooLongFrame {
 		this.discardingTooLongFrameFunc(in)
@@ -398,12 +401,21 @@ func (this *EncoderData) decode(in *bytes.Buffer) []byte {
 }
 
 func (this *EncoderData) Decode(buff []byte) [][]byte {
-	this.in.Write(buff)
+	this.lock.Lock()
+	defer this.lock.Unlock()
+	this.in = append(this.in, buff...)
 	resp := make([][]byte, 0)
 	for {
 		arr := this.decode(this.in)
 		if arr != nil {
+			//证明已经解析出一个完整包
 			resp = append(resp, arr)
+			_size := len(arr)
+			_len := len(this.in)
+			fmt.Println(_len)
+			if _size > 0 {
+				this.in = this.in[_size:]
+			}
 		} else {
 			return resp
 		}

@@ -103,6 +103,8 @@ func (r *Request) Call() {
 
 		r.next()
 	}
+
+	r.steps = PRE_HANDLE
 }
 
 func (r *Request) Abort() {

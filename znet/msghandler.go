@@ -1,6 +1,7 @@
 package znet
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/zcode"
@@ -61,6 +62,7 @@ func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
 	//zlog.Ins().DebugF("Add ConnID=%d request msgID=%d to workerID=%d", request.GetConnection().GetConnID(), request.GetMsgID(), workerID)
 	//将请求消息发送给任务队列
 	mh.TaskQueue[workerID] <- request
+	zlog.Ins().ErrorF("SendMsgToTaskQueue-->", hex.EncodeToString(request.GetData()))
 }
 
 // DoMsgHandler 马上以非阻塞方式处理消息
@@ -70,6 +72,7 @@ func (mh *MsgHandle) DoMsgHandler(request ziface.IRequest) {
 		zlog.Ins().ErrorF("api msgID = %d is not FOUND!", request.GetMsgID())
 		return
 	}
+
 	//Request请求绑定Router对应关系
 	request.BindRouter(handler)
 	//执行对应处理方法

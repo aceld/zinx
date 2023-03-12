@@ -32,6 +32,9 @@ func (this *LengthFieldFrameInterceptor) Intercept(chain ziface.Chain) ziface.Re
 				if this.decoder != nil {
 					bytebuffers := this.decoder.Decode(data)
 					size := len(bytebuffers)
+					if size == 0 { //半包，或者其他情况，任务就不要往下再传递了
+						return nil
+					}
 					for i := 0; i < size; i++ {
 						buffer := bytebuffers[i]
 						if buffer != nil {
