@@ -411,8 +411,8 @@ func (this *EncoderData) Decode(buff []byte) [][]byte {
 			//证明已经解析出一个完整包
 			resp = append(resp, arr)
 			_size := len(arr)
-			_len := len(this.in)
-			fmt.Println(_len)
+			//_len := len(this.in)
+			//fmt.Println(_len)
 			if _size > 0 {
 				this.in = this.in[_size:]
 			}
