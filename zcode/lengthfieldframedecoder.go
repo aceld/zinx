@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/aceld/zinx/ziface"
 	"math"
 	"sync"
 )
@@ -33,10 +34,10 @@ import (
 // length field.  Therefore, it can be decoded with the simplistic parameter
 // combination.
 // <pre>
-// <b>lengthFieldOffset</b>   = <b>0</b>
-// <b>lengthFieldLength</b>   = <b>2</b>
-// lengthAdjustment    = 0
-// initialBytesToStrip = 0 (= do not strip header)
+// <b>LengthFieldOffset</b>   = <b>0</b>
+// <b>LengthFieldLength</b>   = <b>2</b>
+// LengthAdjustment    = 0
+// InitialBytesToStrip = 0 (= do not strip header)
 //
 // BEFORE DECODE (14 bytes)         AFTER DECODE (14 bytes)
 // +--------+----------------+      +--------+----------------+
@@ -49,14 +50,14 @@ import (
 //
 // Because we can get the length of the content by calling
 // {@link ByteBuf#readableBytes()}, you might want to strip the length
-// field by specifying <tt>initialBytesToStrip</tt>.  In this example, we
+// field by specifying <tt>InitialBytesToStrip</tt>.  In this example, we
 // specified <tt>2</tt>, that is same with the length of the length field, to
 // strip the first two bytes.
 // <pre>
-// lengthFieldOffset   = 0
-// lengthFieldLength   = 2
-// lengthAdjustment    = 0
-// <b>initialBytesToStrip</b> = <b>2</b> (= the length of the Length field)
+// LengthFieldOffset   = 0
+// LengthFieldLength   = 2
+// LengthAdjustment    = 0
+// <b>InitialBytesToStrip</b> = <b>2</b> (= the length of the Length field)
 //
 // BEFORE DECODE (14 bytes)         AFTER DECODE (12 bytes)
 // +--------+----------------+      +----------------+
@@ -73,14 +74,14 @@ import (
 // only, as shown in the previous examples.  However, in some protocols, the
 // length field represents the length of the whole message, including the
 // message header.  In such a case, we specify a non-zero
-// <tt>lengthAdjustment</tt>.  Because the length value in this example message
+// <tt>LengthAdjustment</tt>.  Because the length value in this example message
 // is always greater than the body length by <tt>2</tt>, we specify <tt>-2</tt>
-// as <tt>lengthAdjustment</tt> for compensation.
+// as <tt>LengthAdjustment</tt> for compensation.
 // <pre>
-// lengthFieldOffset   =  0
-// lengthFieldLength   =  2
-// <b>lengthAdjustment</b>    = <b>-2</b> (= the length of the Length field)
-// initialBytesToStrip =  0
+// LengthFieldOffset   =  0
+// LengthFieldLength   =  2
+// <b>LengthAdjustment</b>    = <b>-2</b> (= the length of the Length field)
+// InitialBytesToStrip =  0
 //
 // BEFORE DECODE (14 bytes)         AFTER DECODE (14 bytes)
 // +--------+----------------+      +--------+----------------+
@@ -92,14 +93,14 @@ import (
 // <h3>3 bytes length field at the end of 5 bytes header, do not strip header</h3>
 //
 // The following message is a simple variation of the first example.  An extra
-// header value is prepended to the message.  <tt>lengthAdjustment</tt> is zero
+// header value is prepended to the message.  <tt>LengthAdjustment</tt> is zero
 // again because the decoder always takes the length of the prepended data into
 // account during frame length calculation.
 // <pre>
-// <b>lengthFieldOffset</b>   = <b>2</b> (= the length of Header 1)
-// <b>lengthFieldLength</b>   = <b>3</b>
-// lengthAdjustment    = 0
-// initialBytesToStrip = 0
+// <b>LengthFieldOffset</b>   = <b>2</b> (= the length of Header 1)
+// <b>LengthFieldLength</b>   = <b>3</b>
+// LengthAdjustment    = 0
+// InitialBytesToStrip = 0
 //
 // BEFORE DECODE (17 bytes)                      AFTER DECODE (17 bytes)
 // +----------+----------+----------------+      +----------+----------+----------------+
@@ -112,13 +113,13 @@ import (
 //
 // This is an advanced example that shows the case where there is an extra
 // header between the length field and the message body.  You have to specify a
-// positive <tt>lengthAdjustment</tt> so that the decoder counts the extra
+// positive <tt>LengthAdjustment</tt> so that the decoder counts the extra
 // header into the frame length calculation.
 // <pre>
-// lengthFieldOffset   = 0
-// lengthFieldLength   = 3
-// <b>lengthAdjustment</b>    = <b>2</b> (= the length of Header 1)
-// initialBytesToStrip = 0
+// LengthFieldOffset   = 0
+// LengthFieldLength   = 3
+// <b>LengthAdjustment</b>    = <b>2</b> (= the length of Header 1)
+// InitialBytesToStrip = 0
 //
 // BEFORE DECODE (17 bytes)                      AFTER DECODE (17 bytes)
 // +----------+----------+----------------+      +----------+----------+----------------+
@@ -133,16 +134,16 @@ import (
 //
 // This is a combination of all the examples above.  There are the prepended
 // header before the length field and the extra header after the length field.
-// The prepended header affects the <tt>lengthFieldOffset</tt> and the extra
-// header affects the <tt>lengthAdjustment</tt>.  We also specified a non-zero
-// <tt>initialBytesToStrip</tt> to strip the length field and the prepended
+// The prepended header affects the <tt>LengthFieldOffset</tt> and the extra
+// header affects the <tt>LengthAdjustment</tt>.  We also specified a non-zero
+// <tt>InitialBytesToStrip</tt> to strip the length field and the prepended
 // header from the frame.  If you don't want to strip the prepended header, you
 // could specify <tt>0</tt> for <tt>initialBytesToSkip</tt>.
 // <pre>
-// lengthFieldOffset   = 1 (= the length of HDR1)
-// lengthFieldLength   = 2
-// <b>lengthAdjustment</b>    = <b>1</b> (= the length of HDR2)
-// <b>initialBytesToStrip</b> = <b>3</b> (= the length of HDR1 + LEN)
+// LengthFieldOffset   = 1 (= the length of HDR1)
+// LengthFieldLength   = 2
+// <b>LengthAdjustment</b>    = <b>1</b> (= the length of HDR2)
+// <b>InitialBytesToStrip</b> = <b>3</b> (= the length of HDR1 + LEN)
 //
 // BEFORE DECODE (16 bytes)                       AFTER DECODE (13 bytes)
 // +------+--------+------+----------------+      +------+----------------+
@@ -159,14 +160,14 @@ import (
 // Let's give another twist to the previous example.  The only difference from
 // the previous example is that the length field represents the length of the
 // whole message instead of the message body, just like the third example.
-// We have to count the length of HDR1 and Length into <tt>lengthAdjustment</tt>.
+// We have to count the length of HDR1 and Length into <tt>LengthAdjustment</tt>.
 // Please note that we don't need to take the length of HDR2 into account
 // because the length field already includes the whole header length.
 // <pre>
-// lengthFieldOffset   =  1
-// lengthFieldLength   =  2
-// <b>lengthAdjustment</b>    = <b>-3</b> (= the length of HDR1 + LEN, negative)
-// <b>initialBytesToStrip</b> = <b> 3</b>
+// LengthFieldOffset   =  1
+// LengthFieldLength   =  2
+// <b>LengthAdjustment</b>    = <b>-3</b> (= the length of HDR1 + LEN, negative)
+// <b>InitialBytesToStrip</b> = <b> 3</b>
 //
 // BEFORE DECODE (16 bytes)                       AFTER DECODE (13 bytes)
 // +------+--------+------+----------------+      +------+----------------+
@@ -175,21 +176,9 @@ import (
 // +------+--------+------+----------------+      +------+----------------+
 // https://blog.csdn.net/weixin_45271492/article/details/125347939
 
-type LengthFieldFrameDecoder interface {
-	Decode(buff []byte) [][]byte
-}
 type EncoderData struct {
-	//大小端排序
-	//大端模式：是指数据的高字节保存在内存的低地址中，而数据的低字节保存在内存的高地址中，地址由小向大增加，而数据从高位往低位放；
-	//小端模式：是指数据的高字节保存在内存的高地址中，而数据的低字节保存在内存的低地址中，高地址部分权值高，低地址部分权值低，和我们的日常逻辑方法一致。
-	//不了解的自行查阅一下资料
-	byteOrder              binary.ByteOrder
-	maxFrameLength         int64 //最大帧长度
-	lengthFieldOffset      int   //长度字段偏移量
-	lengthFieldLength      int   //长度域字段的字节数
-	lengthFieldEndOffset   int   //长度字段结束位置的偏移量  lengthFieldOffset+lengthFieldLength
-	lengthAdjustment       int   //长度调整
-	initialBytesToStrip    int   //需要跳过的字节数
+	lengthField            ziface.LengthField
+	LengthFieldEndOffset   int   //长度字段结束位置的偏移量  LengthFieldOffset+LengthFieldLength
 	failFast               bool  //快速失败
 	discardingTooLongFrame bool  //true 表示开启丢弃模式，false 正常工作模式
 	tooLongFrameLength     int64 //当某个数据包的长度超过maxLength，则开启丢弃模式，此字段记录需要丢弃的数据长度
@@ -198,15 +187,25 @@ type EncoderData struct {
 	lock                   sync.Mutex
 }
 
-func NewLengthFieldFrameDecoder(maxFrameLength int64, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip int) LengthFieldFrameDecoder {
+func NewLengthFieldFrameDecoderByLengthField(lengthField ziface.LengthField) ziface.IDecoder {
 	return &EncoderData{
-		maxFrameLength:       maxFrameLength,
-		lengthFieldOffset:    lengthFieldOffset,
-		lengthFieldLength:    lengthFieldLength,
-		lengthAdjustment:     lengthAdjustment,
-		initialBytesToStrip:  initialBytesToStrip,
-		lengthFieldEndOffset: lengthFieldOffset + lengthFieldLength,
-		byteOrder:            binary.BigEndian,
+		lengthField:          lengthField,
+		LengthFieldEndOffset: lengthField.LengthFieldOffset + lengthField.LengthFieldLength,
+		in:                   make([]byte, 0),
+	}
+}
+
+func NewLengthFieldFrameDecoder(maxFrameLength int64, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip int) ziface.IDecoder {
+	return &EncoderData{
+		lengthField: ziface.LengthField{
+			MaxFrameLength:      maxFrameLength,
+			LengthFieldOffset:   lengthFieldOffset,
+			LengthFieldLength:   lengthFieldLength,
+			LengthAdjustment:    lengthAdjustment,
+			InitialBytesToStrip: initialBytesToStrip,
+			Order:               binary.BigEndian,
+		},
+		LengthFieldEndOffset: lengthFieldOffset + lengthFieldLength,
 		in:                   make([]byte, 0),
 	}
 }
@@ -214,10 +213,10 @@ func NewLengthFieldFrameDecoder(maxFrameLength int64, lengthFieldOffset, lengthF
 func (this *EncoderData) fail(frameLength int64) {
 	//丢弃完成或未完成都抛异常
 	//if frameLength > 0 {
-	//	msg := fmt.Sprintf("Adjusted frame length exceeds %d : %d - discarded", this.maxFrameLength, frameLength)
+	//	msg := fmt.Sprintf("Adjusted frame length exceeds %d : %d - discarded", this.MaxFrameLength, frameLength)
 	//	panic(msg)
 	//} else {
-	//	msg := fmt.Sprintf("Adjusted frame length exceeds %d - discarded", this.maxFrameLength)
+	//	msg := fmt.Sprintf("Adjusted frame length exceeds %d - discarded", this.MaxFrameLength)
 	//	panic(msg)
 	//}
 }
@@ -273,7 +272,7 @@ func (this *EncoderData) getUnadjustedFrameLength(buf *bytes.Buffer, offset int,
 		//long
 		binary.Read(buffer, order, &frameLength)
 	default:
-		panic(fmt.Sprintf("unsupported lengthFieldLength: %d (expected: 1, 2, 3, 4, or 8)", this.lengthFieldLength))
+		panic(fmt.Sprintf("unsupported LengthFieldLength: %d (expected: 1, 2, 3, 4, or 8)", this.lengthField.LengthFieldLength))
 	}
 	return frameLength
 }
@@ -332,7 +331,7 @@ func (this *EncoderData) exceededFrameLength(in *bytes.Buffer, frameLength int64
 
 func (this *EncoderData) failOnFrameLengthLessThanInitialBytesToStrip(in *bytes.Buffer, frameLength int64, initialBytesToStrip int) {
 	in.Next(int(frameLength))
-	panic(fmt.Sprintf("Adjusted frame length (%d) is less  than initialBytesToStrip: %d", frameLength, initialBytesToStrip))
+	panic(fmt.Sprintf("Adjusted frame length (%d) is less  than InitialBytesToStrip: %d", frameLength, initialBytesToStrip))
 }
 
 // https://blog.csdn.net/qq_39280718/article/details/125762004
@@ -343,30 +342,30 @@ func (this *EncoderData) decode(buf []byte) []byte {
 		this.discardingTooLongFrameFunc(in)
 	}
 	////判断缓冲区中可读的字节数是否小于长度字段的偏移量
-	if in.Len() < this.lengthFieldOffset {
+	if in.Len() < this.lengthField.LengthFieldOffset {
 		//说明长度字段的包都还不完整，半包
 		return nil
 	}
 	//执行到这，说明可以解析出长度字段的值了
 
 	//计算出长度字段的开始偏移量
-	actualLengthFieldOffset := this.lengthFieldOffset
+	actualLengthFieldOffset := this.lengthField.LengthFieldOffset
 	//获取长度字段的值，不包括lengthAdjustment的调整值
-	frameLength := this.getUnadjustedFrameLength(in, actualLengthFieldOffset, this.lengthFieldLength, this.byteOrder)
+	frameLength := this.getUnadjustedFrameLength(in, actualLengthFieldOffset, this.lengthField.LengthFieldLength, this.lengthField.Order)
 	//如果数据帧长度小于0，说明是个错误的数据包
 	if frameLength < 0 {
 		//内部会跳过这个数据包的字节数，并抛异常
-		this.failOnNegativeLengthField(in, frameLength, this.lengthFieldEndOffset)
+		this.failOnNegativeLengthField(in, frameLength, this.LengthFieldEndOffset)
 	}
 
 	//套用前面的公式：长度字段后的数据字节数=长度字段的值+lengthAdjustment
 	//frameLength就是长度字段的值，加上lengthAdjustment等于长度字段后的数据字节数
 	//lengthFieldEndOffset为lengthFieldOffset+lengthFieldLength
 	//那说明最后计算出的framLength就是整个数据包的长度
-	frameLength += int64(this.lengthAdjustment) + int64(this.lengthFieldEndOffset)
+	frameLength += int64(this.lengthField.LengthAdjustment) + int64(this.LengthFieldEndOffset)
 	//丢弃模式就是在这开启的
 	//如果数据包长度大于最大长度
-	if frameLength > int64(this.maxFrameLength) {
+	if frameLength > int64(this.lengthField.MaxFrameLength) {
 		//对超过的部分进行处理
 		this.exceededFrameLength(in, frameLength)
 		return nil
@@ -384,14 +383,14 @@ func (this *EncoderData) decode(buf []byte) []byte {
 	//执行到这说明缓冲区的数据已经包含了数据包
 
 	//跳过的字节数是否大于数据包长度
-	if this.initialBytesToStrip > frameLengthInt {
-		this.failOnFrameLengthLessThanInitialBytesToStrip(in, frameLength, this.initialBytesToStrip)
+	if this.lengthField.InitialBytesToStrip > frameLengthInt {
+		this.failOnFrameLengthLessThanInitialBytesToStrip(in, frameLength, this.lengthField.InitialBytesToStrip)
 	}
 	//跳过initialBytesToStrip个字节
-	in.Next(this.initialBytesToStrip)
+	in.Next(this.lengthField.InitialBytesToStrip)
 	//解码
 	//获取跳过后的真实数据长度
-	actualFrameLength := frameLengthInt - this.initialBytesToStrip
+	actualFrameLength := frameLengthInt - this.lengthField.InitialBytesToStrip
 	//提取真实的数据
 	buff := make([]byte, actualFrameLength)
 	in.Read(buff)

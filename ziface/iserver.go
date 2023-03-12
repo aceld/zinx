@@ -14,7 +14,9 @@
 // @Author  Aceld - Thu Mar 11 10:32:29 CST 2019
 package ziface
 
-import "time"
+import (
+	"time"
+)
 
 // 定义服务接口
 type IServer interface {
@@ -33,4 +35,5 @@ type IServer interface {
 	StartHeartBeat(time.Duration)                             //启动心跳检测
 	StartHeartBeatWithOption(time.Duration, *HeartBeatOption) //启动心跳检测(自定义回调)
 	AddInterceptor(interceptor Interceptor)                   //添加协议解析拦截器
+	GetLengthField() LengthField
 }

@@ -48,7 +48,12 @@ type Server struct {
 	//数据报文封包方式
 	packet ziface.IDataPack
 	//异步捕获链接关闭状态
-	exitChan chan struct{}
+	exitChan    chan struct{}
+	LengthField ziface.LengthField
+}
+
+func (this *Server) GetLengthField() ziface.LengthField {
+	return this.LengthField
 }
 
 // NewServer 创建一个服务器句柄

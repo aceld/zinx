@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"github.com/aceld/zinx/zcode"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/zpack"
 	"net"
@@ -48,7 +49,8 @@ type Connection struct {
 	//数据报文封包方式
 	packet ziface.IDataPack
 	//最后一次活动时间
-	lastActivityTime time.Time
+	lastActivityTime   time.Time
+	lengthFieldDecoder ziface.IDecoder
 }
 
 // newServerConn :for Server, 创建一个Server服务端特性的连接的方法
@@ -56,11 +58,12 @@ type Connection struct {
 func newServerConn(server ziface.IServer, conn net.Conn, connID uint32) *Connection {
 	//初始化Conn属性
 	c := &Connection{
-		conn:        conn,
-		connID:      connID,
-		isClosed:    false,
-		msgBuffChan: nil,
-		property:    nil,
+		conn:               conn,
+		connID:             connID,
+		isClosed:           false,
+		msgBuffChan:        nil,
+		property:           nil,
+		lengthFieldDecoder: zcode.NewLengthFieldFrameDecoderByLengthField(server.GetLengthField()),
 	}
 
 	//从server继承过来的属性
@@ -186,10 +189,19 @@ func (c *Connection) StartReader() {
 			}
 			zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer[0:n]))
 
-			msg := &zpack.Message{DataLen: uint32(n), Data: buffer[:n]}
-			//得到当前客户端请求的Request数据
-			req := NewRequest(c, msg)
-			c.msgHandler.Decode(req)
+			if c.lengthFieldDecoder != nil {
+				bufArrays := c.lengthFieldDecoder.Decode(buffer[0:n])
+				if bufArrays != nil {
+					for _, bytes := range bufArrays {
+						zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(bytes))
+						msg := &zpack.Message{DataLen: uint32(len(bytes)), Data: bytes}
+						//得到当前客户端请求的Request数据
+						req := NewRequest(c, msg)
+						c.msgHandler.Decode(req)
+					}
+				}
+			}
+
 		}
 	}
 }

@@ -11,7 +11,7 @@ import (
 )
 
 type LengthFieldFrameInterceptor struct {
-	decoder LengthFieldFrameDecoder
+	decoder ziface.IDecoder
 }
 
 func NewLengthFieldFrameInterceptor(maxFrameLength int64, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip int) *LengthFieldFrameInterceptor {
