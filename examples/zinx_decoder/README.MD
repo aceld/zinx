@@ -29,9 +29,9 @@ TLV，即Tag(Type)—Length—Value，是一种简单实用的数据传输方案
 | 0x00000001 | 0x0000000C | "HELLO, WORLD"  |      | 0x00000001 | 0x0000000C | "HELLO, WORLD"  |
 +------------+------------+-----------------+      +------------+------------+-----------------+
 ```
-> Tag：   uint32类型，占4字节，Tag作为MsgId，暂定为1
-> Length：uint32类型，占4字节，Length标记Value长度12(hex:0x0000000C)
-> Value： 共12个字符，占12字节
+> Tag：   uint32类型，占4字节，Tag作为MsgId，暂定为1<br>
+> Length：uint32类型，占4字节，Length标记Value长度12(hex:0x0000000C)<br>
+> Value： 共12个字符，占12字节<br>
 
 ```
 说明：
