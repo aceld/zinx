@@ -342,7 +342,7 @@ func (this *EncoderData) decode(buf []byte) []byte {
 		this.discardingTooLongFrameFunc(in)
 	}
 	////判断缓冲区中可读的字节数是否小于长度字段的偏移量
-	if in.Len() < this.lengthField.LengthFieldOffset {
+	if in.Len() < this.LengthFieldEndOffset {
 		//说明长度字段的包都还不完整，半包
 		return nil
 	}

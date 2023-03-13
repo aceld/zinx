@@ -36,11 +36,4 @@ func main() {
 	server.AddRouter(0x16, &bili.Data0x16Router{})
 	server.Serve()
 
-	//arr := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
-	//fmt.Println(arr[0])
-	//fmt.Println(arr[1])
-	//fmt.Println(arr[2])
-	//fmt.Println(arr[3 : len(arr)-2])
-	//fmt.Println(arr[len(arr)-2 : len(arr)])
-	//fmt.Println(arr)
 }
