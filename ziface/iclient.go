@@ -1,12 +1,13 @@
 // Package ziface 主要提供zinx全部抽象层接口定义.
 // 包括:
-//		IServer 服务mod接口
-//		IRouter 路由mod接口
-//		IConnection 连接mod层接口
-//      IMessage 消息mod接口
-//		IDataPack 消息拆解接口
-//      IMsgHandler 消息处理及协程池接口
-//      IClient 客户端接口
+//
+//			IServer 服务mod接口
+//			IRouter 路由mod接口
+//			IConnection 连接mod层接口
+//	     IMessage 消息mod接口
+//			IDataPack 消息拆解接口
+//	     IMsgHandler 消息处理及协程池接口
+//	     IClient 客户端接口
 //
 // 当前文件描述:
 // @Title  iclient.go
@@ -30,4 +31,6 @@ type IClient interface {
 	GetMsgHandler() IMsgHandle                                //获取Client绑定的消息处理模块
 	StartHeartBeat(time.Duration)                             //启动心跳检测
 	StartHeartBeatWithOption(time.Duration, *HeartBeatOption) //启动心跳检测(自定义回调)
+	AddInterceptor(interceptor Interceptor)                   //添加协议解析拦截器
+	GetLengthField() LengthField
 }

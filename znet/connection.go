@@ -49,7 +49,8 @@ type Connection struct {
 	//数据报文封包方式
 	packet ziface.IDataPack
 	//最后一次活动时间
-	lastActivityTime   time.Time
+	lastActivityTime time.Time
+	//断粘包解码器
 	lengthFieldDecoder ziface.IDecoder
 }
 
@@ -83,11 +84,12 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint32) *Connect
 // newClientConn :for Client, 创建一个Client服务端特性的连接的方法
 func newClientConn(client ziface.IClient, conn net.Conn) *Connection {
 	c := &Connection{
-		conn:        conn,
-		connID:      0, //client ignore
-		isClosed:    false,
-		msgBuffChan: nil,
-		property:    nil,
+		conn:               conn,
+		connID:             0, //client ignore
+		isClosed:           false,
+		msgBuffChan:        nil,
+		property:           nil,
+		lengthFieldDecoder: zcode.NewLengthFieldFrameDecoderByLengthField(client.GetLengthField()),
 	}
 
 	//从client继承过来的属性

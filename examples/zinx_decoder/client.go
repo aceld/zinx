@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/aceld/zinx/examples/zinx_decoder/router"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/znet"
@@ -96,11 +95,6 @@ func main() {
 	client := znet.NewClient("127.0.0.1", 8999)
 	//添加首次建立链接时的业务
 	client.SetOnConnStart(DoClientConnectedBegin)
-
-	//注册收到服务器消息业务路由，模拟数据包已经定义MsgID=1
-	client.AddRouter(1, &router.TLVRouter{})
-	//client.AddRouter(0x10, &router.HTLVCRCRouter{}) //请看htlvcrc.go:65文件中，将功能码作为msgID
-
 	//启动客户端client
 	client.Start()
 

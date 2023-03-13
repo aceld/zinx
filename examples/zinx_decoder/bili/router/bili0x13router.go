@@ -1,9 +1,9 @@
-package bili
+package router
 
 import (
 	"bytes"
 	"fmt"
-	"github.com/aceld/zinx/examples/zinx_decoder/utils"
+	"github.com/aceld/zinx/examples/zinx_decoder/bili/utils"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
 )

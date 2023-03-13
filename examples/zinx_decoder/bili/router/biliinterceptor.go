@@ -18,22 +18,26 @@
 //    initialBytesToStrip = 0   (这个0表示完整的协议内容，如果不想要A2，那么这里就是1) 从解码帧中第一次去除的字节数
 //    maxFrameLength      = 255 + 4(起始码、功能码、CRC) (len是1个byte，所以最大长度是无符号1个byte的最大值)
 
-package interceptor
+package router
 
 import (
+	"encoding/hex"
 	"fmt"
+	"github.com/aceld/zinx/examples/zinx_decoder/bili/utils"
 	"github.com/aceld/zinx/zcode"
 	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/zlog"
 	"math"
 )
 
 const HEADER_SIZE = 5
 
-type Data struct {
+type BiliData struct {
+	data    []byte //数据内容
 	head    byte   //头码
 	funcode byte   //功能码
 	length  byte   //数据长度
-	data    []byte //数据内容
+	body    []byte //数据内容
 	crc     []byte //CRC校验
 }
 
@@ -53,18 +57,24 @@ func (this *HtlvcrcInterceptor) Intercept(chain ziface.Chain) ziface.Response {
 			iMessage := iRequest.GetMessage()
 			if iMessage != nil {
 				data := iMessage.GetData()
-				fmt.Println("1htlvData", data)
+				zlog.Ins().DebugF("HtlvcrcInterceptor %s \n", hex.EncodeToString(data))
 				datasize := len(data)
-				htlvData := Data{}
+				htlvData := BiliData{
+					data: data,
+				}
 				if datasize >= HEADER_SIZE {
 					htlvData.head = data[0]
 					htlvData.funcode = data[1]
 					htlvData.length = data[2]
-					htlvData.data = data[3 : 3+htlvData.length]
-					htlvData.crc = data[htlvData.length+3 : datasize]
+					htlvData.body = data[3 : datasize-2]
+					htlvData.crc = data[datasize-2 : datasize]
+					if !utils.CheckCRC(data[:datasize-2], htlvData.crc) {
+						fmt.Println("crc校验失败", hex.EncodeToString(data), hex.EncodeToString(htlvData.crc))
+						return nil
+					}
 					iMessage.SetMsgID(uint32(htlvData.funcode))
 					iRequest.SetResponse(htlvData)
-					fmt.Println("2htlvData", htlvData)
+					//zlog.Ins().DebugF("2htlvData %s \n", hex.EncodeToString(htlvData.data))
 				}
 			}
 		}

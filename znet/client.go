@@ -5,6 +5,7 @@ import (
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/zpack"
+	"math"
 	"net"
 	"time"
 )
@@ -26,6 +27,8 @@ type Client struct {
 	exitChan chan struct{}
 	//消息管理模块
 	msgHandler ziface.IMsgHandle
+	//断粘包解码器
+	LengthField ziface.LengthField
 }
 
 func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
@@ -35,6 +38,28 @@ func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 		Port:       port,
 		msgHandler: NewMsgHandle(),
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack), //默认使用zinx的TLV封包方式
+		// +---------------+---------------+---------------+
+		// |      Tag      |    Length     |     Value     |
+		// | uint32(4byte) | uint32(4byte) |     n byte    |
+		// +---------------+---------------+---------------+
+		// Tag：   uint32类型，占4字节
+		// Length：uint32类型，占4字节，Length标记Value长度
+		// Value： 占n字节
+		//
+		//说明:
+		//    lengthFieldOffset   = 4            (Length的字节位索引下标是4) 长度字段的偏差
+		//    lengthFieldLength   = 4            (Length是4个byte) 长度字段占的字节数
+		//    lengthAdjustment    = 0            (Length只表示Value长度，程序只会读取Length个字节就结束，后面没有来，故为0，若Value后面还有crc占2字节的话，那么此处就是2。若Length标记的是Tag+Length+Value总长度，那么此处是-8)
+		//    initialBytesToStrip = 0            (这个0表示返回完整的协议内容Tag+Length+Value，如果只想返回Value内容，去掉Tag的4字节和Length的4字节，此处就是8) 从解码帧中第一次去除的字节数
+		//    maxFrameLength      = 2^32 + 4 + 4 (Length为uint32类型，故2^32次方表示Value最大长度，此外Tag和Length各占4字节)
+		//默认使用TLV封包方式
+		LengthField: ziface.LengthField{
+			MaxFrameLength:      math.MaxUint32 + 4 + 4,
+			LengthFieldOffset:   4,
+			LengthFieldLength:   4,
+			LengthAdjustment:    0,
+			InitialBytesToStrip: 0,
+		},
 	}
 
 	//应用Option设置
@@ -45,7 +70,15 @@ func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 	return c
 }
 
-//启动客户端，发送请求且建立链接
+func (this *Client) AddInterceptor(interceptor ziface.Interceptor) {
+	this.msgHandler.AddInterceptor(interceptor)
+}
+
+func (this *Client) GetLengthField() ziface.LengthField {
+	return this.LengthField
+}
+
+// 启动客户端，发送请求且建立链接
 func (c *Client) Start() {
 	c.exitChan = make(chan struct{})
 
@@ -82,7 +115,7 @@ func (c *Client) Start() {
 	}()
 }
 
-//启动心跳检测
+// 启动心跳检测
 func (c *Client) StartHeartBeat(interval time.Duration) {
 	checker := NewHeartbeatCheckerC(interval, c)
 
@@ -92,7 +125,7 @@ func (c *Client) StartHeartBeat(interval time.Duration) {
 	go checker.Start()
 }
 
-//启动心跳检测(自定义回调)
+// 启动心跳检测(自定义回调)
 func (c *Client) StartHeartBeatWithOption(interval time.Duration, option *ziface.HeartBeatOption) {
 	checker := NewHeartbeatCheckerC(interval, c)
 
@@ -121,32 +154,32 @@ func (c *Client) Conn() ziface.IConnection {
 	return c.conn
 }
 
-//设置该Client的连接创建时Hook函数
+// 设置该Client的连接创建时Hook函数
 func (c *Client) SetOnConnStart(hookFunc func(ziface.IConnection)) {
 	c.onConnStart = hookFunc
 }
 
-//设置该Client的连接断开时的Hook函数
+// 设置该Client的连接断开时的Hook函数
 func (c *Client) SetOnConnStop(hookFunc func(ziface.IConnection)) {
 	c.onConnStop = hookFunc
 }
 
-//GetOnConnStart 得到该Server的连接创建时Hook函数
+// GetOnConnStart 得到该Server的连接创建时Hook函数
 func (c *Client) GetOnConnStart() func(ziface.IConnection) {
 	return c.onConnStart
 }
 
-//得到该Server的连接断开时的Hook函数
+// 得到该Server的连接断开时的Hook函数
 func (c *Client) GetOnConnStop() func(ziface.IConnection) {
 	return c.onConnStop
 }
 
-//获取Client绑定的数据协议封包方式
+// 获取Client绑定的数据协议封包方式
 func (c *Client) GetPacket() ziface.IDataPack {
 	return c.packet
 }
 
-//设置Client绑定的数据协议封包方式
+// 设置Client绑定的数据协议封包方式
 func (c *Client) SetPacket(packet ziface.IDataPack) {
 	c.packet = packet
 }
