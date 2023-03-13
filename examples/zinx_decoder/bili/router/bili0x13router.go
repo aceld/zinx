@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/aceld/zinx/examples/zinx_decoder/bili/utils"
+	"github.com/aceld/zinx/examples/zinx_decoder/decode"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
 )
@@ -17,8 +18,8 @@ func (this *Data0x13Router) Handle(request ziface.IRequest) {
 	_response := request.GetResponse()
 	if _response != nil {
 		switch _response.(type) {
-		case BiliData:
-			_data := _response.(BiliData)
+		case decode.HtlvCrcData:
+			_data := _response.(decode.HtlvCrcData)
 			fmt.Println("Data0x13Router", _data)
 			buffer := pack13(_data)
 			request.GetConnection().Send(buffer)
@@ -28,13 +29,13 @@ func (this *Data0x13Router) Handle(request ziface.IRequest) {
 
 // 头码   功能码 数据长度      Body                         CRC
 // A2      10     0E        0102030405060708091011121314 050B
-func pack13(_data BiliData) []byte {
+func pack13(_data decode.HtlvCrcData) []byte {
 	buffer := bytes.NewBuffer([]byte{})
 	buffer.WriteByte(0xA1)
-	buffer.WriteByte(_data.funcode)
+	buffer.WriteByte(_data.Funcode)
 	buffer.WriteByte(0x0E)
 	//3~9:3~6：用户卡号	用户IC卡卡号
-	buffer.Write(_data.body[:4])
+	buffer.Write(_data.Body[:4])
 	//7：卡状态：	0x00-未绑定（如服务器未查询到该IC卡时）
 	//0x01-已绑定
 	//0x02-解除绑定（如服务器查询到该IC卡解除绑定时下发）

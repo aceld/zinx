@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"github.com/aceld/zinx/examples/zinx_decoder/bili/utils"
+	"github.com/aceld/zinx/examples/zinx_decoder/decode"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/znet"
@@ -18,8 +19,8 @@ func (this *Data0x10Router) Handle(request ziface.IRequest) {
 	_response := request.GetResponse()
 	if _response != nil {
 		switch _response.(type) {
-		case BiliData:
-			_data := _response.(BiliData)
+		case decode.HtlvCrcData:
+			_data := _response.(decode.HtlvCrcData)
 			//zlog.Ins().DebugF("Data0x10Router %v \n", _data)
 			buffer := pack10(_data)
 			request.GetConnection().Send(buffer)
@@ -29,13 +30,13 @@ func (this *Data0x10Router) Handle(request ziface.IRequest) {
 
 // 头码   功能码 数据长度      Body                         CRC
 // A2      10     0E        0102030405060708091011121314 050B
-func pack10(_data BiliData) []byte {
+func pack10(_data decode.HtlvCrcData) []byte {
 	buffer := bytes.NewBuffer([]byte{})
 	buffer.WriteByte(0xA1)
-	buffer.WriteByte(_data.funcode)
+	buffer.WriteByte(_data.Funcode)
 	buffer.WriteByte(0x1E)
 	//3~9:唯一设备码	将IMEI码转换为16进制
-	buffer.Write(_data.body[:7])
+	buffer.Write(_data.Body[:7])
 	//10~14：园区代码	后台根据幼儿园生成的唯一代码
 	buffer.Write([]byte{10, 11, 12, 13, 14})
 	//15~18：时间戳	实际当前北京时间的时间戳，转换为16进制

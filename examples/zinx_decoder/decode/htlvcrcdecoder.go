@@ -21,18 +21,21 @@
 package decode
 
 import (
+	"encoding/hex"
 	"fmt"
+	"github.com/aceld/zinx/examples/zinx_decoder/bili/utils"
 	"github.com/aceld/zinx/ziface"
 )
 
 const HEADER_SIZE = 5
 
 type HtlvCrcData struct {
-	head    byte   //头码
-	funcode byte   //功能码
-	length  byte   //数据长度
-	data    []byte //数据内容
-	crc     []byte //CRC校验
+	Data    []byte //数据内容
+	Head    byte   //头码
+	Funcode byte   //功能码
+	Length  byte   //数据长度
+	Body    []byte //数据内容
+	Crc     []byte //CRC校验
 }
 
 type HtlvCrcDecoder struct {
@@ -49,16 +52,22 @@ func (this *HtlvCrcDecoder) Intercept(chain ziface.Chain) ziface.Response {
 				data := iMessage.GetData()
 				fmt.Println("1htlvData", data)
 				datasize := len(data)
-				htlvData := HtlvCrcData{}
+				htlvData := HtlvCrcData{
+					Data: data,
+				}
 				if datasize >= HEADER_SIZE {
-					htlvData.head = data[0]
-					htlvData.funcode = data[1]
-					htlvData.length = data[2]
-					htlvData.data = data[3 : 3+htlvData.length]
-					htlvData.crc = data[htlvData.length+3 : datasize]
-					iMessage.SetMsgID(uint32(htlvData.funcode)) //funcode作为msgID
+					htlvData.Head = data[0]
+					htlvData.Funcode = data[1]
+					htlvData.Length = data[2]
+					htlvData.Body = data[3 : datasize-2]
+					htlvData.Crc = data[datasize-2 : datasize]
+					if !utils.CheckCRC(data[:datasize-2], htlvData.Crc) {
+						fmt.Println("crc校验失败", hex.EncodeToString(data), hex.EncodeToString(htlvData.Crc))
+						return nil
+					}
+					iMessage.SetMsgID(uint32(htlvData.Funcode))
 					iRequest.SetResponse(htlvData)
-					fmt.Println("2htlvData", htlvData)
+					//zlog.Ins().DebugF("2htlvData %s \n", hex.EncodeToString(htlvData.data))
 				}
 			}
 		}
