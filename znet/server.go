@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aceld/zinx/zlog"
+	"math"
 	"net"
 	"os"
 	"os/signal"
@@ -27,7 +28,7 @@ var topLine = `┌────────────────────�
 var borderLine = `│`
 var bottomLine = `└──────────────────────────────────────────────────────┘`
 
-//Server 接口实现，定义一个Server服务类
+// Server 接口实现，定义一个Server服务类
 type Server struct {
 	//服务器的名称
 	Name string
@@ -49,9 +50,15 @@ type Server struct {
 	packet ziface.IDataPack
 	//异步捕获链接关闭状态
 	exitChan chan struct{}
+	//断粘包解码器
+	LengthField ziface.LengthField
 }
 
-//NewServer 创建一个服务器句柄
+func (this *Server) GetLengthField() ziface.LengthField {
+	return this.LengthField
+}
+
+// NewServer 创建一个服务器句柄
 func NewServer(opts ...Option) ziface.IServer {
 	printLogo()
 
@@ -65,6 +72,28 @@ func NewServer(opts ...Option) ziface.IServer {
 		exitChan:   nil,
 		//默认使用zinx的TLV封包方式
 		packet: zpack.Factory().NewPack(ziface.ZinxDataPack),
+		// +---------------+---------------+---------------+
+		// |      Tag      |    Length     |     Value     |
+		// | uint32(4byte) | uint32(4byte) |     n byte    |
+		// +---------------+---------------+---------------+
+		// Tag：   uint32类型，占4字节
+		// Length：uint32类型，占4字节，Length标记Value长度
+		// Value： 占n字节
+		//
+		//说明:
+		//    lengthFieldOffset   = 4            (Length的字节位索引下标是4) 长度字段的偏差
+		//    lengthFieldLength   = 4            (Length是4个byte) 长度字段占的字节数
+		//    lengthAdjustment    = 0            (Length只表示Value长度，程序只会读取Length个字节就结束，后面没有来，故为0，若Value后面还有crc占2字节的话，那么此处就是2。若Length标记的是Tag+Length+Value总长度，那么此处是-8)
+		//    initialBytesToStrip = 0            (这个0表示返回完整的协议内容Tag+Length+Value，如果只想返回Value内容，去掉Tag的4字节和Length的4字节，此处就是8) 从解码帧中第一次去除的字节数
+		//    maxFrameLength      = 2^32 + 4 + 4 (Length为uint32类型，故2^32次方表示Value最大长度，此外Tag和Length各占4字节)
+		//默认使用TLV封包方式
+		LengthField: ziface.LengthField{
+			MaxFrameLength:      math.MaxUint32 + 4 + 4,
+			LengthFieldOffset:   4,
+			LengthFieldLength:   4,
+			LengthAdjustment:    0,
+			InitialBytesToStrip: 0,
+		},
 	}
 
 	for _, opt := range opts {
@@ -77,7 +106,7 @@ func NewServer(opts ...Option) ziface.IServer {
 	return s
 }
 
-//NewServer 创建一个服务器句柄
+// NewServer 创建一个服务器句柄
 func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
 	//打印logo
 	printLogo()
@@ -91,6 +120,14 @@ func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
 		ConnMgr:    NewConnManager(),
 		exitChan:   nil,
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack),
+		//默认使用TLV封包方式
+		LengthField: ziface.LengthField{
+			MaxFrameLength:      math.MaxUint32 + 4 + 4,
+			LengthFieldOffset:   4,
+			LengthFieldLength:   4,
+			LengthAdjustment:    0,
+			InitialBytesToStrip: 0,
+		},
 	}
 	//更替打包方式
 	for _, opt := range opts {
@@ -107,7 +144,11 @@ func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
 
 //============== 实现 ziface.IServer 里的全部接口方法 ========
 
-//Start 开启网络服务
+func (this *Server) AddInterceptor(interceptor ziface.Interceptor) {
+	this.msgHandler.AddInterceptor(interceptor)
+}
+
+// Start 开启网络服务
 func (s *Server) Start() {
 	zlog.Ins().InfoF("[START] Server name: %s,listenner at IP: %s, Port %d is starting", s.Name, s.IP, s.Port)
 	s.exitChan = make(chan struct{})
@@ -181,7 +222,7 @@ func (s *Server) Start() {
 	}()
 }
 
-//Stop 停止服务
+// Stop 停止服务
 func (s *Server) Stop() {
 	zlog.Ins().InfoF("[STOP] Zinx server , name %s", s.Name)
 
@@ -191,7 +232,7 @@ func (s *Server) Stop() {
 	close(s.exitChan)
 }
 
-//Serve 运行服务
+// Serve 运行服务
 func (s *Server) Serve() {
 	s.Start()
 
@@ -206,32 +247,32 @@ func (s *Server) Serve() {
 	zlog.Ins().InfoF("[SERVE] Zinx server , name %s, Serve Interrupt, signal = %v", s.Name, sig)
 }
 
-//AddRouter 路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
+// AddRouter 路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
 func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
 	s.msgHandler.AddRouter(msgID, router)
 }
 
-//GetConnMgr 得到链接管理
+// GetConnMgr 得到链接管理
 func (s *Server) GetConnMgr() ziface.IConnManager {
 	return s.ConnMgr
 }
 
-//SetOnConnStart 设置该Server的连接创建时Hook函数
+// SetOnConnStart 设置该Server的连接创建时Hook函数
 func (s *Server) SetOnConnStart(hookFunc func(ziface.IConnection)) {
 	s.onConnStart = hookFunc
 }
 
-//SetOnConnStop 设置该Server的连接断开时的Hook函数
+// SetOnConnStop 设置该Server的连接断开时的Hook函数
 func (s *Server) SetOnConnStop(hookFunc func(ziface.IConnection)) {
 	s.onConnStop = hookFunc
 }
 
-//GetOnConnStart 得到该Server的连接创建时Hook函数
+// GetOnConnStart 得到该Server的连接创建时Hook函数
 func (s *Server) GetOnConnStart() func(ziface.IConnection) {
 	return s.onConnStart
 }
 
-//得到该Server的连接断开时的Hook函数
+// 得到该Server的连接断开时的Hook函数
 func (s *Server) GetOnConnStop() func(ziface.IConnection) {
 	return s.onConnStop
 }

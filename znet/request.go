@@ -13,14 +13,23 @@ const (
 	HANDLE_OVER
 )
 
-//Request 请求
+// Request 请求
 type Request struct {
+	response ziface.Response
 	conn     ziface.IConnection //已经和客户端建立好的 链接
 	msg      ziface.IMessage    //客户端请求的数据
 	router   ziface.IRouter     //请求处理的函数
 	steps    ziface.HandleStep  //用来控制路由函数执行
 	stepLock *sync.RWMutex      //并发互斥
 	needNext bool
+}
+
+func (r *Request) GetResponse() ziface.Response {
+	return r.response
+}
+
+func (r *Request) SetResponse(response ziface.Response) {
+	r.response = response
 }
 
 func NewRequest(conn ziface.IConnection, msg ziface.IMessage) *Request {
@@ -34,17 +43,22 @@ func NewRequest(conn ziface.IConnection, msg ziface.IMessage) *Request {
 	return req
 }
 
-//GetConnection 获取请求连接信息
+// GetMessage 获取消息实体
+func (r *Request) GetMessage() ziface.IMessage {
+	return r.msg
+}
+
+// GetConnection 获取请求连接信息
 func (r *Request) GetConnection() ziface.IConnection {
 	return r.conn
 }
 
-//GetData 获取请求消息的数据
+// GetData 获取请求消息的数据
 func (r *Request) GetData() []byte {
 	return r.msg.GetData()
 }
 
-//GetMsgID 获取请求的消息的ID
+// GetMsgID 获取请求的消息的ID
 func (r *Request) GetMsgID() uint32 {
 	return r.msg.GetMsgID()
 }
@@ -89,6 +103,8 @@ func (r *Request) Call() {
 
 		r.next()
 	}
+
+	r.steps = PRE_HANDLE
 }
 
 func (r *Request) Abort() {
