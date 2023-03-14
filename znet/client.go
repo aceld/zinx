@@ -74,6 +74,10 @@ func (this *Client) AddInterceptor(interceptor ziface.Interceptor) {
 	this.msgHandler.AddInterceptor(interceptor)
 }
 
+func (this *Client) SetLengthField(field ziface.LengthField) {
+	this.LengthField = field
+}
+
 func (this *Client) GetLengthField() ziface.LengthField {
 	return this.LengthField
 }

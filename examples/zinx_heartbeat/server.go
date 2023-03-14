@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/aceld/zinx/examples"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
 	"time"
@@ -11,7 +12,7 @@ type TestRouter struct {
 	znet.BaseRouter
 }
 
-//Handle -
+// Handle -
 func (t *TestRouter) Handle(req ziface.IRequest) {
 	fmt.Println("--> Call Handle, reveived msg: ", string(req.GetData()), " msgID: ", req.GetMsgID(), " connID: ", req.GetConnection().GetConnID())
 
@@ -24,6 +25,10 @@ func main() {
 	s := znet.NewServer()
 
 	s.AddRouter(1, &TestRouter{})
+
+	tlvDecoder := examples.LTVDecoder{}
+	s.SetLengthField(tlvDecoder.GetLengthField())
+	s.AddInterceptor(&tlvDecoder) //LTV协议解码器
 
 	//启动心跳检测
 	s.StartHeartBeat(5 * time.Second)

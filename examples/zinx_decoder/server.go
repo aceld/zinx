@@ -25,11 +25,15 @@ func main() {
 	s.SetOnConnStop(DoConnectionLost)
 
 	//处理TLV协议数据
-	s.AddInterceptor(&decode.TLVDecoder{})               //TVL协议解码器
+	tlvDecoder := decode.TLVDecoder{}
+	s.SetLengthField(tlvDecoder.GetLengthField())
+	s.AddInterceptor(&tlvDecoder)                        //TVL协议解码器
 	s.AddRouter(0x00000001, &router.TLVBusinessRouter{}) //TLV协议对应业务功能
 
 	//处理HTLVCRC协议数据
-	//s.AddInterceptor(&decode.HtlvCrcDecoder{})         //TVL协议解码器
+	//htlvDecoder := decode.HtlvCrcDecoder{}
+	//s.SetLengthField(htlvDecoder.GetLengthField())
+	//s.AddInterceptor(&htlvDecoder)                     //TVL协议解码器
 	//s.AddRouter(0x10, &router.HtlvCrcBusinessRouter{}) //TLV协议对应业务功能，因为client.go中模拟数据funcode字段为0x10
 
 	//开启服务

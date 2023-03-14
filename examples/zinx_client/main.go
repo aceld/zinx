@@ -8,6 +8,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/aceld/zinx/examples"
 	"github.com/aceld/zinx/examples/zinx_client/c_router"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
@@ -20,7 +21,7 @@ import (
 	"time"
 )
 
-//客户端自定义业务
+// 客户端自定义业务
 func business(conn ziface.IConnection) {
 
 	for {
@@ -35,7 +36,7 @@ func business(conn ziface.IConnection) {
 	}
 }
 
-//创建连接的时候执行
+// 创建连接的时候执行
 func DoClientConnectedBegin(conn ziface.IConnection) {
 	zlog.Debug("DoConnecionBegin is Called ... ")
 
@@ -46,7 +47,7 @@ func DoClientConnectedBegin(conn ziface.IConnection) {
 	go business(conn)
 }
 
-//连接断开的时候执行
+// 连接断开的时候执行
 func DoClientConnectedLost(conn ziface.IConnection) {
 	//在连接销毁之前，查询conn的Name，Home属性
 	if name, err := conn.GetProperty("Name"); err == nil {
@@ -72,6 +73,10 @@ func main() {
 	client.AddRouter(2, &c_router.PingRouter{})
 	client.AddRouter(3, &c_router.HelloRouter{})
 
+	tlvDecoder := examples.LTVDecoder{}
+	client.SetLengthField(tlvDecoder.GetLengthField())
+	client.AddInterceptor(&tlvDecoder) //TVL协议解码器
+
 	//启动客户端client
 	client.Start()
 
@@ -83,7 +88,7 @@ func main() {
 }
 
 /*
-	模拟客户端, 不使用client模块方式
+模拟客户端, 不使用client模块方式
 */
 func main_old() {
 	conn, err := net.Dial("tcp", "127.0.0.1:8999")

@@ -54,10 +54,6 @@ type Server struct {
 	LengthField ziface.LengthField
 }
 
-func (this *Server) GetLengthField() ziface.LengthField {
-	return this.LengthField
-}
-
 // NewServer 创建一个服务器句柄
 func NewServer(opts ...Option) ziface.IServer {
 	printLogo()
@@ -143,6 +139,14 @@ func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
 }
 
 //============== 实现 ziface.IServer 里的全部接口方法 ========
+
+func (this *Server) SetLengthField(field ziface.LengthField) {
+	this.LengthField = field
+}
+
+func (this *Server) GetLengthField() ziface.LengthField {
+	return this.LengthField
+}
 
 func (this *Server) AddInterceptor(interceptor ziface.Interceptor) {
 	this.msgHandler.AddInterceptor(interceptor)

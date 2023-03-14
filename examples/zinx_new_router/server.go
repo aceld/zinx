@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/aceld/zinx/examples"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
 	"time"
@@ -12,7 +13,7 @@ type TestRouter struct {
 	znet.BaseRouter
 }
 
-//PreHandle -
+// PreHandle -
 func (t *TestRouter) PreHandle(req ziface.IRequest) {
 	//使用场景模拟  完整路由计时
 	start := time.Now()
@@ -25,7 +26,7 @@ func (t *TestRouter) PreHandle(req ziface.IRequest) {
 	fmt.Println("该路由组执行完成耗时：", elapsed)
 }
 
-//Handle -
+// Handle -
 func (t *TestRouter) Handle(req ziface.IRequest) {
 	fmt.Println("--> Call Handle")
 
@@ -50,7 +51,7 @@ func (t *TestRouter) Handle(req ziface.IRequest) {
 	time.Sleep(1 * time.Millisecond) //模拟函数计时
 }
 
-//PostHandle -
+// PostHandle -
 func (t *TestRouter) PostHandle(req ziface.IRequest) {
 	fmt.Println("--> Call PostHandle")
 	if err := req.GetConnection().SendMsg(0, []byte("test3")); err != nil {
@@ -67,5 +68,8 @@ func Err() error {
 func main() {
 	s := znet.NewServer()
 	s.AddRouter(1, &TestRouter{})
+	tlvDecoder := examples.LTVDecoder{}
+	s.SetLengthField(tlvDecoder.GetLengthField())
+	s.AddInterceptor(&tlvDecoder) //LTV协议解码器
 	s.Serve()
 }

@@ -7,13 +7,14 @@
 package main
 
 import (
+	"github.com/aceld/zinx/examples"
 	"github.com/aceld/zinx/examples/zinx_server/s_router"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/znet"
 )
 
-//创建连接的时候执行
+// 创建连接的时候执行
 func DoConnectionBegin(conn ziface.IConnection) {
 	zlog.Ins().InfoF("DoConnecionBegin is Called ...")
 
@@ -27,7 +28,7 @@ func DoConnectionBegin(conn ziface.IConnection) {
 	}
 }
 
-//连接断开的时候执行
+// 连接断开的时候执行
 func DoConnectionLost(conn ziface.IConnection) {
 	//在连接销毁之前，查询conn的Name，Home属性
 	if name, err := conn.GetProperty("Name"); err == nil {
@@ -52,6 +53,10 @@ func main() {
 	//配置路由
 	s.AddRouter(0, &s_router.PingRouter{})
 	s.AddRouter(1, &s_router.HelloZinxRouter{})
+
+	tlvDecoder := examples.LTVDecoder{}
+	s.SetLengthField(tlvDecoder.GetLengthField())
+	s.AddInterceptor(&tlvDecoder) //TVL协议解码器
 
 	//开启服务
 	s.Serve()

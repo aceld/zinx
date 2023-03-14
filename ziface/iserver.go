@@ -36,4 +36,5 @@ type IServer interface {
 	StartHeartBeatWithOption(time.Duration, *HeartBeatOption) //启动心跳检测(自定义回调)
 	AddInterceptor(interceptor Interceptor)                   //添加协议解析拦截器
 	GetLengthField() LengthField
+	SetLengthField(LengthField)
 }
