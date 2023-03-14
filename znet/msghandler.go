@@ -62,7 +62,7 @@ func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
 	//zlog.Ins().DebugF("Add ConnID=%d request msgID=%d to workerID=%d", request.GetConnection().GetConnID(), request.GetMsgID(), workerID)
 	//将请求消息发送给任务队列
 	mh.TaskQueue[workerID] <- request
-	zlog.Ins().ErrorF("SendMsgToTaskQueue-->%s", hex.EncodeToString(request.GetData()))
+	zlog.Ins().DebugF("SendMsgToTaskQueue-->%s", hex.EncodeToString(request.GetData()))
 }
 
 // DoMsgHandler 马上以非阻塞方式处理消息
