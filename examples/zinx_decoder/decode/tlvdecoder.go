@@ -21,8 +21,10 @@ package decode
 
 import (
 	"encoding/binary"
-	"fmt"
+	"encoding/hex"
 	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/zlog"
+	"unsafe"
 )
 
 const TLV_HEADER_SIZE = 8 //表示TLV空包长度
@@ -45,7 +47,7 @@ func (this *TLVDecoder) Intercept(chain ziface.Chain) ziface.Response {
 			iMessage := iRequest.GetMessage()
 			if iMessage != nil {
 				data := iMessage.GetData()
-				fmt.Println("1-TLV", len(data), data)
+				zlog.Ins().DebugF("TLV-RawData size:%d data:%s\n", len(data), hex.EncodeToString(data))
 				datasize := len(data)
 				_data := TlvData{}
 				if datasize >= TLV_HEADER_SIZE {
@@ -54,7 +56,7 @@ func (this *TLVDecoder) Intercept(chain ziface.Chain) ziface.Response {
 					_data.Value = string(data[8 : 8+_data.Length])
 					iMessage.SetMsgID(_data.Tag)
 					iRequest.SetResponse(_data)
-					fmt.Println("2-TLV", _data)
+					zlog.Ins().DebugF("TLV-DecodeData size:%d data:%+v\n", unsafe.Sizeof(data), _data)
 				}
 			}
 		}

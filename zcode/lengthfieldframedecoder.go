@@ -174,7 +174,6 @@ import (
 // | HDR1 | Length | HDR2 | Actual Content |----->| HDR2 | Actual Content |
 // | 0xCA | 0x0010 | 0xFE | "HELLO, WORLD" |      | 0xFE | "HELLO, WORLD" |
 // +------+--------+------+----------------+      +------+----------------+
-// https://blog.csdn.net/weixin_45271492/article/details/125347939
 
 type EncoderData struct {
 	lengthField            ziface.LengthField
@@ -188,26 +187,27 @@ type EncoderData struct {
 }
 
 func NewLengthFieldFrameDecoderByLengthField(lengthField ziface.LengthField) ziface.IDecoder {
-	return &EncoderData{
+	c := &EncoderData{
 		lengthField:          lengthField,
 		LengthFieldEndOffset: lengthField.LengthFieldOffset + lengthField.LengthFieldLength,
 		in:                   make([]byte, 0),
 	}
+	if c.lengthField.Order == nil {
+		c.lengthField.Order = binary.BigEndian
+	}
+	return c
+
 }
 
 func NewLengthFieldFrameDecoder(maxFrameLength int64, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip int) ziface.IDecoder {
-	return &EncoderData{
-		lengthField: ziface.LengthField{
-			MaxFrameLength:      maxFrameLength,
-			LengthFieldOffset:   lengthFieldOffset,
-			LengthFieldLength:   lengthFieldLength,
-			LengthAdjustment:    lengthAdjustment,
-			InitialBytesToStrip: initialBytesToStrip,
-			Order:               binary.BigEndian,
-		},
-		LengthFieldEndOffset: lengthFieldOffset + lengthFieldLength,
-		in:                   make([]byte, 0),
-	}
+	return NewLengthFieldFrameDecoderByLengthField(ziface.LengthField{
+		MaxFrameLength:      maxFrameLength,
+		LengthFieldOffset:   lengthFieldOffset,
+		LengthFieldLength:   lengthFieldLength,
+		LengthAdjustment:    lengthAdjustment,
+		InitialBytesToStrip: initialBytesToStrip,
+		Order:               binary.BigEndian,
+	})
 }
 
 func (this *EncoderData) fail(frameLength int64) {
@@ -334,7 +334,6 @@ func (this *EncoderData) failOnFrameLengthLessThanInitialBytesToStrip(in *bytes.
 	panic(fmt.Sprintf("Adjusted frame length (%d) is less  than InitialBytesToStrip: %d", frameLength, initialBytesToStrip))
 }
 
-// https://blog.csdn.net/qq_39280718/article/details/125762004
 func (this *EncoderData) decode(buf []byte) []byte {
 	in := bytes.NewBuffer(buf)
 	//丢弃模式
