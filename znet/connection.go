@@ -24,7 +24,9 @@ type Connection struct {
 	//当前连接的socket TCP套接字
 	conn net.Conn
 	//当前连接的ID 也可以称作为SessionID，ID全局唯一 ，服务端Connection使用
-	connID uint32
+	//uint64 取值范围：0 ~ 18,446,744,073,709,551,615
+	//这个是理论支持的进程connID的最大数量
+	connID uint64
 	//消息管理MsgID和对应处理方法的消息管理模块
 	msgHandler ziface.IMsgHandle
 	//告知该链接已经退出/停止的channel
@@ -56,7 +58,7 @@ type Connection struct {
 
 // newServerConn :for Server, 创建一个Server服务端特性的连接的方法
 // Note: 名字由 NewConnection 更变
-func newServerConn(server ziface.IServer, conn net.Conn, connID uint32) *Connection {
+func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) *Connection {
 	//初始化Conn属性
 	c := &Connection{
 		conn:               conn,
@@ -183,7 +185,7 @@ func (c *Connection) StartReader() {
 			}*/
 
 			//add by uuxia 2023-02-03
-			buffer := make([]byte, 1024)
+			buffer := make([]byte, utils.GlobalObject.IOReadBuffSize)
 			n, err := c.conn.Read(buffer[:])
 			if err != nil {
 				zlog.Ins().ErrorF("read msg head error%d %s", n, err)
@@ -191,19 +193,27 @@ func (c *Connection) StartReader() {
 			}
 			zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer[0:n]))
 
-			if c.lengthFieldDecoder != nil {
-				bufArrays := c.lengthFieldDecoder.Decode(buffer[0:n])
-				if bufArrays != nil {
-					for _, bytes := range bufArrays {
-						zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(bytes))
-						msg := &zpack.Message{DataLen: uint32(len(bytes)), Data: bytes}
-						//得到当前客户端请求的Request数据
-						req := NewRequest(c, msg)
-						c.msgHandler.Decode(req)
-					}
-				}
+			//链接是否配置的解码器Docoder
+			if c.lengthFieldDecoder == nil {
+				continue
 			}
 
+			//为读取到的0-n个字节的数据进行解码
+			bufArrays := c.lengthFieldDecoder.Decode(buffer[0:n])
+			if bufArrays == nil {
+				continue
+			}
+
+			for _, bytes := range bufArrays {
+				zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(bytes))
+
+				msg := &zpack.Message{DataLen: uint32(len(bytes)), Data: bytes}
+
+				//得到当前客户端请求的Request数据
+				req := NewRequest(c, msg)
+
+				c.msgHandler.Decode(req)
+			}
 		}
 	}
 }
@@ -233,7 +243,7 @@ func (c *Connection) GetConnection() net.Conn {
 }
 
 // GetConnID 获取当前连接ID
-func (c *Connection) GetConnID() uint32 {
+func (c *Connection) GetConnID() uint64 {
 	return c.connID
 }
 

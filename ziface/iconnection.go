@@ -26,7 +26,7 @@ type IConnection interface {
 	Context() context.Context //返回ctx，用于用户自定义的go程获取连接退出状态
 
 	GetConnection() net.Conn //从当前连接获取原始的socket TCPConn
-	GetConnID() uint32       //获取当前连接ID
+	GetConnID() uint64       //获取当前连接ID
 	RemoteAddr() net.Addr    //获取链接远程地址信息
 	LocalAddr() net.Addr     //获取链接本地地址信息
 
