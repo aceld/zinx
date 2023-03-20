@@ -10,14 +10,14 @@ import (
 
 //ConnManager 连接管理模块
 type ConnManager struct {
-	connections map[uint32]ziface.IConnection
+	connections map[uint64]ziface.IConnection
 	connLock    sync.RWMutex
 }
 
 //NewConnManager 创建一个链接管理
 func NewConnManager() *ConnManager {
 	return &ConnManager{
-		connections: make(map[uint32]ziface.IConnection),
+		connections: make(map[uint64]ziface.IConnection),
 	}
 }
 
@@ -42,7 +42,7 @@ func (connMgr *ConnManager) Remove(conn ziface.IConnection) {
 }
 
 //Get 利用ConnID获取链接
-func (connMgr *ConnManager) Get(connID uint32) (ziface.IConnection, error) {
+func (connMgr *ConnManager) Get(connID uint64) (ziface.IConnection, error) {
 	connMgr.connLock.RLock()
 	defer connMgr.connLock.RUnlock()
 
@@ -79,11 +79,11 @@ func (connMgr *ConnManager) ClearConn() {
 }
 
 // GetAllConnID 获取所有连接的ID
-func (connMgr *ConnManager) GetAllConnID() []uint32 {
+func (connMgr *ConnManager) GetAllConnID() []uint64 {
 	connMgr.connLock.RLock()
 	defer connMgr.connLock.RUnlock()
 
-	ids := make([]uint32, 0, len(connMgr.connections))
+	ids := make([]uint64, 0, len(connMgr.connections))
 
 	for id := range connMgr.connections {
 		ids = append(ids, id)

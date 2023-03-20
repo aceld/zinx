@@ -179,7 +179,7 @@ func (s *Server) Start() {
 		zlog.Ins().InfoF("[START] start Zinx server  %s succ, now listenning...", s.Name)
 
 		//TODO server.go 应该有一个自动生成ID的方法
-		var cID uint32
+		var cID uint64
 		cID = 0
 
 		go func() {
