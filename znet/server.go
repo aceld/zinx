@@ -218,10 +218,7 @@ func (s *Server) Serve() {
 	s.SetDecoder(s.defaultDecoder)
 	s.Start()
 
-	//TODO Server.Serve() 是否在启动服务的时候 还要处理其他的事情呢 可以在这里添加
-
 	//阻塞,否则主Go退出， listenner的go将会退出
-	//select {}
 	c := make(chan os.Signal, 1)
 	//监听指定信号 ctrl+c kill信号
 	signal.Notify(c, os.Interrupt, os.Kill)

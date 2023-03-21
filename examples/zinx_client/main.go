@@ -83,7 +83,7 @@ func main() {
 }
 
 /*
-模拟客户端, 不使用client模块方式
+	模拟客户端, 不使用client模块方式
 */
 func main_old() {
 	conn, err := net.Dial("tcp", "127.0.0.1:8999")
