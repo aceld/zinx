@@ -23,7 +23,7 @@ func (this *PositionServerRouter) Handle(request ziface.IRequest) {
 		return
 	}
 
-	fmt.Printf("recv from server : msgId=%+v, data=%+v", request.GetMsgID(), msg)
+	fmt.Printf("recv from client : msgId=%+v, data=%+v", request.GetMsgID(), msg)
 
 	msg.X += 1
 	msg.Y += 1

@@ -16,6 +16,7 @@ type PositionClientRouter struct {
 }
 
 func (this *PositionClientRouter) Handle(request ziface.IRequest) {
+	fmt.Println("Handle....")
 
 	msg := &pb.Position{}
 	err := proto.Unmarshal(request.GetData(), msg)
@@ -43,8 +44,6 @@ func business(conn ziface.IConnection) {
 			fmt.Println("proto Marshal error = ", err, " msg = ", msg)
 			break
 		}
-
-		fmt.Println("send data = ", data)
 
 		err = conn.SendMsg(0, data)
 		if err != nil {
