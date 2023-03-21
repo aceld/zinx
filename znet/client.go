@@ -69,6 +69,7 @@ func (this *Client) GetLengthField() *ziface.LengthField {
 func (c *Client) Start() {
 	c.SetDecoder(c.defaultDecoder)
 	c.exitChan = make(chan struct{})
+	c.msgHandler.AddInterceptor(c.msgHandler.(ziface.Interceptor))
 
 	//客户端将协程池关闭
 	utils.GlobalObject.WorkerPoolSize = 0
