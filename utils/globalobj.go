@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"github.com/aceld/zinx/utils/commandline/args"
 	"github.com/aceld/zinx/utils/commandline/uflag"
-	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"io/ioutil"
 	"os"
@@ -31,10 +30,9 @@ type GlobalObj struct {
 	/*
 		Server
 	*/
-	TCPServer ziface.IServer //当前Zinx的全局Server对象
-	Host      string         //当前服务器主机IP
-	TCPPort   int            //当前服务器主机监听端口号
-	Name      string         //当前服务器名称
+	Host    string //当前服务器主机IP
+	TCPPort int    //当前服务器主机监听端口号
+	Name    string //当前服务器名称
 
 	/*
 		Zinx
