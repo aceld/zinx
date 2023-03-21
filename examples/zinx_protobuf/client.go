@@ -25,7 +25,7 @@ func (this *PositionClientRouter) Handle(request ziface.IRequest) {
 		return
 	}
 
-	fmt.Printf("recv from server : msgId=%+v, data=%+v", request.GetMsgID(), msg)
+	fmt.Printf("recv from server : msgId=%+v, data=%+v\n", request.GetMsgID(), msg)
 }
 
 // 客户端自定义业务
