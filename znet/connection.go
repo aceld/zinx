@@ -53,7 +53,7 @@ type Connection struct {
 	//最后一次活动时间
 	lastActivityTime time.Time
 	//断粘包解码器
-	lengthFieldDecoder ziface.IDecoder
+	lengthFieldDecoder ziface.ILengthField
 }
 
 // newServerConn :for Server, 创建一个Server服务端特性的连接的方法
@@ -61,12 +61,16 @@ type Connection struct {
 func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) *Connection {
 	//初始化Conn属性
 	c := &Connection{
-		conn:               conn,
-		connID:             connID,
-		isClosed:           false,
-		msgBuffChan:        nil,
-		property:           nil,
-		lengthFieldDecoder: zcode.NewLengthFieldFrameDecoderByLengthField(server.GetLengthField()),
+		conn:        conn,
+		connID:      connID,
+		isClosed:    false,
+		msgBuffChan: nil,
+		property:    nil,
+	}
+
+	lengthField := server.GetLengthField()
+	if lengthField != nil {
+		c.lengthFieldDecoder = zcode.NewLengthFieldFrameDecoderByLengthField(*lengthField)
 	}
 
 	//从server继承过来的属性
@@ -86,12 +90,16 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) *Connect
 // newClientConn :for Client, 创建一个Client服务端特性的连接的方法
 func newClientConn(client ziface.IClient, conn net.Conn) *Connection {
 	c := &Connection{
-		conn:               conn,
-		connID:             0, //client ignore
-		isClosed:           false,
-		msgBuffChan:        nil,
-		property:           nil,
-		lengthFieldDecoder: zcode.NewLengthFieldFrameDecoderByLengthField(client.GetLengthField()),
+		conn:        conn,
+		connID:      0, //client ignore
+		isClosed:    false,
+		msgBuffChan: nil,
+		property:    nil,
+	}
+
+	lengthField := client.GetLengthField()
+	if lengthField != nil {
+		c.lengthFieldDecoder = zcode.NewLengthFieldFrameDecoderByLengthField(*lengthField)
 	}
 
 	//从client继承过来的属性
@@ -142,48 +150,6 @@ func (c *Connection) StartReader() {
 		case <-c.ctx.Done():
 			return
 		default:
-
-			//读取客户端的Msg head
-			/*headData := make([]byte, c.packet.GetHeadLen())
-			if _, err := io.ReadFull(c.conn, headData); err != nil {
-				zlog.Ins().ErrorF("read msg head error %s", err)
-				return
-			}
-			zlog.Ins().DebugF("read headData %+v\n", headData)
-
-			//更新链接活动时间
-			c.updateActivity()
-
-			//拆包，得到msgID 和 datalen 放在msg中
-			msg, err := c.packet.Unpack(headData)
-			if err != nil {
-				zlog.Ins().ErrorF("unpack error %s", err)
-				return
-			}
-
-			//根据 dataLen 读取 data，放在msg.Data中
-			var data []byte
-			if msg.GetDataLen() > 0 {
-				data = make([]byte, msg.GetDataLen())
-				if _, err := io.ReadFull(c.conn, data); err != nil {
-					zlog.Ins().ErrorF("read msg data error %s", err)
-					return
-				}
-			}
-			msg.SetData(data)
-			zlog.Ins().DebugF("read msg %+v\n", msg)
-
-			//得到当前客户端请求的Request数据
-			req := NewRequest(c, msg)
-
-			if utils.GlobalObject.WorkerPoolSize > 0 {
-				//已经启动工作池机制，将消息交给Worker处理
-				c.msgHandler.SendMsgToTaskQueue(req)
-			} else {
-				//从绑定好的消息和对应的处理方法中执行对应的Handle方法
-				go c.msgHandler.DoMsgHandler(req)
-			}*/
-
 			//add by uuxia 2023-02-03
 			buffer := make([]byte, utils.GlobalObject.IOReadBuffSize)
 			n, err := c.conn.Read(buffer[:])
@@ -193,27 +159,27 @@ func (c *Connection) StartReader() {
 			}
 			zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer[0:n]))
 
-			//链接是否配置的解码器Docoder
-			if c.lengthFieldDecoder == nil {
-				continue
-			}
-
-			//为读取到的0-n个字节的数据进行解码
-			bufArrays := c.lengthFieldDecoder.Decode(buffer[0:n])
-			if bufArrays == nil {
-				continue
-			}
-
-			for _, bytes := range bufArrays {
-				zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(bytes))
-
-				msg := &zpack.Message{DataLen: uint32(len(bytes)), Data: bytes}
-
+			//处理自定义协议断粘包问题 add by uuxia 2023-03-21
+			if c.lengthFieldDecoder != nil {
+				//为读取到的0-n个字节的数据进行解码
+				bufArrays := c.lengthFieldDecoder.Decode(buffer[0:n])
+				if bufArrays == nil {
+					continue
+				}
+				for _, bytes := range bufArrays {
+					zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(bytes))
+					msg := &zpack.Message{DataLen: uint32(len(bytes)), Data: bytes}
+					//得到当前客户端请求的Request数据
+					req := NewRequest(c, msg)
+					c.msgHandler.Decode(req)
+				}
+			} else {
+				msg := &zpack.Message{DataLen: uint32(n), Data: buffer[0:n]}
 				//得到当前客户端请求的Request数据
 				req := NewRequest(c, msg)
-
 				c.msgHandler.Decode(req)
 			}
+
 		}
 	}
 }

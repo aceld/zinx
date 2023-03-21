@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/aceld/zinx/examples"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
 	"time"
@@ -25,10 +24,6 @@ func main() {
 	s := znet.NewServer()
 
 	s.AddRouter(1, &TestRouter{})
-
-	tlvDecoder := examples.LTVDecoder{}
-	s.SetLengthField(tlvDecoder.GetLengthField())
-	s.AddInterceptor(&tlvDecoder) //LTV协议解码器
 
 	//启动心跳检测
 	s.StartHeartBeat(5 * time.Second)

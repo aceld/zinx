@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/aceld/zinx/examples"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
 	"os"
@@ -77,10 +76,6 @@ func main() {
 
 	//注册收到服务器消息业务路由
 	client.AddRouter(0, &PingRouter{})
-
-	tlvDecoder := examples.LTVDecoder{}
-	client.SetLengthField(tlvDecoder.GetLengthField())
-	client.AddInterceptor(&tlvDecoder) //TVL协议解码器
 
 	//启动心跳检测
 	client.StartHeartBeat(5 * time.Second)

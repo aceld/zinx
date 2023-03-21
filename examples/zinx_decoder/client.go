@@ -55,9 +55,9 @@ func getTLVData(index int) []byte {
 func getHTLVCRCData(index int) []byte {
 	//一段完整的HTLVCRC模拟数据包:A2100E0102030405060708091011121314050B
 	tlvPackData := []string{
-		"A2100E0102030405060708091011121314050BA2100E01020304050607", //一包半
-		"08091011121314050B", //剩下的半包
-		"A2100E0102030405060708091011121314050BA2100E0102030405060708091011121314050B", //两包
+		"a21018686574000004d30000000000000000000000000000000000e7a2a2130e686574000004d300000001", //一包半
+		"00000040c3", //剩下的半包
+		"a21018686574000004d30000000000000000000000000000000000e7a2a2130e686574000004d30000000100000040c3", //两包
 	}
 	//此处模拟顺序如:两包一包半剩下的半包
 	index = index % 3
@@ -76,8 +76,8 @@ func getHTLVCRCData(index int) []byte {
 func business(conn ziface.IConnection) {
 	var i int
 	for {
-		buffer := getTLVData(i)
-		//buffer := getHTLVCRCData(i)
+		//buffer := getTLVData(i)
+		buffer := getHTLVCRCData(i)
 		conn.Send(buffer)
 		i++
 		time.Sleep(1 * time.Second)

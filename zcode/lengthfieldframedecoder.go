@@ -186,7 +186,7 @@ type EncoderData struct {
 	lock                   sync.Mutex
 }
 
-func NewLengthFieldFrameDecoderByLengthField(lengthField ziface.LengthField) ziface.IDecoder {
+func NewLengthFieldFrameDecoderByLengthField(lengthField ziface.LengthField) ziface.ILengthField {
 	c := &EncoderData{
 		lengthField:          lengthField,
 		LengthFieldEndOffset: lengthField.LengthFieldOffset + lengthField.LengthFieldLength,
@@ -199,7 +199,7 @@ func NewLengthFieldFrameDecoderByLengthField(lengthField ziface.LengthField) zif
 
 }
 
-func NewLengthFieldFrameDecoder(maxFrameLength int64, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip int) ziface.IDecoder {
+func NewLengthFieldFrameDecoder(maxFrameLength int64, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip int) ziface.ILengthField {
 	return NewLengthFieldFrameDecoderByLengthField(ziface.LengthField{
 		MaxFrameLength:      maxFrameLength,
 		LengthFieldOffset:   lengthFieldOffset,

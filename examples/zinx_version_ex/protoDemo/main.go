@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/aceld/zinx/examples/zinx_version_ex/protoDemo/pb"
 	"github.com/golang/protobuf/proto"
@@ -31,6 +32,8 @@ func main() {
 	if err != nil {
 		fmt.Println("marshal err:", err)
 	}
+
+	fmt.Println(hex.EncodeToString(data))
 
 	newdata := &pb.Person{}
 	err = proto.Unmarshal(data, newdata)

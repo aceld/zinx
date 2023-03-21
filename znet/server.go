@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aceld/zinx/zlog"
-	"math"
 	"net"
 	"os"
 	"os/signal"
@@ -51,7 +50,7 @@ type Server struct {
 	//异步捕获链接关闭状态
 	exitChan chan struct{}
 	//断粘包解码器
-	LengthField ziface.LengthField
+	defaultDecoder ziface.IDecoder
 }
 
 // NewServer 创建一个服务器句柄
@@ -67,29 +66,8 @@ func NewServer(opts ...Option) ziface.IServer {
 		ConnMgr:    NewConnManager(),
 		exitChan:   nil,
 		//默认使用zinx的TLV封包方式
-		packet: zpack.Factory().NewPack(ziface.ZinxDataPack),
-		// +---------------+---------------+---------------+
-		// |      Tag      |    Length     |     Value     |
-		// | uint32(4byte) | uint32(4byte) |     n byte    |
-		// +---------------+---------------+---------------+
-		// Tag：   uint32类型，占4字节
-		// Length：uint32类型，占4字节，Length标记Value长度
-		// Value： 占n字节
-		//
-		//说明:
-		//    lengthFieldOffset   = 4            (Length的字节位索引下标是4) 长度字段的偏差
-		//    lengthFieldLength   = 4            (Length是4个byte) 长度字段占的字节数
-		//    lengthAdjustment    = 0            (Length只表示Value长度，程序只会读取Length个字节就结束，后面没有来，故为0，若Value后面还有crc占2字节的话，那么此处就是2。若Length标记的是Tag+Length+Value总长度，那么此处是-8)
-		//    initialBytesToStrip = 0            (这个0表示返回完整的协议内容Tag+Length+Value，如果只想返回Value内容，去掉Tag的4字节和Length的4字节，此处就是8) 从解码帧中第一次去除的字节数
-		//    maxFrameLength      = 2^32 + 4 + 4 (Length为uint32类型，故2^32次方表示Value最大长度，此外Tag和Length各占4字节)
-		//默认使用TLV封包方式
-		LengthField: ziface.LengthField{
-			MaxFrameLength:      math.MaxUint32 + 4 + 4,
-			LengthFieldOffset:   4,
-			LengthFieldLength:   4,
-			LengthAdjustment:    0,
-			InitialBytesToStrip: 0,
-		},
+		packet:         zpack.Factory().NewPack(ziface.ZinxDataPack),
+		defaultDecoder: zpack.NewTLVDecoder(),
 	}
 
 	for _, opt := range opts {
@@ -108,22 +86,15 @@ func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
 	printLogo()
 
 	s := &Server{
-		Name:       config.Name,
-		IPVersion:  config.TcpVersion,
-		IP:         config.Host,
-		Port:       config.TcpPort,
-		msgHandler: NewMsgHandle(),
-		ConnMgr:    NewConnManager(),
-		exitChan:   nil,
-		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack),
-		//默认使用TLV封包方式
-		LengthField: ziface.LengthField{
-			MaxFrameLength:      math.MaxUint32 + 4 + 4,
-			LengthFieldOffset:   4,
-			LengthFieldLength:   4,
-			LengthAdjustment:    0,
-			InitialBytesToStrip: 0,
-		},
+		Name:           config.Name,
+		IPVersion:      config.TcpVersion,
+		IP:             config.Host,
+		Port:           config.TcpPort,
+		msgHandler:     NewMsgHandle(),
+		ConnMgr:        NewConnManager(),
+		exitChan:       nil,
+		packet:         zpack.Factory().NewPack(ziface.ZinxDataPack),
+		defaultDecoder: zpack.NewTLVDecoder(),
 	}
 	//更替打包方式
 	for _, opt := range opts {
@@ -140,12 +111,18 @@ func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
 
 //============== 实现 ziface.IServer 里的全部接口方法 ========
 
-func (this *Server) SetLengthField(field ziface.LengthField) {
-	this.LengthField = field
+func (this *Server) SetDecoder(decoder ziface.IDecoder) {
+	this.defaultDecoder = decoder
+	if this.defaultDecoder != nil {
+		this.msgHandler.AddInterceptor(decoder)
+	}
 }
 
-func (this *Server) GetLengthField() ziface.LengthField {
-	return this.LengthField
+func (this *Server) GetLengthField() *ziface.LengthField {
+	if this.defaultDecoder != nil {
+		return this.defaultDecoder.GetLengthField()
+	}
+	return nil
 }
 
 func (this *Server) AddInterceptor(interceptor ziface.Interceptor) {
@@ -238,6 +215,7 @@ func (s *Server) Stop() {
 
 // Serve 运行服务
 func (s *Server) Serve() {
+	s.SetDecoder(s.defaultDecoder)
 	s.Start()
 
 	//TODO Server.Serve() 是否在启动服务的时候 还要处理其他的事情呢 可以在这里添加

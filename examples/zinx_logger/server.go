@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/aceld/zinx/examples"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/znet"
@@ -46,9 +45,6 @@ func (t *TestRouter) PostHandle(req ziface.IRequest) {
 func main() {
 	s := znet.NewServer()
 	s.AddRouter(1, &TestRouter{})
-	tlvDecoder := examples.LTVDecoder{}
-	s.SetLengthField(tlvDecoder.GetLengthField())
-	s.AddInterceptor(&tlvDecoder) //LTV协议解码器
 	zlog.SetLogger(new(MyLogger))
 	s.Serve()
 }

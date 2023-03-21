@@ -12,7 +12,7 @@ type HtlvCrcBusinessRouter struct {
 }
 
 func (this *HtlvCrcBusinessRouter) Handle(request ziface.IRequest) {
-	zlog.Ins().DebugF("Call HtlvCrcBusinessRouter Handle %d %+v\n", request.GetMessage().GetMsgID(), request.GetMessage().GetData())
+	//zlog.Ins().DebugF("Call HtlvCrcBusinessRouter Handle %d %s\n", request.GetMessage().GetMsgID(), hex.EncodeToString(request.GetMessage().GetData()))
 	msgID := request.GetMessage().GetMsgID()
 	if msgID == 0x10 {
 		_response := request.GetResponse()

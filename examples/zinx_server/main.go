@@ -7,7 +7,6 @@
 package main
 
 import (
-	"github.com/aceld/zinx/examples"
 	"github.com/aceld/zinx/examples/zinx_server/s_router"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
@@ -53,10 +52,6 @@ func main() {
 	//配置路由
 	s.AddRouter(0, &s_router.PingRouter{})
 	s.AddRouter(1, &s_router.HelloZinxRouter{})
-
-	tlvDecoder := examples.LTVDecoder{}
-	s.SetLengthField(tlvDecoder.GetLengthField())
-	s.AddInterceptor(&tlvDecoder) //TVL协议解码器
 
 	//开启服务
 	s.Serve()

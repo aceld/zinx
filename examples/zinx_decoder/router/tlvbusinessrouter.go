@@ -1,10 +1,10 @@
 package router
 
 import (
-	"github.com/aceld/zinx/examples/zinx_decoder/decode"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/znet"
+	"github.com/aceld/zinx/zpack"
 )
 
 type TLVBusinessRouter struct {
@@ -18,8 +18,8 @@ func (this *TLVBusinessRouter) Handle(request ziface.IRequest) {
 		_response := request.GetResponse()
 		if _response != nil {
 			switch _response.(type) {
-			case decode.TlvData:
-				tlvData := _response.(decode.TlvData)
+			case zpack.TLVDecoder:
+				tlvData := _response.(zpack.TLVDecoder)
 				zlog.Ins().DebugF("do msgid=0x00000001 data business %+v\n", tlvData)
 			}
 		}
