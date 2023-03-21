@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zinx_app_demo/mmo_game/pb"
-	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/znet"
 	"github.com/golang/protobuf/proto"
 	"os"
@@ -26,10 +25,6 @@ func (this *PositionClientRouter) Handle(request ziface.IRequest) {
 	}
 
 	fmt.Printf("recv from server : msgId=%+v, data=%+v", request.GetMsgID(), msg)
-
-	if err := request.GetConnection().SendMsg(0, []byte("Hello[from client]")); err != nil {
-		zlog.Error(err)
-	}
 }
 
 // 客户端自定义业务
