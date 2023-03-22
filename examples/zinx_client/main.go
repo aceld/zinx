@@ -50,11 +50,11 @@ func DoClientConnectedBegin(conn ziface.IConnection) {
 func DoClientConnectedLost(conn ziface.IConnection) {
 	//在连接销毁之前，查询conn的Name，Home属性
 	if name, err := conn.GetProperty("Name"); err == nil {
-		zlog.Error("Conn Property Name = ", name)
+		zlog.Debug("Conn Property Name = ", name)
 	}
 
 	if home, err := conn.GetProperty("Home"); err == nil {
-		zlog.Error("Conn Property Home = ", home)
+		zlog.Debug("Conn Property Home = ", home)
 	}
 
 	zlog.Debug("DoClientConnectedLost is Called ... ")

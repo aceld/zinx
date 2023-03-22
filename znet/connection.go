@@ -168,13 +168,13 @@ func (c *Connection) StartReader() {
 				}
 				for _, bytes := range bufArrays {
 					zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(bytes))
-					msg := &zpack.Message{DataLen: uint32(len(bytes)), Data: bytes}
+					msg := zpack.NewMessage(uint32(len(bytes)), bytes)
 					//得到当前客户端请求的Request数据
 					req := NewRequest(c, msg)
 					c.msgHandler.Decode(req)
 				}
 			} else {
-				msg := &zpack.Message{DataLen: uint32(n), Data: buffer[0:n]}
+				msg := zpack.NewMessage(uint32(n), buffer[0:n])
 				//得到当前客户端请求的Request数据
 				req := NewRequest(c, msg)
 				c.msgHandler.Decode(req)
