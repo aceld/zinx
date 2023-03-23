@@ -86,7 +86,6 @@ func (this *TLVDecoder) Intercept(chain ziface.Chain) ziface.Response {
 					iMessage.SetData(_data.Value)
 					iMessage.SetMsgID(_data.Tag)
 					iMessage.SetDataLen(_data.Length)
-					iMessage.SetData(value)
 					iRequest.SetResponse(_data)
 					zlog.Ins().DebugF("TLV-DecodeData size:%d data:%+v\n", unsafe.Sizeof(data), _data)
 				}
