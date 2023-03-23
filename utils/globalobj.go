@@ -46,11 +46,6 @@ type Config struct {
 	IOReadBuffSize   uint32 //每次IO最大的读取长度
 
 	/*
-		config file path
-	*/
-	confFilePath string
-
-	/*
 		logger
 	*/
 	LogDir        string //日志所在文件夹 默认"./log"
@@ -82,13 +77,13 @@ func PathExists(path string) (bool, error) {
 
 //Reload 读取用户的配置文件
 func (g *Config) Reload() {
-
-	if confFileExists, _ := PathExists(g.confFilePath); confFileExists != true {
-		zlog.Ins().ErrorF("Config File %s is not exist!!", g.confFilePath)
+	confFilePath := args.Args.ConfigFile
+	if confFileExists, _ := PathExists(confFilePath); confFileExists != true {
+		zlog.Ins().ErrorF("Config File %s is not exist!!", confFilePath)
 		return
 	}
 
-	data, err := ioutil.ReadFile(g.confFilePath)
+	data, err := ioutil.ReadFile(confFilePath)
 	if err != nil {
 		panic(err)
 	}
@@ -155,7 +150,6 @@ func init() {
 		Host:             "0.0.0.0",
 		MaxConn:          12000,
 		MaxPacketSize:    4096,
-		confFilePath:     args.Args.ConfigFile,
 		WorkerPoolSize:   10,
 		MaxWorkerTaskLen: 1024,
 		MaxMsgChanLen:    1024,
@@ -165,7 +159,6 @@ func init() {
 		HeartbeatMax:     10, //默认心跳检测最长间隔为10秒
 		IOReadBuffSize:   1024,
 	}
-
 	//NOTE: 从配置文件中加载一些用户配置的参数
 	GlobalObject.Reload()
 }
