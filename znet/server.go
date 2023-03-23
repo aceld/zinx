@@ -114,8 +114,14 @@ func (s *Server) Start() {
 	zlog.Ins().InfoF("[START] Server name: %s,listenner at IP: %s, Port %d is starting", s.Name, s.IP, s.Port)
 	s.exitChan = make(chan struct{})
 
+	// 默认使用TLV解码器
 	if s.decoder == nil {
 		s.SetDecoder(zpack.NewTLVDecoder())
+	}
+
+	// 将解码器添加到拦截器
+	if s.decoder != nil {
+		s.msgHandler.AddInterceptor(s.decoder)
 	}
 
 	//开启一个go去做服务端Linster业务
