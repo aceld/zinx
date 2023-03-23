@@ -59,7 +59,7 @@ func NewServer(opts ...Option) ziface.IServer {
 
 	s := &Server{
 		Name:       utils.GlobalObject.Name,
-		IPVersion:  "tcp4",
+		IPVersion:  "tcp",
 		IP:         utils.GlobalObject.Host,
 		Port:       utils.GlobalObject.TCPPort,
 		msgHandler: NewMsgHandle(),
@@ -87,9 +87,9 @@ func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
 
 	s := &Server{
 		Name:           config.Name,
-		IPVersion:      config.TcpVersion,
+		IPVersion:      "tcp4",
 		IP:             config.Host,
-		Port:           config.TcpPort,
+		Port:           config.TCPPort,
 		msgHandler:     NewMsgHandle(),
 		ConnMgr:        NewConnManager(),
 		exitChan:       nil,

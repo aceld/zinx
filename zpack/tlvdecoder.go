@@ -34,7 +34,7 @@ const TLV_HEADER_SIZE = 8 //表示TLV空包长度
 type TLVDecoder struct {
 	Tag    uint32
 	Length uint32
-	Value  string
+	Value  []byte
 }
 
 func NewTLVDecoder() ziface.IDecoder {
@@ -81,9 +81,9 @@ func (this *TLVDecoder) Intercept(chain ziface.Chain) ziface.Response {
 				if datasize >= TLV_HEADER_SIZE {
 					_data.Tag = binary.BigEndian.Uint32(data[0:4])
 					_data.Length = binary.BigEndian.Uint32(data[4:8])
-					value := make([]byte, _data.Length)
-					binary.Read(bytes.NewBuffer(data[8:8+_data.Length]), binary.BigEndian, value)
-					_data.Value = string(value)
+					_data.Value = make([]byte, _data.Length)
+					binary.Read(bytes.NewBuffer(data[8:8+_data.Length]), binary.BigEndian, _data.Value)
+					iMessage.SetData(_data.Value)
 					iMessage.SetMsgID(_data.Tag)
 					iMessage.SetDataLen(_data.Length)
 					iMessage.SetData(value)

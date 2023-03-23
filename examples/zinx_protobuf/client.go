@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zinx_app_demo/mmo_game/pb"
-	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/znet"
 	"github.com/golang/protobuf/proto"
 	"os"
@@ -17,6 +16,7 @@ type PositionClientRouter struct {
 }
 
 func (this *PositionClientRouter) Handle(request ziface.IRequest) {
+	fmt.Println("Handle....")
 
 	msg := &pb.Position{}
 	err := proto.Unmarshal(request.GetData(), msg)
@@ -25,11 +25,7 @@ func (this *PositionClientRouter) Handle(request ziface.IRequest) {
 		return
 	}
 
-	fmt.Printf("recv from server : msgId=%+v, data=%+v", request.GetMsgID(), msg)
-
-	if err := request.GetConnection().SendMsg(0, []byte("Hello[from client]")); err != nil {
-		zlog.Error(err)
-	}
+	fmt.Printf("recv from server : msgId=%+v, data=%+v\n", request.GetMsgID(), msg)
 }
 
 // 客户端自定义业务
@@ -48,8 +44,6 @@ func business(conn ziface.IConnection) {
 			fmt.Println("proto Marshal error = ", err, " msg = ", msg)
 			break
 		}
-
-		fmt.Println("send data = ", data)
 
 		err = conn.SendMsg(0, data)
 		if err != nil {

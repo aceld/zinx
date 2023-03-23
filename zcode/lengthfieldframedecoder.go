@@ -199,7 +199,7 @@ func NewLengthFieldFrameDecoderByLengthField(lengthField ziface.LengthField) zif
 
 }
 
-func NewLengthFieldFrameDecoder(maxFrameLength int64, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip int) ziface.ILengthField {
+func NewLengthFieldFrameDecoder(maxFrameLength uint64, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip int) ziface.ILengthField {
 	return NewLengthFieldFrameDecoderByLengthField(ziface.LengthField{
 		MaxFrameLength:      maxFrameLength,
 		LengthFieldOffset:   lengthFieldOffset,
