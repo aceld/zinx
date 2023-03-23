@@ -26,7 +26,7 @@ import (
 	存储一切有关Zinx框架的全局参数，供其他模块使用
 	一些参数也可以通过 用户根据 zinx.json来配置
 */
-type GlobalObj struct {
+type Config struct {
 	/*
 		Server
 	*/
@@ -48,7 +48,7 @@ type GlobalObj struct {
 	/*
 		config file path
 	*/
-	ConfFilePath string
+	confFilePath string
 
 	/*
 		logger
@@ -66,7 +66,7 @@ type GlobalObj struct {
 /*
 	定义一个全局的对象
 */
-var GlobalObject *GlobalObj
+var GlobalObject *Config
 
 //PathExists 判断一个文件是否存在
 func PathExists(path string) (bool, error) {
@@ -81,14 +81,14 @@ func PathExists(path string) (bool, error) {
 }
 
 //Reload 读取用户的配置文件
-func (g *GlobalObj) Reload() {
+func (g *Config) Reload() {
 
-	if confFileExists, _ := PathExists(g.ConfFilePath); confFileExists != true {
-		zlog.Ins().ErrorF("Config File %s is not exist!!", g.ConfFilePath)
+	if confFileExists, _ := PathExists(g.confFilePath); confFileExists != true {
+		zlog.Ins().ErrorF("Config File %s is not exist!!", g.confFilePath)
 		return
 	}
 
-	data, err := ioutil.ReadFile(g.ConfFilePath)
+	data, err := ioutil.ReadFile(g.confFilePath)
 	if err != nil {
 		panic(err)
 	}
@@ -108,7 +108,7 @@ func (g *GlobalObj) Reload() {
 }
 
 //提示详细
-func (g *GlobalObj) Show() {
+func (g *Config) Show() {
 	//提示当前配置信息
 	objVal := reflect.ValueOf(g).Elem()
 	objType := reflect.TypeOf(*g)
@@ -123,7 +123,7 @@ func (g *GlobalObj) Show() {
 	fmt.Println("==============================")
 }
 
-func (g *GlobalObj) HeartbeatMaxDuration() time.Duration {
+func (g *Config) HeartbeatMaxDuration() time.Duration {
 	return time.Duration(g.HeartbeatMax) * time.Second
 }
 
@@ -148,14 +148,14 @@ func init() {
 	args.FlagHandle()
 
 	//初始化GlobalObject变量，设置一些默认值
-	GlobalObject = &GlobalObj{
+	GlobalObject = &Config{
 		Name:             "ZinxServerApp",
 		Version:          "V1.0",
 		TCPPort:          8999,
 		Host:             "0.0.0.0",
 		MaxConn:          12000,
 		MaxPacketSize:    4096,
-		ConfFilePath:     args.Args.ConfigFile,
+		confFilePath:     args.Args.ConfigFile,
 		WorkerPoolSize:   10,
 		MaxWorkerTaskLen: 1024,
 		MaxMsgChanLen:    1024,
