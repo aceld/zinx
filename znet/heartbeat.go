@@ -43,6 +43,7 @@ func makeDefaultMsg(conn ziface.IConnection) []byte {
 
 //默认的心跳检测函数
 func notAliveDefaultFunc(conn ziface.IConnection) {
+	zlog.Ins().InfoF("Remote connection %s is not alive, stop it", conn.RemoteAddr())
 	conn.Stop()
 }
 
