@@ -114,11 +114,17 @@ func (s *Server) Start() {
 	zlog.Ins().InfoF("[START] Server name: %s,listenner at IP: %s, Port %d is starting", s.Name, s.IP, s.Port)
 	s.exitChan = make(chan struct{})
 
+	// 默认使用TLV解码器
 	if s.decoder == nil {
 		s.SetDecoder(zpack.NewTLVDecoder())
 	}
 
-	//开启一个go去做服务端Linster业务
+	// 将解码器添加到拦截器
+	if s.decoder != nil {
+		s.msgHandler.AddInterceptor(s.decoder)
+	}
+
+	//开启一个go去做服务端Listener业务
 	go func() {
 		//0 启动worker工作池机制
 		s.msgHandler.StartWorkerPool()
@@ -139,7 +145,6 @@ func (s *Server) Start() {
 		//已经监听成功
 		zlog.Ins().InfoF("[START] start Zinx server  %s succ, now listenning...", s.Name)
 
-		//TODO server.go 应该有一个自动生成ID的方法
 		var cID uint64
 		cID = 0
 
@@ -301,6 +306,7 @@ func printLogo() {
 	fmt.Println(topLine)
 	fmt.Println(fmt.Sprintf("%s [Github] https://github.com/aceld                    %s", borderLine, borderLine))
 	fmt.Println(fmt.Sprintf("%s [tutorial] https://www.yuque.com/aceld/npyr8s/bgftov %s", borderLine, borderLine))
+	fmt.Println(fmt.Sprintf("%s [document] https://www.yuque.com/aceld/tsgooa        %s", borderLine, borderLine))
 	fmt.Println(bottomLine)
 	fmt.Printf("[Zinx] Version: %s, MaxConn: %d, MaxPacketSize: %d\n",
 		utils.GlobalObject.Version,
