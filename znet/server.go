@@ -50,7 +50,7 @@ type Server struct {
 	//异步捕获链接关闭状态
 	exitChan chan struct{}
 	//断粘包解码器
-	defaultDecoder ziface.IDecoder
+	decoder ziface.IDecoder
 }
 
 // NewServer 创建一个服务器句柄
@@ -66,8 +66,7 @@ func NewServer(opts ...Option) ziface.IServer {
 		ConnMgr:    NewConnManager(),
 		exitChan:   nil,
 		//默认使用zinx的TLV封包方式
-		packet:         zpack.Factory().NewPack(ziface.ZinxDataPack),
-		defaultDecoder: zpack.NewTLVDecoder(),
+		packet: zpack.Factory().NewPack(ziface.ZinxDataPack),
 	}
 
 	for _, opt := range opts {
@@ -86,15 +85,14 @@ func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
 	printLogo()
 
 	s := &Server{
-		Name:           config.Name,
-		IPVersion:      "tcp4",
-		IP:             config.Host,
-		Port:           config.TCPPort,
-		msgHandler:     NewMsgHandle(),
-		ConnMgr:        NewConnManager(),
-		exitChan:       nil,
-		packet:         zpack.Factory().NewPack(ziface.ZinxDataPack),
-		defaultDecoder: zpack.NewTLVDecoder(),
+		Name:       config.Name,
+		IPVersion:  "tcp4",
+		IP:         config.Host,
+		Port:       config.TCPPort,
+		msgHandler: NewMsgHandle(),
+		ConnMgr:    NewConnManager(),
+		exitChan:   nil,
+		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack),
 	}
 	//更替打包方式
 	for _, opt := range opts {
@@ -111,28 +109,14 @@ func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
 
 //============== 实现 ziface.IServer 里的全部接口方法 ========
 
-func (this *Server) SetDecoder(decoder ziface.IDecoder) {
-	this.defaultDecoder = decoder
-	if this.defaultDecoder != nil {
-		this.msgHandler.AddInterceptor(decoder)
-	}
-}
-
-func (this *Server) GetLengthField() *ziface.LengthField {
-	if this.defaultDecoder != nil {
-		return this.defaultDecoder.GetLengthField()
-	}
-	return nil
-}
-
-func (this *Server) AddInterceptor(interceptor ziface.Interceptor) {
-	this.msgHandler.AddInterceptor(interceptor)
-}
-
 // Start 开启网络服务
 func (s *Server) Start() {
 	zlog.Ins().InfoF("[START] Server name: %s,listenner at IP: %s, Port %d is starting", s.Name, s.IP, s.Port)
 	s.exitChan = make(chan struct{})
+
+	if s.decoder == nil {
+		s.SetDecoder(zpack.NewTLVDecoder())
+	}
 
 	//开启一个go去做服务端Linster业务
 	go func() {
@@ -215,7 +199,6 @@ func (s *Server) Stop() {
 
 // Serve 运行服务
 func (s *Server) Serve() {
-	s.SetDecoder(s.defaultDecoder)
 	s.Start()
 
 	//阻塞,否则主Go退出， listenner的go将会退出
@@ -296,6 +279,21 @@ func (s *Server) StartHeartBeatWithOption(interval time.Duration, option *ziface
 	s.AddRouter(checker.msgID, checker.router)
 
 	go checker.Start()
+}
+
+func (s *Server) SetDecoder(decoder ziface.IDecoder) {
+	s.decoder = decoder
+}
+
+func (s *Server) GetLengthField() *ziface.LengthField {
+	if s.decoder != nil {
+		return s.decoder.GetLengthField()
+	}
+	return nil
+}
+
+func (s *Server) AddInterceptor(interceptor ziface.Interceptor) {
+	s.msgHandler.AddInterceptor(interceptor)
 }
 
 func printLogo() {
