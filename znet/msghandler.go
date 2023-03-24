@@ -87,7 +87,7 @@ func (mh *MsgHandle) Decode(request ziface.IRequest) {
 func (mh *MsgHandle) AddRouter(msgID uint32, router ziface.IRouter) {
 	//1 判断当前msg绑定的API处理方法是否已经存在
 	if _, ok := mh.Apis[msgID]; ok {
-		msgErr := fmt.Sprintf("%+v\n", "repeated api , msgID = ", msgID)
+		msgErr := fmt.Sprintf("repeated api , msgID = %+v\n", msgID)
 		panic(msgErr)
 	}
 	//2 添加msg与api的绑定关系
