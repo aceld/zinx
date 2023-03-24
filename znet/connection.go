@@ -54,6 +54,8 @@ type Connection struct {
 	lastActivityTime time.Time
 	//断粘包解码器
 	lengthFieldDecoder ziface.ILengthField
+	//心跳检测器
+	hc ziface.IHeartbeatChecker
 }
 
 // newServerConn :for Server, 创建一个Server服务端特性的连接的方法
@@ -84,6 +86,12 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) *Connect
 
 	//将新创建的Conn添加到链接管理中
 	server.GetConnMgr().Add(c)
+
+	//如果Server设置了心跳检测器，则将心跳检测器与当前连接绑定
+	if server.GetHeartBeat() != nil {
+		c.hc = server.GetHeartBeat().Clone()
+	}
+
 	return c
 }
 
@@ -189,7 +197,8 @@ func (c *Connection) Start() {
 	c.ctx, c.cancel = context.WithCancel(context.Background())
 	//按照用户传递进来的创建连接时需要处理的业务，执行钩子方法
 	c.callOnConnStart()
-	//1 开启用户从客户端读取数据流程的Goroutine
+
+	//开启用户从客户端读取数据流程的Goroutine
 	go c.StartReader()
 
 	select {

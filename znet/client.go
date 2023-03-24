@@ -27,17 +27,18 @@ type Client struct {
 	//消息管理模块
 	msgHandler ziface.IMsgHandle
 	//断粘包解码器
-	defaultDecoder ziface.IDecoder
+	decoder ziface.IDecoder
+	//心跳检测器
+	hc ziface.IHeartbeatChecker
 }
 
 func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 
 	c := &Client{
-		Ip:             ip,
-		Port:           port,
-		msgHandler:     NewMsgHandle(),
-		packet:         zpack.Factory().NewPack(ziface.ZinxDataPack), //默认使用zinx的TLV封包方式
-		defaultDecoder: zpack.NewTLVDecoder(),
+		Ip:         ip,
+		Port:       port,
+		msgHandler: NewMsgHandle(),
+		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack), //默认使用zinx的TLV封包方式
 	}
 
 	//应用Option设置
@@ -48,28 +49,20 @@ func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 	return c
 }
 
-func (this *Client) AddInterceptor(interceptor ziface.Interceptor) {
-	this.msgHandler.AddInterceptor(interceptor)
-}
-
-func (this *Client) SetDecoder(decoder ziface.IDecoder) {
-	this.defaultDecoder = decoder
-	if this.defaultDecoder != nil {
-		this.msgHandler.AddInterceptor(decoder)
-	}
-}
-func (this *Client) GetLengthField() *ziface.LengthField {
-	if this.defaultDecoder != nil {
-		return this.defaultDecoder.GetLengthField()
-	}
-	return nil
-}
-
 // 启动客户端，发送请求且建立链接
 func (c *Client) Start() {
-	c.SetDecoder(c.defaultDecoder)
+
 	c.exitChan = make(chan struct{})
-	c.msgHandler.AddInterceptor(c.msgHandler.(ziface.Interceptor))
+
+	// 默认使用TLV解码器
+	if c.decoder == nil {
+		c.SetDecoder(zpack.NewTLVDecoder())
+	}
+
+	// 将解码器添加到拦截器
+	if c.decoder != nil {
+		c.msgHandler.AddInterceptor(c.decoder)
+	}
 
 	//客户端将协程池关闭
 	utils.GlobalObject.WorkerPoolSize = 0
@@ -104,12 +97,16 @@ func (c *Client) Start() {
 	}()
 }
 
-// 启动心跳检测
+// StartHeartBeat 启动心跳检测
+// interval 每次发送心跳的时间间隔
 func (c *Client) StartHeartBeat(interval time.Duration) {
 	checker := NewHeartbeatCheckerC(interval, c)
 
 	//添加心跳检测的路由
-	c.AddRouter(checker.msgID, checker.router)
+	c.AddRouter(checker.MsgID(), checker.Router())
+
+	//client绑定心跳检测器
+	c.hc = checker
 
 	go checker.Start()
 }
@@ -125,7 +122,7 @@ func (c *Client) StartHeartBeatWithOption(interval time.Duration, option *ziface
 	}
 
 	//添加心跳检测的路由
-	c.AddRouter(checker.msgID, checker.router)
+	c.AddRouter(checker.MsgID(), checker.Router())
 
 	go checker.Start()
 }
@@ -175,4 +172,18 @@ func (c *Client) SetPacket(packet ziface.IDataPack) {
 
 func (c *Client) GetMsgHandler() ziface.IMsgHandle {
 	return c.msgHandler
+}
+
+func (c *Client) AddInterceptor(interceptor ziface.Interceptor) {
+	c.msgHandler.AddInterceptor(interceptor)
+}
+
+func (c *Client) SetDecoder(decoder ziface.IDecoder) {
+	c.decoder = decoder
+}
+func (c *Client) GetLengthField() *ziface.LengthField {
+	if c.decoder != nil {
+		return c.decoder.GetLengthField()
+	}
+	return nil
 }

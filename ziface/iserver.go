@@ -34,6 +34,7 @@ type IServer interface {
 	SetPacket(IDataPack)                                      //设置Server绑定的数据协议封包方式
 	StartHeartBeat(time.Duration)                             //启动心跳检测
 	StartHeartBeatWithOption(time.Duration, *HeartBeatOption) //启动心跳检测(自定义回调)
+	GetHeartBeat() IHeartbeatChecker                          //获取心跳检测器
 	GetLengthField() *LengthField
 	SetDecoder(IDecoder)
 	AddInterceptor(Interceptor)

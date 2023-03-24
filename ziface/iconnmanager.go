@@ -17,10 +17,11 @@ package ziface
 	连接管理抽象层
 */
 type IConnManager interface {
-	Add(conn IConnection)                   //添加链接
-	Remove(conn IConnection)                //删除连接
-	Get(connID uint64) (IConnection, error) //利用ConnID获取链接
-	Len() int                               //获取当前连接
-	ClearConn()                             //删除并停止所有链接
-	GetAllConnID() []uint64                 //获取所有连接ID
+	Add(IConnection)                                                       //添加链接
+	Remove(IConnection)                                                    //删除连接
+	Get(uint64) (IConnection, error)                                       //利用ConnID获取链接
+	Len() int                                                              //获取当前连接
+	ClearConn()                                                            //删除并停止所有链接
+	GetAllConnID() []uint64                                                //获取所有连接ID
+	Range(func(uint64, IConnection, interface{}) error, interface{}) error //遍历所有连接
 }

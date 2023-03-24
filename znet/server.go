@@ -51,6 +51,8 @@ type Server struct {
 	exitChan chan struct{}
 	//断粘包解码器
 	decoder ziface.IDecoder
+	//心跳检测器
+	hc ziface.IHeartbeatChecker
 }
 
 // NewServer 创建一个服务器句柄
@@ -258,12 +260,14 @@ func (s *Server) GetMsgHandler() ziface.IMsgHandle {
 
 // StartHeartBeat 启动心跳检测
 // interval 每次发送心跳的时间间隔
-// msgID    心跳检测消息的msgID
 func (s *Server) StartHeartBeat(interval time.Duration) {
 	checker := NewHeartbeatCheckerS(interval, s)
 
 	//添加心跳检测的路由
-	s.AddRouter(checker.msgID, checker.router)
+	s.AddRouter(checker.MsgID(), checker.Router())
+
+	//server绑定心跳检测器
+	s.hc = checker
 
 	go checker.Start()
 }
@@ -281,9 +285,13 @@ func (s *Server) StartHeartBeatWithOption(interval time.Duration, option *ziface
 	}
 
 	//添加心跳检测的路由
-	s.AddRouter(checker.msgID, checker.router)
+	s.AddRouter(checker.MsgID(), checker.Router())
 
 	go checker.Start()
+}
+
+func (s *Server) GetHeartBeat() ziface.IHeartbeatChecker {
+	return s.hc
 }
 
 func (s *Server) SetDecoder(decoder ziface.IDecoder) {
