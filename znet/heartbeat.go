@@ -11,8 +11,8 @@ type HeartbeatChecker struct {
 	interval time.Duration // 心跳检测时间间隔
 	quitChan chan bool     // 退出信号
 
-	hearbeatMsg []byte                  // 心跳消息, 也可以通过makeMsgFunc来动态生成
-	makeMsg     ziface.HeartBeatMsgFunc //用户自定义的心跳检测消息处理方法
+	heartbeatMsg []byte                  // 心跳消息, 也可以通过makeMsgFunc来动态生成
+	makeMsg      ziface.HeartBeatMsgFunc //用户自定义的心跳检测消息处理方法
 
 	onRemoteNotAlive ziface.OnRemoteNotAlive //用户自定义的远程连接不存活时的处理方法
 
@@ -24,24 +24,24 @@ type HeartbeatChecker struct {
 }
 
 /*
-	收到remote心跳消息的默认回调路由业务
+收到remote心跳消息的默认回调路由业务
 */
 type HeatBeatDefaultRouter struct {
 	BaseRouter
 }
 
-//Handle -
+// Handle -
 func (r *HeatBeatDefaultRouter) Handle(req ziface.IRequest) {
 	zlog.Ins().InfoF("Recv Heartbeat from %s, MsgID = %+v, Data = %s", req.GetConnection().RemoteAddr(), req.GetMsgID(), string(req.GetData()))
 }
 
-//默认的心跳消息生成函数
+// 默认的心跳消息生成函数
 func makeDefaultMsg(conn ziface.IConnection) []byte {
 	msg := fmt.Sprintf("heartbeat [%s->%s]", conn.LocalAddr(), conn.RemoteAddr())
 	return []byte(msg)
 }
 
-//默认的心跳检测函数
+// 默认的心跳检测函数
 func notAliveDefaultFunc(conn ziface.IConnection) {
 	zlog.Ins().InfoF("Remote connection %s is not alive, stop it", conn.RemoteAddr())
 	conn.Stop()
@@ -49,7 +49,7 @@ func notAliveDefaultFunc(conn ziface.IConnection) {
 
 // NewHeartbeatCheckerS Server创建心跳检测器
 func NewHeartbeatCheckerS(interval time.Duration, server ziface.IServer) *HeartbeatChecker {
-	heatbeat := &HeartbeatChecker{
+	heartbeat := &HeartbeatChecker{
 		interval: interval,
 		s:        server,
 		c:        nil,
@@ -62,12 +62,12 @@ func NewHeartbeatCheckerS(interval time.Duration, server ziface.IServer) *Heartb
 		router:           &HeatBeatDefaultRouter{},
 	}
 
-	return heatbeat
+	return heartbeat
 }
 
 // NewHeartbeatCheckerC Client创建心跳检测器
 func NewHeartbeatCheckerC(interval time.Duration, client ziface.IClient) *HeartbeatChecker {
-	heatbeat := &HeartbeatChecker{
+	heartbeat := &HeartbeatChecker{
 		interval: interval,
 		c:        client,
 		s:        nil,
@@ -80,7 +80,7 @@ func NewHeartbeatCheckerC(interval time.Duration, client ziface.IClient) *Heartb
 		router:           &HeatBeatDefaultRouter{},
 	}
 
-	return heatbeat
+	return heartbeat
 }
 
 func (h *HeartbeatChecker) SetOnRemoteNotAlive(f ziface.OnRemoteNotAlive) {
