@@ -26,9 +26,8 @@ func (r *router) Handle(req ziface.IRequest) {
 func Server() {
 	s := znet.NewUserConfServer(&utils.Config{
 		Host:             "127.0.0.1",
-		TcpPort:          9991,
+		TCPPort:          9991,
 		Name:             "NtTest",
-		TcpVersion:       "tcp",
 		Version:          "1",
 		MaxConn:          10000,
 		MaxPacketSize:    4096,
