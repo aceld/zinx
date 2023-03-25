@@ -80,10 +80,13 @@ func main() {
 	signal.Notify(c, os.Interrupt, os.Kill)
 	sig := <-c
 	fmt.Println("===exit===", sig)
+	// 清理客户端
+	client.Stop()
+	time.Sleep(time.Second * 2)
 }
 
 /*
-	模拟客户端, 不使用client模块方式
+模拟客户端, 不使用client模块方式
 */
 func main_old() {
 	conn, err := net.Dial("tcp", "127.0.0.1:8999")
