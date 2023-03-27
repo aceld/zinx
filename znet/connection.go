@@ -195,6 +195,7 @@ func (c *Connection) Start() {
 	//启动心跳检测
 	if c.hc != nil {
 		c.hc.Start()
+		c.updateActivity()
 	}
 
 	//开启用户从客户端读取数据流程的Goroutine
