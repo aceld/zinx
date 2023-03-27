@@ -95,6 +95,7 @@ func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
 		ConnMgr:    NewConnManager(),
 		exitChan:   nil,
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack),
+		decoder:    zpack.NewTLVDecoder(), //默认使用TLV的解码方式
 	}
 	//更替打包方式
 	for _, opt := range opts {
@@ -115,11 +116,6 @@ func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
 func (s *Server) Start() {
 	zlog.Ins().InfoF("[START] Server name: %s,listener at IP: %s, Port %d is starting", s.Name, s.IP, s.Port)
 	s.exitChan = make(chan struct{})
-
-	// 默认使用TLV解码器
-	if s.decoder == nil {
-		s.SetDecoder(zpack.NewTLVDecoder())
-	}
 
 	// 将解码器添加到拦截器
 	if s.decoder != nil {

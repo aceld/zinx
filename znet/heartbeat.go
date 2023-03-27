@@ -85,7 +85,6 @@ func (h *HeartbeatChecker) start() {
 	for {
 		select {
 		case <-ticker.C:
-			fmt.Println("check...")
 			h.check()
 		case <-h.quitChan:
 			ticker.Stop()
