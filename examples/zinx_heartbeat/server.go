@@ -1,32 +1,20 @@
 package main
 
 import (
-	"fmt"
-	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
 	"time"
 )
 
-type TestRouter struct {
-	znet.BaseRouter
-}
-
-// Handle -
-func (t *TestRouter) Handle(req ziface.IRequest) {
-	fmt.Println("--> Call Handle, reveived msg: ", string(req.GetData()), " msgID: ", req.GetMsgID(), " connID: ", req.GetConnection().GetConnID())
-
-	if err := req.GetConnection().SendMsg(0, []byte("hello i am server")); err != nil {
-		fmt.Println(err)
-	}
-}
-
 func main() {
-	s := znet.NewServer()
+	//创建Client客户端
+	client := znet.NewClient("127.0.0.1", 8999)
 
-	s.AddRouter(1, &TestRouter{})
+	//设置心跳检测
+	client.StartHeartBeat(3 * time.Second)
 
-	//启动心跳检测
-	s.StartHeartBeat(5 * time.Second)
+	//启动客户端
+	client.Start()
 
-	s.Serve()
+	//防止进程退出，等待中断信号
+	select {}
 }

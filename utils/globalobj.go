@@ -155,7 +155,7 @@ func init() {
 		MaxMsgChanLen:    1024,
 		LogDir:           pwd + "/log",
 		LogFile:          "",
-		LogDebugClose:    false,
+		LogDebugClose:    true,
 		HeartbeatMax:     10, //默认心跳检测最长间隔为10秒
 		IOReadBuffSize:   1024,
 	}

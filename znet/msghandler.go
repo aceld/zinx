@@ -92,7 +92,7 @@ func (mh *MsgHandle) AddRouter(msgID uint32, router ziface.IRouter) {
 	}
 	//2 添加msg与api的绑定关系
 	mh.Apis[msgID] = router
-	zlog.Ins().InfoF("Add api msgID = %d", msgID)
+	zlog.Ins().InfoF("Add Router msgID = %d", msgID)
 }
 
 // StartOneWorker 启动一个Worker工作流程
