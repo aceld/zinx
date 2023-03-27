@@ -88,6 +88,8 @@ Of course, I hope that more people will join Zinx and give us valuable suggestio
 
 ### (1) QuickStart
 
+[<Zinx's TCP Debugging Tool>](https://github.com/xxl6097/tcptest)
+
 DownLoad zinx Source
 
 ```bash
