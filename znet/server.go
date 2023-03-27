@@ -113,7 +113,7 @@ func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
 
 // Start 开启网络服务
 func (s *Server) Start() {
-	zlog.Ins().InfoF("[START] Server name: %s,listenner at IP: %s, Port %d is starting", s.Name, s.IP, s.Port)
+	zlog.Ins().InfoF("[START] Server name: %s,listener at IP: %s, Port %d is starting", s.Name, s.IP, s.Port)
 	s.exitChan = make(chan struct{})
 
 	// 默认使用TLV解码器
@@ -145,10 +145,9 @@ func (s *Server) Start() {
 		}
 
 		//已经监听成功
-		zlog.Ins().InfoF("[START] start Zinx server  %s succ, now listenning...", s.Name)
+		zlog.Ins().InfoF("[START] start Zinx server  %s succ, now listening...", s.Name)
 
 		var cID uint64
-		cID = 0
 
 		go func() {
 			//3 启动server网络连接业务
@@ -217,7 +216,6 @@ func (s *Server) Stop() {
 // Serve 运行服务
 func (s *Server) Serve() {
 	s.Start()
-
 	//阻塞,否则主Go退出， listenner的go将会退出
 	c := make(chan os.Signal, 1)
 	//监听指定信号 ctrl+c kill信号

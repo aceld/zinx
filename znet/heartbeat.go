@@ -22,24 +22,24 @@ type HeartbeatChecker struct {
 }
 
 /*
-	收到remote心跳消息的默认回调路由业务
+收到remote心跳消息的默认回调路由业务
 */
 type HeatBeatDefaultRouter struct {
 	BaseRouter
 }
 
-//Handle -
+// Handle -
 func (r *HeatBeatDefaultRouter) Handle(req ziface.IRequest) {
 	zlog.Ins().InfoF("Recv Heartbeat from %s, MsgID = %+v, Data = %s", req.GetConnection().RemoteAddr(), req.GetMsgID(), string(req.GetData()))
 }
 
-//默认的心跳消息生成函数
+// 默认的心跳消息生成函数
 func makeDefaultMsg(conn ziface.IConnection) []byte {
 	msg := fmt.Sprintf("heartbeat [%s->%s]", conn.LocalAddr(), conn.RemoteAddr())
 	return []byte(msg)
 }
 
-//默认的心跳检测函数
+// 默认的心跳检测函数
 func notAliveDefaultFunc(conn ziface.IConnection) {
 	zlog.Ins().InfoF("Remote connection %s is not alive, stop it", conn.RemoteAddr())
 	conn.Stop()
@@ -47,7 +47,7 @@ func notAliveDefaultFunc(conn ziface.IConnection) {
 
 // NewHeartbeatChecker 创建心跳检测器
 func NewHeartbeatChecker(interval time.Duration) ziface.IHeartbeatChecker {
-	heatbeat := &HeartbeatChecker{
+	heartbeat := &HeartbeatChecker{
 		interval: interval,
 		quitChan: make(chan bool),
 
@@ -58,7 +58,7 @@ func NewHeartbeatChecker(interval time.Duration) ziface.IHeartbeatChecker {
 		router:           &HeatBeatDefaultRouter{},
 	}
 
-	return heatbeat
+	return heartbeat
 }
 
 func (h *HeartbeatChecker) SetOnRemoteNotAlive(f ziface.OnRemoteNotAlive) {

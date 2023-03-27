@@ -9,7 +9,7 @@ import (
 )
 
 func DoConnectionBegin(conn ziface.IConnection) {
-	zlog.Ins().InfoF("DoConnecionBegin is Called ...")
+	zlog.Ins().InfoF("DoConnectionBegin is Called ...")
 }
 
 func DoConnectionLost(conn ziface.IConnection) {

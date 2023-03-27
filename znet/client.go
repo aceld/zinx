@@ -80,7 +80,6 @@ func (c *Client) Start() {
 			//创建链接失败
 			zlog.Ins().ErrorF("client connect to server failed, err:%v", err)
 			panic(err)
-			return
 		}
 
 		//创建Connection对象
@@ -137,6 +136,8 @@ func (c *Client) StartHeartBeatWithOption(interval time.Duration, option *ziface
 func (c *Client) Stop() {
 	zlog.Ins().InfoF("[STOP] Zinx Client LocalAddr: %s, RemoteAddr: %s\n", c.conn.LocalAddr(), c.conn.RemoteAddr())
 	c.conn.Stop()
+	c.exitChan <- struct{}{}
+	close(c.exitChan)
 }
 
 func (c *Client) AddRouter(msgID uint32, router ziface.IRouter) {

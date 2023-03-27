@@ -418,6 +418,4 @@ func (this *EncoderData) Decode(buff []byte) [][]byte {
 			return resp
 		}
 	}
-	return nil
-
 }
