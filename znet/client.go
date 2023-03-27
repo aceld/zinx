@@ -60,9 +60,6 @@ func (c *Client) Start() {
 		c.msgHandler.AddInterceptor(c.decoder)
 	}
 
-	//此处必须将msgHandler注册为责任链最后一个元素
-	c.msgHandler.AddInterceptor(c.msgHandler.(*MsgHandle))
-
 	//客户端将协程池关闭
 	utils.GlobalObject.WorkerPoolSize = 0
 
