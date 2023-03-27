@@ -27,7 +27,7 @@ func TestDelay(t *testing.T) {
 	for i := 0; i < 600; i++ {
 		AcceptDelay.Up()
 	}
-	assert.Equal(t, time.Duration(1*time.Second), AcceptDelay.duration)
+	assert.Equal(t, 1*time.Second, AcceptDelay.duration)
 }
 
 func TestMain(m *testing.M) {
