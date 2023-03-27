@@ -142,7 +142,7 @@ func (h *HeartbeatChecker) BindConn(conn ziface.IConnection) {
 // CloneTo 克隆到一个指定的链接上
 func (h *HeartbeatChecker) Clone() ziface.IHeartbeatChecker {
 
-	heatbeat := &HeartbeatChecker{
+	heartbeat := &HeartbeatChecker{
 		interval:         h.interval,
 		quitChan:         make(chan bool),
 		makeMsg:          h.makeMsg,
@@ -152,7 +152,7 @@ func (h *HeartbeatChecker) Clone() ziface.IHeartbeatChecker {
 		conn:             nil, //绑定的链接需要重新赋值
 	}
 
-	return heatbeat
+	return heartbeat
 }
 
 func (h *HeartbeatChecker) MsgID() uint32 {

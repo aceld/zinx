@@ -63,11 +63,12 @@ type Connection struct {
 func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.IConnection {
 	//初始化Conn属性
 	c := &Connection{
-		conn:        conn,
-		connID:      connID,
-		isClosed:    false,
-		msgBuffChan: nil,
-		property:    nil,
+		conn:             conn,
+		connID:           connID,
+		isClosed:         false,
+		msgBuffChan:      nil,
+		property:         nil,
+		lastActivityTime: time.Now(),
 	}
 
 	lengthField := server.GetLengthField()
