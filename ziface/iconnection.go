@@ -39,4 +39,5 @@ type IConnection interface {
 	GetProperty(key string) (interface{}, error) //获取链接属性
 	RemoveProperty(key string)                   //移除链接属性
 	IsAlive() bool                               //判断当前连接是否存活
+	SetHeartBeat(checker IHeartbeatChecker)      //设置心跳检测器
 }

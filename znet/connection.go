@@ -60,7 +60,7 @@ type Connection struct {
 
 // newServerConn :for Server, 创建一个Server服务端特性的连接的方法
 // Note: 名字由 NewConnection 更变
-func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) *Connection {
+func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.IConnection {
 	//初始化Conn属性
 	c := &Connection{
 		conn:        conn,
@@ -87,16 +87,11 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) *Connect
 	//将新创建的Conn添加到链接管理中
 	server.GetConnMgr().Add(c)
 
-	//如果Server设置了心跳检测器，则将心跳检测器与当前连接绑定
-	if server.GetHeartBeat() != nil {
-		c.hc = server.GetHeartBeat().Clone()
-	}
-
 	return c
 }
 
 // newClientConn :for Client, 创建一个Client服务端特性的连接的方法
-func newClientConn(client ziface.IClient, conn net.Conn) *Connection {
+func newClientConn(client ziface.IClient, conn net.Conn) ziface.IConnection {
 	c := &Connection{
 		conn:        conn,
 		connID:      0, //client ignore
@@ -162,7 +157,7 @@ func (c *Connection) StartReader() {
 			buffer := make([]byte, utils.GlobalObject.IOReadBuffSize)
 			n, err := c.conn.Read(buffer[:])
 			if err != nil {
-				zlog.Ins().ErrorF("read msg head error%d %s", n, err)
+				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err)
 				return
 			}
 			zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer[0:n]))
@@ -187,7 +182,6 @@ func (c *Connection) StartReader() {
 				req := NewRequest(c, msg)
 				c.msgHandler.Decode(req)
 			}
-
 		}
 	}
 }
@@ -197,6 +191,11 @@ func (c *Connection) Start() {
 	c.ctx, c.cancel = context.WithCancel(context.Background())
 	//按照用户传递进来的创建连接时需要处理的业务，执行钩子方法
 	c.callOnConnStart()
+
+	//启动心跳检测
+	if c.hc != nil {
+		c.hc.Start()
+	}
 
 	//开启用户从客户端读取数据流程的Goroutine
 	go c.StartReader()
@@ -384,7 +383,7 @@ func (c *Connection) Context() context.Context {
 }
 
 func (c *Connection) finalizer() {
-	//如果用户注册了该链接的关闭回调业务，那么在此刻应该显示调用
+	//如果用户注册了该链接的	关闭回调业务，那么在此刻应该显示调用
 	c.callOnConnStop()
 
 	c.msgLock.Lock()
@@ -444,4 +443,8 @@ func (c *Connection) IsAlive() bool {
 
 func (c *Connection) updateActivity() {
 	c.lastActivityTime = time.Now()
+}
+
+func (c *Connection) SetHeartBeat(checker ziface.IHeartbeatChecker) {
+	c.hc = checker
 }

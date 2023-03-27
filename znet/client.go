@@ -86,8 +86,6 @@ func (c *Client) Start() {
 		if c.hc != nil {
 			//创建链接成功，绑定链接与心跳检测器
 			c.hc.BindConn(c.conn)
-			//启动心跳检测器
-			c.hc.Start()
 		}
 
 		//启动链接

@@ -37,7 +37,7 @@ func business(conn ziface.IConnection) {
 			break
 		}
 
-		time.Sleep(30 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
 }
 
@@ -78,7 +78,7 @@ func main() {
 	client.AddRouter(0, &PingRouter{})
 
 	//启动心跳检测
-	client.StartHeartBeat(5 * time.Second)
+	client.StartHeartBeat(30 * time.Second)
 
 	//启动客户端client
 	client.Start()

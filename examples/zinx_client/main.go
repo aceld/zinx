@@ -24,7 +24,7 @@ import (
 func business(conn ziface.IConnection) {
 
 	for {
-		err := conn.SendMsg(0, []byte("Ping...[FromClient]"))
+		err := conn.SendMsg(100, []byte("Ping...[FromClient]"))
 		if err != nil {
 			fmt.Println(err)
 			zlog.Error(err)

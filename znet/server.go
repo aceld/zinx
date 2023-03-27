@@ -68,7 +68,8 @@ func NewServer(opts ...Option) ziface.IServer {
 		ConnMgr:    NewConnManager(),
 		exitChan:   nil,
 		//默认使用zinx的TLV封包方式
-		packet: zpack.Factory().NewPack(ziface.ZinxDataPack),
+		packet:  zpack.Factory().NewPack(ziface.ZinxDataPack),
+		decoder: zpack.NewTLVDecoder(), //默认使用TLV的解码方式
 	}
 
 	for _, opt := range opts {
@@ -180,8 +181,6 @@ func (s *Server) Start() {
 					heartBeatChecker := s.hc.Clone()
 					//绑定当前链接
 					heartBeatChecker.BindConn(dealConn)
-					//启动心跳检测器
-					heartBeatChecker.Start()
 				}
 
 				//3.4 启动当前链接的处理业务

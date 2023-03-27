@@ -100,6 +100,7 @@ func (h *HeartbeatChecker) Start() {
 
 // 停止心跳检测
 func (h *HeartbeatChecker) Stop() {
+	zlog.Ins().InfoF("heartbeat checker stop, connID=%+v", h.conn.GetConnID())
 	h.quitChan <- true
 }
 
@@ -120,7 +121,6 @@ func (h *HeartbeatChecker) SendHeartBeatMsg() error {
 func (h *HeartbeatChecker) check() (err error) {
 
 	if h.conn == nil {
-		fmt.Println("check: conn is nil")
 		return nil
 	}
 
@@ -133,9 +133,10 @@ func (h *HeartbeatChecker) check() (err error) {
 	return err
 }
 
-// CloneTo 克隆到一个指定的链接上
+// BindConn 绑定一个链接
 func (h *HeartbeatChecker) BindConn(conn ziface.IConnection) {
 	h.conn = conn
+	conn.SetHeartBeat(h)
 }
 
 // CloneTo 克隆到一个指定的链接上
