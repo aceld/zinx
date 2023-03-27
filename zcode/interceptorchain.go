@@ -15,22 +15,41 @@ import "github.com/aceld/zinx/ziface"
 // | 1字节 | 1字节  | 1字节   | N字节   |  2字节  |
 // +------+-------+---------+--------+--------+
 type InterceptorChain struct {
-	interceptors []ziface.Interceptor
-	request      ziface.Request
+	body       []ziface.Interceptor
+	head, tail ziface.Interceptor
+	request    ziface.Request
 }
 
 func NewInterceptorBuilder() ziface.InterceptorBuilder {
 	return &InterceptorChain{
-		interceptors: make([]ziface.Interceptor, 0),
+		body: make([]ziface.Interceptor, 0),
 	}
 }
 
+func (this *InterceptorChain) Head(interceptor ziface.Interceptor) {
+	this.head = interceptor
+}
+
+func (this *InterceptorChain) Tail(interceptor ziface.Interceptor) {
+	this.tail = interceptor
+}
+
 func (this *InterceptorChain) AddInterceptor(interceptor ziface.Interceptor) {
-	this.interceptors = append(this.interceptors, interceptor)
+	this.body = append(this.body, interceptor)
 }
 
 func (this *InterceptorChain) Execute(request ziface.Request) ziface.Response {
 	this.request = request
-	chain := NewRealInterceptorChain(this.interceptors, 0, request)
+	var interceptors []ziface.Interceptor
+	if this.head != nil {
+		interceptors = append(interceptors, this.head)
+	}
+	if len(this.body) > 0 {
+		interceptors = append(interceptors, this.body...)
+	}
+	if this.tail != nil {
+		interceptors = append(interceptors, this.tail)
+	}
+	chain := NewRealInterceptorChain(interceptors, 0, request)
 	return chain.Proceed(this.request)
 }
