@@ -87,6 +87,14 @@ func (c *Client) Start() {
 		c.conn = newClientConn(c, conn)
 		zlog.Ins().InfoF("[START] Zinx Client LocalAddr: %s, RemoteAddr: %s\n", conn.LocalAddr(), conn.RemoteAddr())
 
+		//HeartBeat心跳检测
+		if c.hc != nil {
+			//创建链接成功，绑定链接与心跳检测器
+			c.hc.BindConn(c.conn)
+			//启动心跳检测器
+			c.hc.Start()
+		}
+
 		//启动链接
 		go c.conn.Start()
 
@@ -100,20 +108,18 @@ func (c *Client) Start() {
 // StartHeartBeat 启动心跳检测
 // interval 每次发送心跳的时间间隔
 func (c *Client) StartHeartBeat(interval time.Duration) {
-	checker := NewHeartbeatCheckerC(interval, c)
+	checker := NewHeartbeatChecker(interval)
 
 	//添加心跳检测的路由
 	c.AddRouter(checker.MsgID(), checker.Router())
 
 	//client绑定心跳检测器
 	c.hc = checker
-
-	go checker.Start()
 }
 
 // 启动心跳检测(自定义回调)
 func (c *Client) StartHeartBeatWithOption(interval time.Duration, option *ziface.HeartBeatOption) {
-	checker := NewHeartbeatCheckerC(interval, c)
+	checker := NewHeartbeatChecker(interval)
 
 	if option != nil {
 		checker.SetHeartbeatMsgFunc(option.MakeMsg)
@@ -124,7 +130,8 @@ func (c *Client) StartHeartBeatWithOption(interval time.Duration, option *ziface
 	//添加心跳检测的路由
 	c.AddRouter(checker.MsgID(), checker.Router())
 
-	go checker.Start()
+	//client绑定心跳检测器
+	c.hc = checker
 }
 
 func (c *Client) Stop() {

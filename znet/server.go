@@ -161,7 +161,7 @@ func (s *Server) Start() {
 				}
 
 				//3.2 阻塞等待客户端建立连接请求
-				conn, err := listener.AcceptTCP()
+				conn, err := listener.Accept()
 				if err != nil {
 					//Go 1.16+
 					if errors.Is(err, net.ErrClosed) {
@@ -178,6 +178,16 @@ func (s *Server) Start() {
 				//3.3 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 				dealConn := newServerConn(s, conn, cID)
 				cID++
+
+				//HeartBeat 心跳检测
+				if s.hc != nil {
+					//从Server端克隆一个心跳检测器
+					heartBeatChecker := s.hc.Clone()
+					//绑定当前链接
+					heartBeatChecker.BindConn(dealConn)
+					//启动心跳检测器
+					heartBeatChecker.Start()
+				}
 
 				//3.4 启动当前链接的处理业务
 				go dealConn.Start()
@@ -261,22 +271,19 @@ func (s *Server) GetMsgHandler() ziface.IMsgHandle {
 // StartHeartBeat 启动心跳检测
 // interval 每次发送心跳的时间间隔
 func (s *Server) StartHeartBeat(interval time.Duration) {
-	checker := NewHeartbeatCheckerS(interval, s)
+	checker := NewHeartbeatChecker(interval)
 
 	//添加心跳检测的路由
 	s.AddRouter(checker.MsgID(), checker.Router())
 
 	//server绑定心跳检测器
 	s.hc = checker
-
-	go checker.Start()
 }
 
 // StartHeartBeatWithFunc 启动心跳检测
-// msgFunc  心跳检测消息的自定义生成函数,不需要自定义可以传nil
-// notAlive 检测到地方停止心跳的自定义处理函数,不需要自定义可以传nil
+// option 心跳检测的配置
 func (s *Server) StartHeartBeatWithOption(interval time.Duration, option *ziface.HeartBeatOption) {
-	checker := NewHeartbeatCheckerS(interval, s)
+	checker := NewHeartbeatChecker(interval)
 
 	if option != nil {
 		checker.SetHeartbeatMsgFunc(option.MakeMsg)
@@ -287,7 +294,8 @@ func (s *Server) StartHeartBeatWithOption(interval time.Duration, option *ziface
 	//添加心跳检测的路由
 	s.AddRouter(checker.MsgID(), checker.Router())
 
-	go checker.Start()
+	//server绑定心跳检测器
+	s.hc = checker
 }
 
 func (s *Server) GetHeartBeat() ziface.IHeartbeatChecker {

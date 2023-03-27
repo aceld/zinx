@@ -45,46 +45,10 @@ func notAliveDefaultFunc(conn ziface.IConnection) {
 	conn.Stop()
 }
 
-func NewHeartbeatChecker(interval time.Duration, conn ziface.IConnection) ziface.IHeartbeatChecker {
+// NewHeartbeatChecker 创建心跳检测器
+func NewHeartbeatChecker(interval time.Duration) ziface.IHeartbeatChecker {
 	heatbeat := &HeartbeatChecker{
 		interval: interval,
-		conn:     conn,
-		quitChan: make(chan bool),
-
-		//均使用默认的心跳消息生成函数和远程连接不存活时的处理方法
-		makeMsg:          makeDefaultMsg,
-		onRemoteNotAlive: notAliveDefaultFunc,
-		msgID:            ziface.HeartBeatDefaultMsgID,
-		router:           &HeatBeatDefaultRouter{},
-	}
-
-	return heatbeat
-}
-
-// NewHeartbeatCheckerS Server创建心跳检测器
-func NewHeartbeatCheckerS(interval time.Duration, server ziface.IServer) ziface.IHeartbeatChecker {
-	heatbeat := &HeartbeatChecker{
-		interval: interval,
-		s:        server,
-		c:        nil,
-		quitChan: make(chan bool),
-
-		//均使用默认的心跳消息生成函数和远程连接不存活时的处理方法
-		makeMsg:          makeDefaultMsg,
-		onRemoteNotAlive: notAliveDefaultFunc,
-		msgID:            ziface.HeartBeatDefaultMsgID,
-		router:           &HeatBeatDefaultRouter{},
-	}
-
-	return heatbeat
-}
-
-// NewHeartbeatCheckerC Client创建心跳检测器
-func NewHeartbeatCheckerC(interval time.Duration, client ziface.IClient) ziface.IHeartbeatChecker {
-	heatbeat := &HeartbeatChecker{
-		interval: interval,
-		c:        client,
-		s:        nil,
 		quitChan: make(chan bool),
 
 		//均使用默认的心跳消息生成函数和远程连接不存活时的处理方法
@@ -116,12 +80,12 @@ func (h *HeartbeatChecker) BindRouter(msgID uint32, router ziface.IRouter) {
 	}
 }
 
-// 启动心跳检测
-func (h *HeartbeatChecker) Start() {
+func (h *HeartbeatChecker) start() {
 	ticker := time.NewTicker(h.interval)
 	for {
 		select {
 		case <-ticker.C:
+			fmt.Println("check...")
 			h.check()
 		case <-h.quitChan:
 			ticker.Stop()
@@ -130,43 +94,21 @@ func (h *HeartbeatChecker) Start() {
 	}
 }
 
+// Start 启动心跳检测
+func (h *HeartbeatChecker) Start() {
+	go h.start()
+}
+
 // 停止心跳检测
 func (h *HeartbeatChecker) Stop() {
 	h.quitChan <- true
 }
 
-func (h *HeartbeatChecker) checkServer() {
-	if h.s.GetConnMgr() != nil {
-		// server
-		_ = h.s.GetConnMgr().Range(doCheck, h)
-	}
-}
-
-func (h *HeartbeatChecker) checkClient() {
-	if h.c.Conn() != nil {
-		//client
-		_ = doCheck(0, h.c.Conn(), h)
-	}
-}
-
-// 检测单个连接 和 发送心跳包
-func doCheck(connID uint64, conn ziface.IConnection, args interface{}) (err error) {
-	hc := args.(*HeartbeatChecker)
-
-	if !conn.IsAlive() {
-		hc.onRemoteNotAlive(conn)
-	} else {
-		err = hc.SendHeartBeatMsg()
-	}
-
-	return err
-}
-
 func (h *HeartbeatChecker) SendHeartBeatMsg() error {
 
-	msg := h.makeMsg(h.c.Conn())
+	msg := h.makeMsg(h.conn)
 
-	err := h.c.Conn().SendMsg(h.msgID, msg)
+	err := h.conn.SendMsg(h.msgID, msg)
 	if err != nil {
 		zlog.Ins().ErrorF("send heartbeat msg error: %v, msgId=%+v msg=%+v", err, h.msgID, msg)
 		return err
@@ -176,26 +118,38 @@ func (h *HeartbeatChecker) SendHeartBeatMsg() error {
 }
 
 // 执行心跳检测
-func (h *HeartbeatChecker) check() {
-	if h.s != nil {
-		h.checkServer()
-	} else if h.c != nil {
-		h.checkClient()
+func (h *HeartbeatChecker) check() (err error) {
+
+	if h.conn == nil {
+		fmt.Println("check: conn is nil")
+		return nil
 	}
+
+	if !h.conn.IsAlive() {
+		h.onRemoteNotAlive(h.conn)
+	} else {
+		err = h.SendHeartBeatMsg()
+	}
+
+	return err
 }
 
-//深拷贝
+// CloneTo 克隆到一个指定的链接上
+func (h *HeartbeatChecker) BindConn(conn ziface.IConnection) {
+	h.conn = conn
+}
+
+// CloneTo 克隆到一个指定的链接上
 func (h *HeartbeatChecker) Clone() ziface.IHeartbeatChecker {
 
 	heatbeat := &HeartbeatChecker{
 		interval:         h.interval,
-		c:                h.c,
-		s:                h.s,
 		quitChan:         make(chan bool),
 		makeMsg:          h.makeMsg,
 		onRemoteNotAlive: h.onRemoteNotAlive,
 		msgID:            h.msgID,
 		router:           h.router,
+		conn:             nil, //绑定的链接需要重新赋值
 	}
 
 	return heatbeat

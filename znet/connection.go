@@ -38,7 +38,7 @@ type Connection struct {
 	msgLock sync.RWMutex
 	//链接属性
 	property map[string]interface{}
-	////保护当前property的锁
+	//保护当前property的锁
 	propertyLock sync.Mutex
 	//当前连接的关闭状态
 	isClosed bool
@@ -393,6 +393,11 @@ func (c *Connection) finalizer() {
 	//如果当前链接已经关闭
 	if c.isClosed == true {
 		return
+	}
+
+	//关闭链接绑定的心跳检测器
+	if c.hc != nil {
+		c.hc.Stop()
 	}
 
 	// 关闭socket链接
