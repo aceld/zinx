@@ -2,7 +2,7 @@ package znotify
 
 import (
 	"fmt"
-	"github.com/aceld/zinx/utils"
+	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
 	"github.com/aceld/zinx/zpack"
@@ -24,7 +24,7 @@ func (r *router) Handle(req ziface.IRequest) {
 }
 
 func Server() {
-	s := znet.NewUserConfServer(&utils.Config{
+	s := znet.NewUserConfServer(&zconf.Config{
 		Host:             "127.0.0.1",
 		TCPPort:          9991,
 		Name:             "NtTest",

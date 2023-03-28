@@ -3,13 +3,13 @@ package znet
 import (
 	"errors"
 	"fmt"
+	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zlog"
 	"net"
 	"os"
 	"os/signal"
 	"time"
 
-	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zpack"
 )
@@ -60,10 +60,10 @@ func NewServer(opts ...Option) ziface.IServer {
 	printLogo()
 
 	s := &Server{
-		Name:       utils.GlobalObject.Name,
+		Name:       zconf.GlobalObject.Name,
 		IPVersion:  "tcp",
-		IP:         utils.GlobalObject.Host,
-		Port:       utils.GlobalObject.TCPPort,
+		IP:         zconf.GlobalObject.Host,
+		Port:       zconf.GlobalObject.TCPPort,
 		msgHandler: NewMsgHandle(),
 		ConnMgr:    NewConnManager(),
 		exitChan:   nil,
@@ -77,13 +77,13 @@ func NewServer(opts ...Option) ziface.IServer {
 	}
 
 	//提示当前配置信息
-	utils.GlobalObject.Show()
+	zconf.GlobalObject.Show()
 
 	return s
 }
 
 // NewServer 创建一个服务器句柄
-func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
+func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 	//打印logo
 	printLogo()
 
@@ -103,10 +103,10 @@ func NewUserConfServer(config *utils.Config, opts ...Option) ziface.IServer {
 		opt(s)
 	}
 	//刷新用户配置到全局配置变量
-	utils.UserConfToGlobal(config)
+	zconf.UserConfToGlobal(config)
 
 	//提示当前配置信息
-	utils.GlobalObject.Show()
+	zconf.GlobalObject.Show()
 
 	return s
 }
@@ -150,8 +150,8 @@ func (s *Server) Start() {
 			//3 启动server网络连接业务
 			for {
 				//3.1 设置服务器最大连接控制,如果超过最大连接，则等待
-				if s.ConnMgr.Len() >= utils.GlobalObject.MaxConn {
-					zlog.Ins().InfoF("Exceeded the maxConnNum:%d, Wait:%d", utils.GlobalObject.MaxConn, AcceptDelay.duration)
+				if s.ConnMgr.Len() >= zconf.GlobalObject.MaxConn {
+					zlog.Ins().InfoF("Exceeded the maxConnNum:%d, Wait:%d", zconf.GlobalObject.MaxConn, AcceptDelay.duration)
 					AcceptDelay.Delay()
 					continue
 				}
@@ -318,9 +318,9 @@ func printLogo() {
 	fmt.Println(fmt.Sprintf("%s [document] https://www.yuque.com/aceld/tsgooa        %s", borderLine, borderLine))
 	fmt.Println(bottomLine)
 	fmt.Printf("[Zinx] Version: %s, MaxConn: %d, MaxPacketSize: %d\n",
-		utils.GlobalObject.Version,
-		utils.GlobalObject.MaxConn,
-		utils.GlobalObject.MaxPacketSize)
+		zconf.GlobalObject.Version,
+		zconf.GlobalObject.MaxConn,
+		zconf.GlobalObject.MaxPacketSize)
 }
 
 func init() {}

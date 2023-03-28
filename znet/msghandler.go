@@ -3,8 +3,8 @@ package znet
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/zcode"
+	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 )
@@ -21,9 +21,9 @@ type MsgHandle struct {
 func NewMsgHandle() *MsgHandle {
 	handle := &MsgHandle{
 		Apis:           make(map[uint32]ziface.IRouter),
-		WorkerPoolSize: utils.GlobalObject.WorkerPoolSize,
+		WorkerPoolSize: zconf.GlobalObject.WorkerPoolSize,
 		//一个worker对应一个queue
-		TaskQueue: make([]chan ziface.IRequest, utils.GlobalObject.WorkerPoolSize),
+		TaskQueue: make([]chan ziface.IRequest, zconf.GlobalObject.WorkerPoolSize),
 		builder:   zcode.NewInterceptorBuilder(),
 	}
 	//此处必须把 msghandler 添加到责任链中，并且是责任链最后一环，在msghandler中进行解码后由router做数据分发
@@ -37,7 +37,7 @@ func (this *MsgHandle) Intercept(chain ziface.Chain) ziface.Response {
 		switch request.(type) {
 		case ziface.IRequest:
 			iRequest := request.(ziface.IRequest)
-			if utils.GlobalObject.WorkerPoolSize > 0 {
+			if zconf.GlobalObject.WorkerPoolSize > 0 {
 				//已经启动工作池机制，将消息交给Worker处理
 				this.SendMsgToTaskQueue(iRequest)
 			} else {
@@ -117,7 +117,7 @@ func (mh *MsgHandle) StartWorkerPool() {
 	for i := 0; i < int(mh.WorkerPoolSize); i++ {
 		//一个worker被启动
 		//给当前worker对应的任务队列开辟空间
-		mh.TaskQueue[i] = make(chan ziface.IRequest, utils.GlobalObject.MaxWorkerTaskLen)
+		mh.TaskQueue[i] = make(chan ziface.IRequest, zconf.GlobalObject.MaxWorkerTaskLen)
 		//启动当前Worker，阻塞的等待对应的任务队列是否有消息传递进来
 		go mh.StartOneWorker(i, mh.TaskQueue[i])
 	}

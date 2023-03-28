@@ -26,7 +26,6 @@ import (
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"math"
-	"unsafe"
 )
 
 const TLV_HEADER_SIZE = 8 //表示TLV空包长度
@@ -87,7 +86,7 @@ func (this *TLVDecoder) Intercept(chain ziface.Chain) ziface.Response {
 					iMessage.SetMsgID(_data.Tag)
 					iMessage.SetDataLen(_data.Length)
 					iRequest.SetResponse(_data)
-					zlog.Ins().DebugF("TLV-DecodeData size:%d data:%+v\n", unsafe.Sizeof(data), _data)
+					//zlog.Ins().DebugF("TLV-DecodeData size:%d data:%+v\n", unsafe.Sizeof(data), _data)
 				}
 			}
 		}

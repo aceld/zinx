@@ -7,7 +7,7 @@
 // @Title  globalobj.go
 // @Description  相关配置文件定义及加载方式
 // @Author  Aceld - Thu Mar 11 10:32:29 CST 2019
-package utils
+package zconf
 
 import (
 	"encoding/json"

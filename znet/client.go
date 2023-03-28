@@ -1,7 +1,7 @@
 package znet
 
 import (
-	"github.com/aceld/zinx/utils"
+	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/zpack"
@@ -61,7 +61,7 @@ func (c *Client) Start() {
 	}
 
 	//客户端将协程池关闭
-	utils.GlobalObject.WorkerPoolSize = 0
+	zconf.GlobalObject.WorkerPoolSize = 0
 
 	go func() {
 		addr := &net.TCPAddr{
