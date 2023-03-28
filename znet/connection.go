@@ -155,6 +155,8 @@ func (c *Connection) StartReader() {
 		default:
 			//add by uuxia 2023-02-03
 			buffer := make([]byte, zconf.GlobalObject.IOReadBuffSize)
+
+			//从conn的IO中读取数据到内存缓冲buffer中
 			n, err := c.conn.Read(buffer[:])
 			if err != nil {
 				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err)
