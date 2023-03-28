@@ -1,9 +1,8 @@
 # <img width="80px" src="https://s2.ax1x.com/2019/10/09/u4yHo9.png" /> 
 
 [English](README.md) | 简体中文
-
 [![License](https://img.shields.io/badge/License-GPL%203.0-black.svg)](LICENSE)
-[![Discord](https://img.shields.io/badge/zinx-Discord在线社区-blue.svg)](https://discord.gg/X7BUn6bT)
+[![Discord](https://img.shields.io/badge/zinx-Discord在线社区-blue.svg)](https://discord.gg/rM2sw5uv)
 [![Gitter](https://img.shields.io/badge/zinx-Gitter在线交流-green.svg)](https://gitter.im/zinx_go/community)
 [![zinx tutorial](https://img.shields.io/badge/Zinx教程-YuQue-red.svg)](https://www.yuque.com/aceld/npyr8s/bgftov)
 [![Original Book of Zinx](https://img.shields.io/badge/原创书籍-YuQue-black.svg)](https://www.yuque.com/aceld)
@@ -259,7 +258,7 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
 {
   "Name":"zinx v-0.10 demoApp",
   "Host":"127.0.0.1",
-  "TcpPort":7777,
+  "TCPPort":7777,
   "MaxConn":3,
   "WorkerPoolSize":10,
   "LogDir": "./mylog",
@@ -289,24 +288,17 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
 -   张超([@zhngcho](https://github.com/zhngcho))
 -   高智辉Roger([@adsian](https://github.com/adsian))
 -   胡贵建([@huguijian](https://github.com/huguijian))
--   张继瑀([@kstwoak](https://github.com/huguijian))
+-   张继瑀([@kstwoak](https://github.com/kstwoak))
+-   夏小力([@xxl6097](https://github.com/xxl6097))
 
 
 ---
-[zinx(C++版本)](https://github.com/marklion/zinx)
-#### 开发者
--  刘洋([@marklion](https://github.com/marklion))
-
-
----
-[zinx(Lua版本)](https://github.com/huqitt/zinx-lua)
-#### 开发者
--  胡琪([@huqitt](https://github.com/huqitt))
-
----
-[zinx(websocket版本)](https://github.com/aceld/zinx/tree/wsserver)
-#### 开发者
--  胡贵建([@huguijian](https://github.com/huguijian))
+#### 其他版本的开发者 
+|  **Zinx**   | **开发者**  |
+|  ----  | ----  | 
+|[zinx(based C++)](https://github.com/marklion/zinx) |刘洋([@marklion](https://github.com/marklion))|
+|[zinx(based Lua)](https://github.com/huqitt/zinx-lua)|胡琪([@huqitt](https://github.com/huqitt))|
+|[zinx(for websocket)](https://github.com/aceld/zinx/tree/wsserver)|胡贵建([@huguijian](https://github.com/huguijian))|
 
 ---
 

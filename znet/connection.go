@@ -7,10 +7,11 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
-	"github.com/aceld/zinx/zcode"
 	"github.com/aceld/zinx/zconf"
+	"github.com/aceld/zinx/zinterceptor"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/zpack"
+	"github.com/gorilla/websocket"
 	"net"
 	"sync"
 	"time"
@@ -53,7 +54,7 @@ type Connection struct {
 	//最后一次活动时间
 	lastActivityTime time.Time
 	//断粘包解码器
-	lengthFieldDecoder ziface.ILengthField
+	frameDecoder ziface.IFrameDecoder
 	//心跳检测器
 	hc ziface.IHeartbeatChecker
 }
@@ -72,7 +73,7 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 
 	lengthField := server.GetLengthField()
 	if lengthField != nil {
-		c.lengthFieldDecoder = zcode.NewLengthFieldFrameDecoderByLengthField(*lengthField)
+		c.frameDecoder = zinterceptor.NewFrameDecoder(*lengthField)
 	}
 
 	//从server继承过来的属性
@@ -102,7 +103,7 @@ func newClientConn(client ziface.IClient, conn net.Conn) ziface.IConnection {
 
 	lengthField := client.GetLengthField()
 	if lengthField != nil {
-		c.lengthFieldDecoder = zcode.NewLengthFieldFrameDecoderByLengthField(*lengthField)
+		c.frameDecoder = zinterceptor.NewFrameDecoder(*lengthField)
 	}
 
 	//从client继承过来的属性
@@ -126,7 +127,7 @@ func (c *Connection) StartWriter() {
 				//有数据要写给对端
 				if _, err := c.conn.Write(data); err != nil {
 					zlog.Ins().ErrorF("Send Buff Data error:, %s Conn Writer exit", err)
-					return
+					break
 				}
 
 				//写对端成功, 更新链接活动时间
@@ -155,6 +156,8 @@ func (c *Connection) StartReader() {
 		default:
 			//add by uuxia 2023-02-03
 			buffer := make([]byte, zconf.GlobalObject.IOReadBuffSize)
+
+			//从conn的IO中读取数据到内存缓冲buffer中
 			n, err := c.conn.Read(buffer[:])
 			if err != nil {
 				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err)
@@ -168,9 +171,9 @@ func (c *Connection) StartReader() {
 			}
 
 			//处理自定义协议断粘包问题 add by uuxia 2023-03-21
-			if c.lengthFieldDecoder != nil {
+			if c.frameDecoder != nil {
 				//为读取到的0-n个字节的数据进行解码
-				bufArrays := c.lengthFieldDecoder.Decode(buffer[0:n])
+				bufArrays := c.frameDecoder.Decode(buffer[0:n])
 				if bufArrays == nil {
 					continue
 				}
@@ -179,13 +182,13 @@ func (c *Connection) StartReader() {
 					msg := zpack.NewMessage(uint32(len(bytes)), bytes)
 					//得到当前客户端请求的Request数据
 					req := NewRequest(c, msg)
-					c.msgHandler.Decode(req)
+					c.msgHandler.Execute(req)
 				}
 			} else {
 				msg := zpack.NewMessage(uint32(n), buffer[0:n])
 				//得到当前客户端请求的Request数据
 				req := NewRequest(c, msg)
-				c.msgHandler.Decode(req)
+				c.msgHandler.Execute(req)
 			}
 		}
 	}
@@ -219,6 +222,15 @@ func (c *Connection) Stop() {
 }
 
 func (c *Connection) GetConnection() net.Conn {
+	return c.conn
+}
+
+func (c *Connection) GetWsConn() *websocket.Conn {
+	return nil
+}
+
+// Deprecated: use GetConnection instead
+func (c *Connection) GetTCPConnection() net.Conn {
 	return c.conn
 }
 

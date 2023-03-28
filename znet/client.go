@@ -2,6 +2,7 @@ package znet
 
 import (
 	"github.com/aceld/zinx/zconf"
+	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/zpack"
@@ -39,7 +40,7 @@ func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 		Port:       port,
 		msgHandler: NewMsgHandle(),
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack), //默认使用zinx的TLV封包方式
-		decoder:    zpack.NewTLVDecoder(),                        //默认使用zinx的TLV解码器
+		decoder:    zdecoder.NewTLVDecoder(),                     //默认使用zinx的TLV解码器
 	}
 
 	//应用Option设置
@@ -176,7 +177,7 @@ func (c *Client) GetMsgHandler() ziface.IMsgHandle {
 	return c.msgHandler
 }
 
-func (c *Client) AddInterceptor(interceptor ziface.Interceptor) {
+func (c *Client) AddInterceptor(interceptor ziface.IInterceptor) {
 	c.msgHandler.AddInterceptor(interceptor)
 }
 

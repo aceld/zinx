@@ -3,9 +3,9 @@ package znet
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/aceld/zinx/zcode"
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/zinterceptor"
 	"github.com/aceld/zinx/zlog"
 )
 
@@ -14,7 +14,7 @@ type MsgHandle struct {
 	Apis           map[uint32]ziface.IRouter //存放每个MsgID 所对应的处理方法的map属性
 	WorkerPoolSize uint32                    //业务工作Worker池的数量
 	TaskQueue      []chan ziface.IRequest    //Worker负责取任务的消息队列
-	builder        ziface.InterceptorBuilder //责任链构造器
+	builder        ziface.IBuilder           //责任链构造器
 }
 
 // NewMsgHandle 创建MsgHandle
@@ -24,14 +24,14 @@ func NewMsgHandle() *MsgHandle {
 		WorkerPoolSize: zconf.GlobalObject.WorkerPoolSize,
 		//一个worker对应一个queue
 		TaskQueue: make([]chan ziface.IRequest, zconf.GlobalObject.WorkerPoolSize),
-		builder:   zcode.NewInterceptorBuilder(),
+		builder:   zinterceptor.NewBuilder(),
 	}
 	//此处必须把 msghandler 添加到责任链中，并且是责任链最后一环，在msghandler中进行解码后由router做数据分发
 	handle.builder.Tail(handle)
 	return handle
 }
 
-func (this *MsgHandle) Intercept(chain ziface.Chain) ziface.Response {
+func (mh *MsgHandle) Intercept(chain ziface.IChain) ziface.IcResp {
 	request := chain.Request()
 	if request != nil {
 		switch request.(type) {
@@ -39,19 +39,19 @@ func (this *MsgHandle) Intercept(chain ziface.Chain) ziface.Response {
 			iRequest := request.(ziface.IRequest)
 			if zconf.GlobalObject.WorkerPoolSize > 0 {
 				//已经启动工作池机制，将消息交给Worker处理
-				this.SendMsgToTaskQueue(iRequest)
+				mh.SendMsgToTaskQueue(iRequest)
 			} else {
 				//从绑定好的消息和对应的处理方法中执行对应的Handle方法
-				go this.DoMsgHandler(iRequest)
+				go mh.doMsgHandler(iRequest)
 			}
 		}
 	}
 	return chain.Proceed(chain.Request())
 }
 
-func (this *MsgHandle) AddInterceptor(interceptor ziface.Interceptor) {
-	if this.builder != nil {
-		this.builder.AddInterceptor(interceptor)
+func (mh *MsgHandle) AddInterceptor(interceptor ziface.IInterceptor) {
+	if mh.builder != nil {
+		mh.builder.AddInterceptor(interceptor)
 	}
 }
 
@@ -69,7 +69,7 @@ func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
 }
 
 // DoMsgHandler 马上以非阻塞方式处理消息
-func (mh *MsgHandle) DoMsgHandler(request ziface.IRequest) {
+func (mh *MsgHandle) doMsgHandler(request ziface.IRequest) {
 	handler, ok := mh.Apis[request.GetMsgID()]
 	if !ok {
 		zlog.Ins().ErrorF("api msgID = %d is not FOUND!", request.GetMsgID())
@@ -82,7 +82,7 @@ func (mh *MsgHandle) DoMsgHandler(request ziface.IRequest) {
 	request.Call()
 }
 
-func (mh *MsgHandle) Decode(request ziface.IRequest) {
+func (mh *MsgHandle) Execute(request ziface.IRequest) {
 	mh.builder.Execute(request) //将消息丢到责任链，通过责任链里拦截器层层处理层层传递
 }
 
@@ -106,7 +106,7 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 		select {
 		//有消息则取出队列的Request，并执行绑定的业务方法
 		case request := <-taskQueue:
-			mh.DoMsgHandler(request)
+			mh.doMsgHandler(request)
 		}
 	}
 }

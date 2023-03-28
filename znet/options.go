@@ -13,11 +13,11 @@ func WithPacket(pack ziface.IDataPack) Option {
 }
 
 //Client的客户端Option
-type ClientOption func(c *Client)
+type ClientOption func(c ziface.IClient)
 
 //Client的客户端Option
 func WithPacketClient(pack ziface.IDataPack) ClientOption {
-	return func(c *Client) {
+	return func(c ziface.IClient) {
 		c.SetPacket(pack)
 	}
 }

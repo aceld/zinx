@@ -15,21 +15,21 @@ const (
 
 // Request 请求
 type Request struct {
-	response ziface.Response
 	conn     ziface.IConnection //已经和客户端建立好的 链接
 	msg      ziface.IMessage    //客户端请求的数据
 	router   ziface.IRouter     //请求处理的函数
 	steps    ziface.HandleStep  //用来控制路由函数执行
 	stepLock *sync.RWMutex      //并发互斥
-	needNext bool
+	needNext bool               //是否需要执行下一个路由函数
+	icResp   ziface.IcResp      //拦截器返回数据
 }
 
-func (r *Request) GetResponse() ziface.Response {
-	return r.response
+func (r *Request) GetResponse() ziface.IcResp {
+	return r.icResp
 }
 
-func (r *Request) SetResponse(response ziface.Response) {
-	r.response = response
+func (r *Request) SetResponse(response ziface.IcResp) {
+	r.icResp = response
 }
 
 func NewRequest(conn ziface.IConnection, msg ziface.IMessage) *Request {

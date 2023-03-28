@@ -18,11 +18,10 @@
 //   initialBytesToStrip = 0   (这个0表示完整的协议内容，如果不想要A2，那么这里就是1) 从解码帧中第一次去除的字节数
 //   maxFrameLength      = 255 + 4(起始码、功能码、CRC) (len是1个byte，所以最大长度是无符号1个byte的最大值)
 
-package decode
+package zdecoder
 
 import (
 	"encoding/hex"
-	"github.com/aceld/zinx/examples/zinx_decoder/bili/utils"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"math"
@@ -31,7 +30,7 @@ import (
 
 const HEADER_SIZE = 5
 
-type HtlvCrcData struct {
+type HtlvCrcDecoder struct {
 	Head    byte   //头码
 	Funcode byte   //功能码
 	Length  byte   //数据长度
@@ -40,15 +39,11 @@ type HtlvCrcData struct {
 	Data    []byte //数据内容
 }
 
-type HtlvCrcDecoder interface {
-	ziface.IDecoder
-}
-
 func NewHTLVCRCDecoder() ziface.IDecoder {
-	return &HtlvCrcData{}
+	return &HtlvCrcDecoder{}
 }
 
-func (this *HtlvCrcData) GetLengthField() *ziface.LengthField {
+func (hcd *HtlvCrcDecoder) GetLengthField() *ziface.LengthField {
 	//+------+-------+---------+--------+--------+
 	//| 头码  | 功能码 | 数据长度 | 数据内容 | CRC校验 |
 	//| 1字节 | 1字节  | 1字节   | N字节   |  2字节  |
@@ -72,37 +67,52 @@ func (this *HtlvCrcData) GetLengthField() *ziface.LengthField {
 	}
 }
 
-func (this *HtlvCrcData) Intercept(chain ziface.Chain) ziface.Response {
+func (hcd *HtlvCrcDecoder) Intercept(chain ziface.IChain) ziface.IcResp {
 	request := chain.Request()
-	if request != nil {
-		switch request.(type) {
-		case ziface.IRequest:
-			iRequest := request.(ziface.IRequest)
-			iMessage := iRequest.GetMessage()
-			if iMessage != nil {
-				data := iMessage.GetData()
-				zlog.Ins().DebugF("HTLVCRC-RawData size:%d data:%s\n", len(data), hex.EncodeToString(data))
-				datasize := len(data)
-				htlvData := HtlvCrcData{
-					Data: data,
-				}
-				if datasize >= HEADER_SIZE {
-					htlvData.Head = data[0]
-					htlvData.Funcode = data[1]
-					htlvData.Length = data[2]
-					htlvData.Body = data[3 : datasize-2]
-					htlvData.Crc = data[datasize-2 : datasize]
-					if !utils.CheckCRC(data[:datasize-2], htlvData.Crc) {
-						zlog.Ins().DebugF("crc校验失败 %s %s\n", hex.EncodeToString(data), hex.EncodeToString(htlvData.Crc))
-						return nil
-					}
-					iMessage.SetMsgID(uint32(htlvData.Funcode))
-					iRequest.SetResponse(htlvData)
-					//zlog.Ins().DebugF("2htlvData %s \n", hex.EncodeToString(htlvData.data))
-					zlog.Ins().DebugF("HTLVCRC-DecodeData size:%d data:%+v\n", unsafe.Sizeof(htlvData), htlvData)
-				}
+	if request == nil {
+		return chain.Proceed(chain.Request())
+	}
+
+	switch request.(type) {
+	case ziface.IRequest:
+		iRequest := request.(ziface.IRequest)
+		iMessage := iRequest.GetMessage()
+		if iMessage == nil {
+			break
+		}
+
+		data := iMessage.GetData()
+		zlog.Ins().DebugF("HTLVCRC-RawData size:%d data:%s\n", len(data), hex.EncodeToString(data))
+		datasize := len(data)
+
+		htlvData := HtlvCrcDecoder{
+			Data: data,
+		}
+
+		//数据大于消息头长度，进行解析
+		if datasize >= HEADER_SIZE {
+			//解析头
+			htlvData.Head = data[0]
+			htlvData.Funcode = data[1]
+			htlvData.Length = data[2]
+			htlvData.Body = data[3 : datasize-2]
+			htlvData.Crc = data[datasize-2 : datasize]
+
+			//CRC校验
+			if !CheckCRC(data[:datasize-2], htlvData.Crc) {
+				zlog.Ins().DebugF("crc校验失败 %s %s\n", hex.EncodeToString(data), hex.EncodeToString(htlvData.Crc))
+				return nil
 			}
+
+			//设置ZinxMessage消息ID
+			iMessage.SetMsgID(uint32(htlvData.Funcode))
+			//设置ZinxMessage消息内容
+			iRequest.SetResponse(htlvData)
+
+			//zlog.Ins().DebugF("2htlvData %s \n", hex.EncodeToString(htlvData.data))
+			zlog.Ins().DebugF("HTLVCRC-DecodeData size:%d data:%+v\n", unsafe.Sizeof(htlvData), htlvData)
 		}
 	}
+
 	return chain.Proceed(chain.Request())
 }

@@ -1,11 +1,15 @@
 package znet
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"github.com/aceld/zinx/zconf"
+	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/zlog"
+	"github.com/gorilla/websocket"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"time"
@@ -53,6 +57,9 @@ type Server struct {
 	decoder ziface.IDecoder
 	//心跳检测器
 	hc ziface.IHeartbeatChecker
+
+	// websocket
+	upgrader websocket.Upgrader
 }
 
 // NewServer 创建一个服务器句柄
@@ -69,7 +76,13 @@ func NewServer(opts ...Option) ziface.IServer {
 		exitChan:   nil,
 		//默认使用zinx的TLV封包方式
 		packet:  zpack.Factory().NewPack(ziface.ZinxDataPack),
-		decoder: zpack.NewTLVDecoder(), //默认使用TLV的解码方式
+		decoder: zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
+		upgrader: websocket.Upgrader{
+			ReadBufferSize: int(zconf.GlobalObject.IOReadBuffSize),
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		},
 	}
 
 	for _, opt := range opts {
@@ -96,7 +109,7 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 		ConnMgr:    NewConnManager(),
 		exitChan:   nil,
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack),
-		decoder:    zpack.NewTLVDecoder(), //默认使用TLV的解码方式
+		decoder:    zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
 	}
 	//更替打包方式
 	for _, opt := range opts {
@@ -135,15 +148,14 @@ func (s *Server) Start() {
 			return
 		}
 
-		//2 监听服务器地址
+		// 2 监听服务器地址
 		listener, err := net.ListenTCP(s.IPVersion, addr)
 		if err != nil {
 			panic(err)
 		}
 
-		//已经监听成功
-		zlog.Ins().InfoF("[START] start Zinx server  %s succ, now listening...", s.Name)
-
+		// 4. 创建 ws连接服务
+		// 创建 HTTP 服务器
 		var cID uint64
 
 		go func() {
@@ -171,20 +183,60 @@ func (s *Server) Start() {
 
 				AcceptDelay.Reset()
 
-				//3.3 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
-				dealConn := newServerConn(s, conn, cID)
-				cID++
-
-				//HeartBeat 心跳检测
-				if s.hc != nil {
-					//从Server端克隆一个心跳检测器
-					heartBeatChecker := s.hc.Clone()
-					//绑定当前链接
-					heartBeatChecker.BindConn(dealConn)
+				var dealConn ziface.IConnection
+				reader := bufio.NewReader(conn)
+				peek, err := reader.Peek(1)
+				if err != nil {
+					zlog.Ins().ErrorF("Error peeking request err:%v", err)
+					return
 				}
+				// 3.3 判断连接是否是 HTTP 请求
+				if peek[0] == 'G' || peek[0] == 'P' || peek[0] == 'H' {
+					// 处理 HTTP 请求
+					// 创建 http ResponseWriter
+					w := newResponseWriter(conn.(*net.TCPConn))
+					// 把http连接解析成request
+					request, err := http.ReadRequest(reader)
+					if err != nil {
+						zlog.Ins().ErrorF("Error reading HTTP request err:%v", err)
+						return
+					}
+					// 3.4 把 net.conn 转成 websocket.conn 模式
+					wsConn, err := s.upgrader.Upgrade(w, request, nil)
+					// 3.5 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
+					dealConn = newWebsocketConn(s, wsConn, cID)
+
+					// Websocket HeartBeat 心跳检测
+					if s.hc != nil {
+						//从Server端克隆一个心跳检测器
+						heartBeatChecker := s.hc.Clone()
+						heartBeatChecker.SetHeartbeatFunc(func(connection ziface.IConnection) error {
+							return connection.GetWsConn().WriteMessage(websocket.PingMessage, nil)
+						})
+						//绑定当前链接
+						heartBeatChecker.BindConn(dealConn)
+					}
+
+				} else {
+					//3.4 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
+					dealConn = newServerConn(s, conn, cID)
+
+					// TCP HeartBeat 心跳检测
+					if s.hc != nil {
+						//从Server端克隆一个心跳检测器
+						heartBeatChecker := s.hc.Clone()
+
+						//绑定当前链接
+						heartBeatChecker.BindConn(dealConn)
+					}
+
+				}
+
+				cID++
 
 				//3.4 启动当前链接的处理业务
 				go dealConn.Start()
+
 			}
 		}()
 
@@ -306,7 +358,7 @@ func (s *Server) GetLengthField() *ziface.LengthField {
 	return nil
 }
 
-func (s *Server) AddInterceptor(interceptor ziface.Interceptor) {
+func (s *Server) AddInterceptor(interceptor ziface.IInterceptor) {
 	s.msgHandler.AddInterceptor(interceptor)
 }
 

@@ -1,6 +1,6 @@
 package ziface
 
 type IDecoder interface {
-	Interceptor
+	IInterceptor
 	GetLengthField() *LengthField
 }
