@@ -1,4 +1,4 @@
-package utils
+package zconf
 
 //注意如果使用UserConf应该调用方法同步至 GlobalConfObject 因为其他参数是调用的此结构体参数
 func UserConfToGlobal(config *Config) {

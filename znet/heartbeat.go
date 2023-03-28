@@ -22,7 +22,7 @@ type HeartbeatChecker struct {
 }
 
 /*
-收到remote心跳消息的默认回调路由业务
+	收到remote心跳消息的默认回调路由业务
 */
 type HeatBeatDefaultRouter struct {
 	BaseRouter
@@ -30,7 +30,8 @@ type HeatBeatDefaultRouter struct {
 
 // Handle -
 func (r *HeatBeatDefaultRouter) Handle(req ziface.IRequest) {
-	zlog.Ins().InfoF("Recv Heartbeat from %s, MsgID = %+v, Data = %s", req.GetConnection().RemoteAddr(), req.GetMsgID(), string(req.GetData()))
+	zlog.Ins().InfoF("Recv Heartbeat from %s, MsgID = %+v, Data = %s",
+		req.GetConnection().RemoteAddr(), req.GetMsgID(), string(req.GetData()))
 }
 
 // 默认的心跳消息生成函数

@@ -8,13 +8,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"github.com/aceld/zinx/zcode"
+	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/zpack"
 	"net"
 	"sync"
 	"time"
 
-	"github.com/aceld/zinx/utils"
 	"github.com/aceld/zinx/ziface"
 )
 
@@ -154,7 +154,7 @@ func (c *Connection) StartReader() {
 			return
 		default:
 			//add by uuxia 2023-02-03
-			buffer := make([]byte, utils.GlobalObject.IOReadBuffSize)
+			buffer := make([]byte, zconf.GlobalObject.IOReadBuffSize)
 			n, err := c.conn.Read(buffer[:])
 			if err != nil {
 				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err)
@@ -262,7 +262,7 @@ func (c *Connection) SendToQueue(data []byte) error {
 	defer c.msgLock.RUnlock()
 
 	if c.msgBuffChan == nil {
-		c.msgBuffChan = make(chan []byte, utils.GlobalObject.MaxMsgChanLen)
+		c.msgBuffChan = make(chan []byte, zconf.GlobalObject.MaxMsgChanLen)
 		//开启用于写回客户端数据流程的Goroutine
 		//此方法只读取MsgBuffChan中的数据没调用SendBuffMsg可以分配内存和启用协程
 		go c.StartWriter()
@@ -323,7 +323,7 @@ func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 	defer c.msgLock.RUnlock()
 
 	if c.msgBuffChan == nil {
-		c.msgBuffChan = make(chan []byte, utils.GlobalObject.MaxMsgChanLen)
+		c.msgBuffChan = make(chan []byte, zconf.GlobalObject.MaxMsgChanLen)
 		//开启用于写回客户端数据流程的Goroutine
 		//此方法只读取MsgBuffChan中的数据没调用SendBuffMsg可以分配内存和启用协程
 		go c.StartWriter()
@@ -444,7 +444,7 @@ func (c *Connection) IsAlive() bool {
 		return false
 	}
 	// 检查连接最后一次活动时间，如果超过心跳间隔，则认为连接已经死亡
-	return time.Now().Sub(c.lastActivityTime) < utils.GlobalObject.HeartbeatMaxDuration()
+	return time.Now().Sub(c.lastActivityTime) < zconf.GlobalObject.HeartbeatMaxDuration()
 }
 
 func (c *Connection) updateActivity() {
