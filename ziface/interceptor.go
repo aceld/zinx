@@ -23,6 +23,8 @@ type Chain interface {
 	Proceed(Request) Response
 }
 type InterceptorBuilder interface {
+	Head(interceptor Interceptor)
+	Tail(interceptor Interceptor)
 	AddInterceptor(interceptor Interceptor)
 	Execute(request Request) Response
 }

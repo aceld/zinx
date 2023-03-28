@@ -131,7 +131,7 @@ func (c *Connection) StartWriter() {
 				}
 
 				//写对端成功, 更新链接活动时间
-				c.updateActivity()
+				//c.updateActivity()
 			} else {
 				zlog.Ins().ErrorF("msgBuffChan is Closed")
 				break
@@ -162,6 +162,11 @@ func (c *Connection) StartReader() {
 				return
 			}
 			zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer[0:n]))
+
+			//正常读取到对端数据，更新心跳检测Active状态
+			if n > 0 && c.hc != nil {
+				c.updateActivity()
+			}
 
 			//处理自定义协议断粘包问题 add by uuxia 2023-03-21
 			if c.lengthFieldDecoder != nil {
@@ -196,6 +201,7 @@ func (c *Connection) Start() {
 	//启动心跳检测
 	if c.hc != nil {
 		c.hc.Start()
+		c.updateActivity()
 	}
 
 	//开启用户从客户端读取数据流程的Goroutine
@@ -247,7 +253,7 @@ func (c *Connection) Send(data []byte) error {
 	}
 
 	//写对端成功, 更新链接活动时间
-	c.updateActivity()
+	//c.updateActivity()
 
 	return nil
 }
@@ -307,7 +313,7 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 	}
 
 	//写对端成功, 更新链接活动时间
-	c.updateActivity()
+	//c.updateActivity()
 
 	return nil
 }

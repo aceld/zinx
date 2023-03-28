@@ -7,26 +7,40 @@ import (
 	"time"
 )
 
-type TestRouter struct {
+// 用户自定义的心跳检测消息处理方法
+func myHeartBeatMsg(conn ziface.IConnection) []byte {
+	return []byte("heartbeat, I am server, I am alive")
+}
+
+// 用户自定义的远程连接不存活时的处理方法
+func myOnRemoteNotAlive(conn ziface.IConnection) {
+	fmt.Println("myOnRemoteNotAlive is Called, connID=", conn.GetConnID(), "remoteAddr = ", conn.RemoteAddr())
+	//关闭链接
+	conn.Stop()
+}
+
+// 用户自定义的心跳检测消息处理方法
+type myHeartBeatRouter struct {
 	znet.BaseRouter
 }
 
-// Handle -
-func (t *TestRouter) Handle(req ziface.IRequest) {
-	fmt.Println("--> Call Handle, reveived msg: ", string(req.GetData()), " msgID: ", req.GetMsgID(), " connID: ", req.GetConnection().GetConnID())
-
-	if err := req.GetConnection().SendMsg(0, []byte("hello i am server")); err != nil {
-		fmt.Println(err)
-	}
+func (r *myHeartBeatRouter) Handle(request ziface.IRequest) {
+	// 业务处理
+	fmt.Println("in MyHeartBeatRouter Handle, recv from client : msgId=", request.GetMsgID(), ", data=", string(request.GetData()))
 }
 
 func main() {
 	s := znet.NewServer()
 
-	s.AddRouter(1, &TestRouter{})
+	myHeartBeatMsgID := 88888
 
 	//启动心跳检测
-	s.StartHeartBeat(5 * time.Second)
+	s.StartHeartBeatWithOption(1*time.Second, &ziface.HeartBeatOption{
+		MakeMsg:          myHeartBeatMsg,
+		OnRemoteNotAlive: myOnRemoteNotAlive,
+		Router:           &myHeartBeatRouter{},
+		HeadBeatMsgID:    uint32(myHeartBeatMsgID),
+	})
 
 	s.Serve()
 }

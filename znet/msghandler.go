@@ -19,13 +19,16 @@ type MsgHandle struct {
 
 // NewMsgHandle 创建MsgHandle
 func NewMsgHandle() *MsgHandle {
-	return &MsgHandle{
+	handle := &MsgHandle{
 		Apis:           make(map[uint32]ziface.IRouter),
 		WorkerPoolSize: utils.GlobalObject.WorkerPoolSize,
 		//一个worker对应一个queue
 		TaskQueue: make([]chan ziface.IRequest, utils.GlobalObject.WorkerPoolSize),
 		builder:   zcode.NewInterceptorBuilder(),
 	}
+	//此处必须把 msghandler 添加到责任链中，并且是责任链最后一环，在msghandler中进行解码后由router做数据分发
+	handle.builder.Tail(handle)
+	return handle
 }
 
 func (this *MsgHandle) Intercept(chain ziface.Chain) ziface.Response {
@@ -92,7 +95,7 @@ func (mh *MsgHandle) AddRouter(msgID uint32, router ziface.IRouter) {
 	}
 	//2 添加msg与api的绑定关系
 	mh.Apis[msgID] = router
-	zlog.Ins().InfoF("Add api msgID = %d", msgID)
+	zlog.Ins().InfoF("Add Router msgID = %d", msgID)
 }
 
 // StartOneWorker 启动一个Worker工作流程
@@ -110,8 +113,6 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 
 // StartWorkerPool 启动worker工作池
 func (mh *MsgHandle) StartWorkerPool() {
-	//此处必须把 msghandler 添加到责任链中，并且是责任链最后一环，在msghandler中进行解码后由router做数据分发
-	mh.AddInterceptor(mh)
 	//遍历需要启动worker的数量，依此启动
 	for i := 0; i < int(mh.WorkerPoolSize); i++ {
 		//一个worker被启动
