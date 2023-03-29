@@ -258,7 +258,7 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
 {
   "Name":"zinx v-0.10 demoApp",
   "Host":"127.0.0.1",
-  "TcpPort":7777,
+  "TCPPort":7777,
   "MaxConn":3,
   "WorkerPoolSize":10,
   "LogDir": "./mylog",

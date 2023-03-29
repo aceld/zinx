@@ -8,9 +8,9 @@ import (
 	"sync"
 )
 
-//建立一个用户自定义ID和连接映射的结构
-//map会存在 并发问题，大量数据循环读取问题
-//暂时先用map结构存储，但是应该不是最好的选择，抛砖引玉
+// 建立一个用户自定义ID和连接映射的结构
+// map会存在 并发问题，大量数据循环读取问题
+// 暂时先用map结构存储，但是应该不是最好的选择，抛砖引玉
 type ConnIDMap map[uint64]ziface.IConnection
 
 type notify struct {
@@ -77,7 +77,6 @@ func (n *notify) NotifyAll(MsgId uint32, data []byte) error {
 		err := v.SendMsg(MsgId, data)
 		if err != nil {
 			zlog.Ins().ErrorF("Notify to %d err:%s \n", Id, err)
-			return err
 		}
 	}
 	return nil
@@ -90,13 +89,12 @@ func (n *notify) notifyAll(MsgId uint32, data []byte) error {
 		err := v.SendMsg(MsgId, data)
 		if err != nil {
 			zlog.Ins().ErrorF("Notify to %d err:%s \n", Id, err)
-			return err
 		}
 	}
 	return nil
 }
 
-//极端情况 同时加入和发送的人很多需要尽快释放map的情况， 目前问题很多不采用
+// 极端情况 同时加入和发送的人很多需要尽快释放map的情况， 目前问题很多不采用
 func (n *notify) notifyAll2(MsgId uint32, data []byte) error {
 	conns := make([]ziface.IConnection, 0, len(n.cimap))
 	n.RLock()
@@ -131,7 +129,6 @@ func (n *notify) NotifyBuffAll(MsgId uint32, data []byte) error {
 		err := v.SendBuffMsg(MsgId, data)
 		if err != nil {
 			zlog.Ins().ErrorF("Notify to %d err:%s \n", Id, err)
-			return err
 		}
 	}
 	return nil
