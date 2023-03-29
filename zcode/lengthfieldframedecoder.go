@@ -339,7 +339,7 @@ func NewLengthFieldFrameDecoder(maxFrameLength uint64, lengthFieldOffset, length
 	})
 }
 
-func (this *EncoderData) fail(frameLength int64) {
+func (ed *EncoderData) fail(frameLength int64) {
 	//丢弃完成或未完成都抛异常
 	//if frameLength > 0 {
 	//	msg := fmt.Sprintf("Adjusted frame length exceeds %d : %d - discarded", this.MaxFrameLength, frameLength)
@@ -350,9 +350,9 @@ func (this *EncoderData) fail(frameLength int64) {
 	//}
 }
 
-func (this *EncoderData) discardingTooLongFrameFunc(buffer *bytes.Buffer) {
+func (ed *EncoderData) discardingTooLongFrameFunc(buffer *bytes.Buffer) {
 	//保存还需丢弃多少字节
-	bytesToDiscard := this.bytesToDiscard
+	bytesToDiscard := ed.bytesToDiscard
 	//获取当前可以丢弃的字节数，有可能出现半包
 	localBytesToDiscard := math.Min(float64(bytesToDiscard), float64(buffer.Len()))
 	//fmt.Println("--->", bytesToDiscard, buffer.Len(), localBytesToDiscard)
@@ -361,12 +361,12 @@ func (this *EncoderData) discardingTooLongFrameFunc(buffer *bytes.Buffer) {
 	buffer.Next(int(localBytesToDiscard))
 	//更新还需丢弃的字节数
 	bytesToDiscard -= int64(localBytesToDiscard)
-	this.bytesToDiscard = bytesToDiscard
+	ed.bytesToDiscard = bytesToDiscard
 	//是否需要快速失败，回到上面的逻辑
-	this.failIfNecessary(false)
+	ed.failIfNecessary(false)
 }
 
-func (this *EncoderData) getUnadjustedFrameLength(buf *bytes.Buffer, offset int, length int, order binary.ByteOrder) int64 {
+func (ed *EncoderData) getUnadjustedFrameLength(buf *bytes.Buffer, offset int, length int, order binary.ByteOrder) int64 {
 	//长度字段的值
 	var frameLength int64
 	arr := buf.Bytes()
@@ -401,101 +401,101 @@ func (this *EncoderData) getUnadjustedFrameLength(buf *bytes.Buffer, offset int,
 		//long
 		binary.Read(buffer, order, &frameLength)
 	default:
-		panic(fmt.Sprintf("unsupported LengthFieldLength: %d (expected: 1, 2, 3, 4, or 8)", this.lengthField.LengthFieldLength))
+		panic(fmt.Sprintf("unsupported LengthFieldLength: %d (expected: 1, 2, 3, 4, or 8)", ed.lengthField.LengthFieldLength))
 	}
 	return frameLength
 }
 
-func (this *EncoderData) failOnNegativeLengthField(in *bytes.Buffer, frameLength int64, lengthFieldEndOffset int) {
+func (ed *EncoderData) failOnNegativeLengthField(in *bytes.Buffer, frameLength int64, lengthFieldEndOffset int) {
 	in.Next(lengthFieldEndOffset)
 	panic(fmt.Sprintf("negative pre-adjustment length field: %d", frameLength))
 }
 
-func (this *EncoderData) failIfNecessary(firstDetectionOfTooLongFrame bool) {
-	if this.bytesToDiscard == 0 {
+func (ed *EncoderData) failIfNecessary(firstDetectionOfTooLongFrame bool) {
+	if ed.bytesToDiscard == 0 {
 		//说明需要丢弃的数据已经丢弃完成
 		//保存一下被丢弃的数据包长度
-		tooLongFrameLength := this.tooLongFrameLength
-		this.tooLongFrameLength = 0
+		tooLongFrameLength := ed.tooLongFrameLength
+		ed.tooLongFrameLength = 0
 		//关闭丢弃模式
-		this.discardingTooLongFrame = false
+		ed.discardingTooLongFrame = false
 		//failFast：默认true
 		//firstDetectionOfTooLongFrame：传入true
-		if !this.failFast || firstDetectionOfTooLongFrame {
+		if !ed.failFast || firstDetectionOfTooLongFrame {
 			//快速失败
-			this.fail(tooLongFrameLength)
+			ed.fail(tooLongFrameLength)
 		}
 	} else {
 		//说明还未丢弃完成
-		if this.failFast && firstDetectionOfTooLongFrame {
+		if ed.failFast && firstDetectionOfTooLongFrame {
 			//快速失败
-			this.fail(this.tooLongFrameLength)
+			ed.fail(ed.tooLongFrameLength)
 		}
 	}
 }
 
 // frameLength：数据包的长度
-func (this *EncoderData) exceededFrameLength(in *bytes.Buffer, frameLength int64) {
+func (ed *EncoderData) exceededFrameLength(in *bytes.Buffer, frameLength int64) {
 	//数据包长度-可读的字节数  两种情况
 	//1. 数据包总长度为100，可读的字节数为50，说明还剩余50个字节需要丢弃但还未接收到
 	//2. 数据包总长度为100，可读的字节数为150，说明缓冲区已经包含了整个数据包
 	discard := frameLength - int64(in.Len())
 	//记录一下最大的数据包的长度
-	this.tooLongFrameLength = frameLength
+	ed.tooLongFrameLength = frameLength
 	if discard < 0 {
 		//说明是第二种情况，直接丢弃当前数据包
 		in.Next(int(frameLength))
 	} else {
 		//说明是第一种情况，还有部分数据未接收到
 		//开启丢弃模式
-		this.discardingTooLongFrame = true
+		ed.discardingTooLongFrame = true
 		//记录下次还需丢弃多少字节
-		this.bytesToDiscard = discard
+		ed.bytesToDiscard = discard
 		//丢弃缓冲区所有数据
 		in.Next(in.Len())
 	}
 	//跟进去
-	this.failIfNecessary(true)
+	ed.failIfNecessary(true)
 }
 
-func (this *EncoderData) failOnFrameLengthLessThanInitialBytesToStrip(in *bytes.Buffer, frameLength int64, initialBytesToStrip int) {
+func (ed *EncoderData) failOnFrameLengthLessThanInitialBytesToStrip(in *bytes.Buffer, frameLength int64, initialBytesToStrip int) {
 	in.Next(int(frameLength))
 	panic(fmt.Sprintf("Adjusted frame length (%d) is less  than InitialBytesToStrip: %d", frameLength, initialBytesToStrip))
 }
 
-func (this *EncoderData) decode(buf []byte) []byte {
+func (ed *EncoderData) decode(buf []byte) []byte {
 	in := bytes.NewBuffer(buf)
 	//丢弃模式
-	if this.discardingTooLongFrame {
-		this.discardingTooLongFrameFunc(in)
+	if ed.discardingTooLongFrame {
+		ed.discardingTooLongFrameFunc(in)
 	}
 	////判断缓冲区中可读的字节数是否小于长度字段的偏移量
-	if in.Len() < this.LengthFieldEndOffset {
+	if in.Len() < ed.LengthFieldEndOffset {
 		//说明长度字段的包都还不完整，半包
 		return nil
 	}
 	//执行到这，说明可以解析出长度字段的值了
 
 	//计算出长度字段的开始偏移量
-	actualLengthFieldOffset := this.lengthField.LengthFieldOffset
+	actualLengthFieldOffset := ed.lengthField.LengthFieldOffset
 	//获取长度字段的值，不包括lengthAdjustment的调整值
-	frameLength := this.getUnadjustedFrameLength(in, actualLengthFieldOffset, this.lengthField.LengthFieldLength, this.lengthField.Order)
+	frameLength := ed.getUnadjustedFrameLength(in, actualLengthFieldOffset, ed.lengthField.LengthFieldLength, ed.lengthField.Order)
 	//如果数据帧长度小于0，说明是个错误的数据包
 	if frameLength < 0 {
 		//内部会跳过这个数据包的字节数，并抛异常
-		this.failOnNegativeLengthField(in, frameLength, this.LengthFieldEndOffset)
+		ed.failOnNegativeLengthField(in, frameLength, ed.LengthFieldEndOffset)
 	}
 
 	//套用前面的公式：长度字段后的数据字节数=长度字段的值+lengthAdjustment
 	//frameLength就是长度字段的值，加上lengthAdjustment等于长度字段后的数据字节数
 	//lengthFieldEndOffset为lengthFieldOffset+lengthFieldLength
 	//那说明最后计算出的framLength就是整个数据包的长度
-	frameLength += int64(this.lengthField.LengthAdjustment) + int64(this.LengthFieldEndOffset)
+	frameLength += int64(ed.lengthField.LengthAdjustment) + int64(ed.LengthFieldEndOffset)
 	//丢弃模式就是在这开启的
 	//如果数据包长度大于最大长度
-	if frameLength > int64(this.lengthField.MaxFrameLength) {
+	if frameLength > int64(ed.lengthField.MaxFrameLength) {
 		//对超过的部分进行处理
-		this.exceededFrameLength(in, frameLength)
+		ed.exceededFrameLength(in, frameLength)
 		return nil
 	}
 
@@ -511,14 +511,14 @@ func (this *EncoderData) decode(buf []byte) []byte {
 	//执行到这说明缓冲区的数据已经包含了数据包
 
 	//跳过的字节数是否大于数据包长度
-	if this.lengthField.InitialBytesToStrip > frameLengthInt {
-		this.failOnFrameLengthLessThanInitialBytesToStrip(in, frameLength, this.lengthField.InitialBytesToStrip)
+	if ed.lengthField.InitialBytesToStrip > frameLengthInt {
+		ed.failOnFrameLengthLessThanInitialBytesToStrip(in, frameLength, ed.lengthField.InitialBytesToStrip)
 	}
 	//跳过initialBytesToStrip个字节
-	in.Next(this.lengthField.InitialBytesToStrip)
+	in.Next(ed.lengthField.InitialBytesToStrip)
 	//解码
 	//获取跳过后的真实数据长度
-	actualFrameLength := frameLengthInt - this.lengthField.InitialBytesToStrip
+	actualFrameLength := frameLengthInt - ed.lengthField.InitialBytesToStrip
 	//提取真实的数据
 	buff := make([]byte, actualFrameLength)
 	in.Read(buff)
@@ -527,13 +527,16 @@ func (this *EncoderData) decode(buf []byte) []byte {
 	return buff
 }
 
-func (this *EncoderData) Decode(buff []byte) [][]byte {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	this.in = append(this.in, buff...)
+func (ed *EncoderData) Decode(buff []byte) [][]byte {
+	ed.lock.Lock()
+	defer ed.lock.Unlock()
+
+	ed.in = append(ed.in, buff...)
 	resp := make([][]byte, 0)
+
 	for {
-		arr := this.decode(this.in)
+		arr := ed.decode(ed.in)
+
 		if arr != nil {
 			//证明已经解析出一个完整包
 			resp = append(resp, arr)
@@ -541,7 +544,7 @@ func (this *EncoderData) Decode(buff []byte) [][]byte {
 			//_len := len(this.in)
 			//fmt.Println(_len)
 			if _size > 0 {
-				this.in = this.in[_size:]
+				ed.in = ed.in[_size:]
 			}
 		} else {
 			return resp

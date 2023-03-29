@@ -20,35 +20,45 @@ func NewLengthFieldFrameInterceptor(maxFrameLength uint64, lengthFieldOffset, le
 	}
 }
 
-func (this *LengthFieldFrameInterceptor) Intercept(chain ziface.Chain) ziface.Response {
-	request := chain.Request()
-	if request != nil {
-		switch request.(type) {
-		case ziface.IRequest:
-			iRequest := request.(ziface.IRequest)
-			iMessage := iRequest.GetMessage()
-			if iMessage != nil {
-				data := iMessage.GetData()
-				if this.decoder != nil {
-					bytebuffers := this.decoder.Decode(data)
-					size := len(bytebuffers)
-					if size == 0 { //半包，或者其他情况，任务就不要往下再传递了
-						return nil
-					}
-					for i := 0; i < size; i++ {
-						buffer := bytebuffers[i]
-						if buffer != nil {
-							bufferSize := len(buffer)
-							iMessage.SetData(buffer)
-							iMessage.SetDataLen(uint32(bufferSize))
-							if i < size-1 {
-								chain.Proceed(chain.Request())
-							}
-						}
-					}
-				}
+func (l *LengthFieldFrameInterceptor) Intercept(chain ziface.Chain) ziface.IcResp {
+	req := chain.Request()
+
+	if req == nil || l.decoder == nil {
+		goto END
+	}
+
+	switch req.(type) {
+	case ziface.IRequest:
+		iRequest := req.(ziface.IRequest)
+		iMessage := iRequest.GetMessage()
+
+		if iMessage == nil {
+			break
+		}
+
+		data := iMessage.GetData()
+
+		bytebuffers := l.decoder.Decode(data)
+		size := len(bytebuffers)
+		if size == 0 { //半包，或者其他情况，任务就不要往下再传递了
+			return nil
+		}
+
+		for i := 0; i < size; i++ {
+			buffer := bytebuffers[i]
+			if buffer == nil {
+				continue
+			}
+			bufferSize := len(buffer)
+			iMessage.SetData(buffer)
+			iMessage.SetDataLen(uint32(bufferSize))
+
+			if i < size-1 {
+				chain.Proceed(chain.Request())
 			}
 		}
 	}
+
+END:
 	return chain.Proceed(chain.Request())
 }

@@ -3,8 +3,7 @@ package router
 import (
 	"bytes"
 	"encoding/hex"
-	"github.com/aceld/zinx/examples/zinx_decoder/bili/utils"
-	"github.com/aceld/zinx/examples/zinx_decoder/decode"
+	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/znet"
@@ -19,8 +18,8 @@ func (this *Data0x10Router) Handle(request ziface.IRequest) {
 	_response := request.GetResponse()
 	if _response != nil {
 		switch _response.(type) {
-		case decode.HtlvCrcData:
-			_data := _response.(decode.HtlvCrcData)
+		case zdecoder.HtlvCrcData:
+			_data := _response.(zdecoder.HtlvCrcData)
 			//zlog.Ins().DebugF("Data0x10Router %v \n", _data)
 			buffer := pack10(_data)
 			request.GetConnection().Send(buffer)
@@ -30,7 +29,7 @@ func (this *Data0x10Router) Handle(request ziface.IRequest) {
 
 // 头码   功能码 数据长度      Body                         CRC
 // A2      10     0E        0102030405060708091011121314 050B
-func pack10(_data decode.HtlvCrcData) []byte {
+func pack10(_data zdecoder.HtlvCrcData) []byte {
 	buffer := bytes.NewBuffer([]byte{})
 	buffer.WriteByte(0xA1)
 	buffer.WriteByte(_data.Funcode)
@@ -49,7 +48,7 @@ func pack10(_data decode.HtlvCrcData) []byte {
 	buffer.WriteByte(0x01)
 	//29~32：预留	全填0x00
 	buffer.Write([]byte{29, 30, 31, 32})
-	crc := utils.GetCrC(buffer.Bytes())
+	crc := zdecoder.GetCrC(buffer.Bytes())
 	buffer.Write(crc)
 	return buffer.Bytes()
 

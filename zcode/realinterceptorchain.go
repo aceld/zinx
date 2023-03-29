@@ -9,28 +9,28 @@ package zcode
 import "github.com/aceld/zinx/ziface"
 
 type RealInterceptorChain struct {
-	request      ziface.Request
+	req          ziface.IcReq
 	position     int
 	interceptors []ziface.Interceptor
 }
 
-func (this *RealInterceptorChain) Request() ziface.Request {
-	return this.request
+func (ric *RealInterceptorChain) Request() ziface.IcReq {
+	return ric.req
 }
 
-func (this *RealInterceptorChain) Proceed(request ziface.Request) ziface.Response {
-	if this.position < len(this.interceptors) {
-		chain := NewRealInterceptorChain(this.interceptors, this.position+1, request)
-		interceptor := this.interceptors[this.position]
+func (ric *RealInterceptorChain) Proceed(request ziface.IcReq) ziface.IcResp {
+	if ric.position < len(ric.interceptors) {
+		chain := NewRealInterceptorChain(ric.interceptors, ric.position+1, request)
+		interceptor := ric.interceptors[ric.position]
 		response := interceptor.Intercept(chain)
 		return response
 	}
 	return request
 }
 
-func NewRealInterceptorChain(list []ziface.Interceptor, pos int, request ziface.Request) ziface.Chain {
+func NewRealInterceptorChain(list []ziface.Interceptor, pos int, req ziface.IcReq) ziface.Chain {
 	return &RealInterceptorChain{
-		request:      request,
+		req:          req,
 		position:     pos,
 		interceptors: list,
 	}

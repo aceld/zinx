@@ -17,7 +17,7 @@ import "github.com/aceld/zinx/ziface"
 type InterceptorChain struct {
 	body       []ziface.Interceptor
 	head, tail ziface.Interceptor
-	request    ziface.Request
+	req        ziface.IcReq
 }
 
 func NewInterceptorBuilder() ziface.InterceptorBuilder {
@@ -26,30 +26,30 @@ func NewInterceptorBuilder() ziface.InterceptorBuilder {
 	}
 }
 
-func (this *InterceptorChain) Head(interceptor ziface.Interceptor) {
-	this.head = interceptor
+func (ic *InterceptorChain) Head(interceptor ziface.Interceptor) {
+	ic.head = interceptor
 }
 
-func (this *InterceptorChain) Tail(interceptor ziface.Interceptor) {
-	this.tail = interceptor
+func (ic *InterceptorChain) Tail(interceptor ziface.Interceptor) {
+	ic.tail = interceptor
 }
 
-func (this *InterceptorChain) AddInterceptor(interceptor ziface.Interceptor) {
-	this.body = append(this.body, interceptor)
+func (ic *InterceptorChain) AddInterceptor(interceptor ziface.Interceptor) {
+	ic.body = append(ic.body, interceptor)
 }
 
-func (this *InterceptorChain) Execute(request ziface.Request) ziface.Response {
-	this.request = request
+func (ic *InterceptorChain) Execute(req ziface.IcReq) ziface.IcResp {
+	ic.req = req
 	var interceptors []ziface.Interceptor
-	if this.head != nil {
-		interceptors = append(interceptors, this.head)
+	if ic.head != nil {
+		interceptors = append(interceptors, ic.head)
 	}
-	if len(this.body) > 0 {
-		interceptors = append(interceptors, this.body...)
+	if len(ic.body) > 0 {
+		interceptors = append(interceptors, ic.body...)
 	}
-	if this.tail != nil {
-		interceptors = append(interceptors, this.tail)
+	if ic.tail != nil {
+		interceptors = append(interceptors, ic.tail)
 	}
-	chain := NewRealInterceptorChain(interceptors, 0, request)
-	return chain.Proceed(this.request)
+	chain := NewRealInterceptorChain(interceptors, 0, req)
+	return chain.Proceed(ic.req)
 }

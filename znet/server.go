@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aceld/zinx/zconf"
+	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/zlog"
 	"net"
 	"os"
@@ -69,7 +70,7 @@ func NewServer(opts ...Option) ziface.IServer {
 		exitChan:   nil,
 		//默认使用zinx的TLV封包方式
 		packet:  zpack.Factory().NewPack(ziface.ZinxDataPack),
-		decoder: zpack.NewTLVDecoder(), //默认使用TLV的解码方式
+		decoder: zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
 	}
 
 	for _, opt := range opts {
@@ -96,7 +97,7 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 		ConnMgr:    NewConnManager(),
 		exitChan:   nil,
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack),
-		decoder:    zpack.NewTLVDecoder(), //默认使用TLV的解码方式
+		decoder:    zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
 	}
 	//更替打包方式
 	for _, opt := range opts {

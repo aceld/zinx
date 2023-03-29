@@ -7,24 +7,21 @@
 package ziface
 
 // 请求父类，定义空接口，用于扩展支持任意类型
-
-type Request interface {
-}
+type IcReq interface{}
 
 // 回复父类，定义空接口，用于扩展支持任意类型
+type IcResp interface{}
 
-type Response interface {
-}
 type Interceptor interface {
-	Intercept(Chain) Response
+	Intercept(Chain) IcResp
 }
 type Chain interface {
-	Request() Request
-	Proceed(Request) Response
+	Request() IcReq
+	Proceed(IcReq) IcResp
 }
 type InterceptorBuilder interface {
 	Head(interceptor Interceptor)
 	Tail(interceptor Interceptor)
 	AddInterceptor(interceptor Interceptor)
-	Execute(request Request) Response
+	Execute(request IcReq) IcResp
 }

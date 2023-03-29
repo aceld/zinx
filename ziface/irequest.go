@@ -27,8 +27,8 @@ type IRequest interface {
 
 	GetMessage() IMessage //获取请求消息的原始数据 add by uuxia 2023-03-10
 
-	GetResponse() Response //获取解析完后序列化数据
-	SetResponse(Response)  //设置解析完后序列化数据
+	GetResponse() IcResp //获取解析完后序列化数据
+	SetResponse(IcResp)  //设置解析完后序列化数据
 
 	BindRouter(router IRouter) //绑定这次请求由哪个路由处理
 	Call()                     //转进到下一个处理器开始执行 但是调用此方法的函数会根据先后顺序逆序执行

@@ -7,10 +7,9 @@ import (
 
 // 自定义拦截器1
 
-type MyInterceptor struct {
-}
+type MyInterceptor struct{}
 
-func (m *MyInterceptor) Intercept(chain ziface.Chain) ziface.Response {
+func (m *MyInterceptor) Intercept(chain ziface.Chain) ziface.IterResp {
 	request := chain.Request()
 	// 这一层是自定义拦截器处理逻辑，这里只是简单打印输入
 	iRequest := request.(ziface.IRequest)

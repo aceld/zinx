@@ -17,7 +17,7 @@
 //   initialBytesToStrip = 0            (这个0表示返回完整的协议内容Tag+Length+Value，如果只想返回Value内容，去掉Tag的4字节和Length的4字节，此处就是8) 从解码帧中第一次去除的字节数
 //   maxFrameLength      = 2^32 + 4 + 4 (Length为uint类型，故2^32次方表示Value最大长度，此外Tag和Length各占4字节)
 
-package zpack
+package zdecoder
 
 import (
 	"bytes"
@@ -65,7 +65,7 @@ func (this *TLVDecoder) GetLengthField() *ziface.LengthField {
 	}
 }
 
-func (this *TLVDecoder) Intercept(chain ziface.Chain) ziface.Response {
+func (this *TLVDecoder) Intercept(chain ziface.Chain) ziface.IcResp {
 	request := chain.Request()
 	if request != nil {
 		switch request.(type) {

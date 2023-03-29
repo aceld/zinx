@@ -31,7 +31,7 @@ func NewMsgHandle() *MsgHandle {
 	return handle
 }
 
-func (this *MsgHandle) Intercept(chain ziface.Chain) ziface.Response {
+func (this *MsgHandle) Intercept(chain ziface.Chain) ziface.IcResp {
 	request := chain.Request()
 	if request != nil {
 		switch request.(type) {

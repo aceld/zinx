@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/aceld/zinx/examples/zinx_decoder/bili/router"
-	"github.com/aceld/zinx/examples/zinx_decoder/decode"
+	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
 )
@@ -28,7 +28,7 @@ func main() {
 	})
 	server.SetOnConnStart(DoConnectionBegin)
 	server.SetOnConnStop(DoConnectionLost)
-	server.AddInterceptor(decode.NewHTLVCRCDecoder())
+	server.AddInterceptor(zdecoder.NewHTLVCRCDecoder())
 	server.AddRouter(0x10, &router.Data0x10Router{})
 	server.AddRouter(0x13, &router.Data0x13Router{})
 	server.AddRouter(0x14, &router.Data0x14Router{})

@@ -18,11 +18,10 @@
 //   initialBytesToStrip = 0   (这个0表示完整的协议内容，如果不想要A2，那么这里就是1) 从解码帧中第一次去除的字节数
 //   maxFrameLength      = 255 + 4(起始码、功能码、CRC) (len是1个byte，所以最大长度是无符号1个byte的最大值)
 
-package decode
+package zdecoder
 
 import (
 	"encoding/hex"
-	"github.com/aceld/zinx/examples/zinx_decoder/bili/utils"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"math"
@@ -48,7 +47,7 @@ func NewHTLVCRCDecoder() ziface.IDecoder {
 	return &HtlvCrcData{}
 }
 
-func (this *HtlvCrcData) GetLengthField() *ziface.LengthField {
+func (hcd *HtlvCrcData) GetLengthField() *ziface.LengthField {
 	//+------+-------+---------+--------+--------+
 	//| 头码  | 功能码 | 数据长度 | 数据内容 | CRC校验 |
 	//| 1字节 | 1字节  | 1字节   | N字节   |  2字节  |
@@ -72,7 +71,7 @@ func (this *HtlvCrcData) GetLengthField() *ziface.LengthField {
 	}
 }
 
-func (this *HtlvCrcData) Intercept(chain ziface.Chain) ziface.Response {
+func (hcd *HtlvCrcData) Intercept(chain ziface.Chain) ziface.IcResp {
 	request := chain.Request()
 	if request != nil {
 		switch request.(type) {
@@ -92,7 +91,7 @@ func (this *HtlvCrcData) Intercept(chain ziface.Chain) ziface.Response {
 					htlvData.Length = data[2]
 					htlvData.Body = data[3 : datasize-2]
 					htlvData.Crc = data[datasize-2 : datasize]
-					if !utils.CheckCRC(data[:datasize-2], htlvData.Crc) {
+					if !CheckCRC(data[:datasize-2], htlvData.Crc) {
 						zlog.Ins().DebugF("crc校验失败 %s %s\n", hex.EncodeToString(data), hex.EncodeToString(htlvData.Crc))
 						return nil
 					}

@@ -15,7 +15,7 @@ const (
 
 // Request 请求
 type Request struct {
-	response ziface.Response
+	iterResp ziface.IcResp      //拦截器返回值
 	conn     ziface.IConnection //已经和客户端建立好的 链接
 	msg      ziface.IMessage    //客户端请求的数据
 	router   ziface.IRouter     //请求处理的函数
@@ -24,12 +24,12 @@ type Request struct {
 	needNext bool
 }
 
-func (r *Request) GetResponse() ziface.Response {
-	return r.response
+func (r *Request) GetResponse() ziface.IcResp {
+	return r.iterResp
 }
 
-func (r *Request) SetResponse(response ziface.Response) {
-	r.response = response
+func (r *Request) SetResponse(response ziface.IcResp) {
+	r.iterResp = response
 }
 
 func NewRequest(conn ziface.IConnection, msg ziface.IMessage) *Request {
