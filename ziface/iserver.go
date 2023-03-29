@@ -37,5 +37,5 @@ type IServer interface {
 	GetHeartBeat() IHeartbeatChecker                          //获取心跳检测器
 	GetLengthField() *LengthField
 	SetDecoder(IDecoder)
-	AddInterceptor(Interceptor)
+	AddInterceptor(IInterceptor)
 }

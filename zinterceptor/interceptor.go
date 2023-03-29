@@ -4,26 +4,28 @@
  * @description 通过拦截，处理数据，任务向下传递
  **/
 
-package zcode
+package zinterceptor
 
 import (
 	"github.com/aceld/zinx/ziface"
 )
 
-type LengthFieldFrameInterceptor struct {
-	decoder ziface.ILengthField
+// Interceptor 基于LengthField规则的拦截器
+type Interceptor struct {
+	frameDecoder ziface.IFrameDecoder
 }
 
-func NewLengthFieldFrameInterceptor(maxFrameLength uint64, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip int) *LengthFieldFrameInterceptor {
-	return &LengthFieldFrameInterceptor{
-		decoder: NewLengthFieldFrameDecoder(maxFrameLength, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip),
+func NewInterceptor(maxFrameLength uint64,
+	lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip int) ziface.IInterceptor {
+	return &Interceptor{
+		frameDecoder: NewFrameDecoderByParams(maxFrameLength, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip),
 	}
 }
 
-func (l *LengthFieldFrameInterceptor) Intercept(chain ziface.Chain) ziface.IcResp {
+func (l *Interceptor) Intercept(chain ziface.IChain) ziface.IcResp {
 	req := chain.Request()
 
-	if req == nil || l.decoder == nil {
+	if req == nil || l.frameDecoder == nil {
 		goto END
 	}
 
@@ -38,7 +40,7 @@ func (l *LengthFieldFrameInterceptor) Intercept(chain ziface.Chain) ziface.IcRes
 
 		data := iMessage.GetData()
 
-		bytebuffers := l.decoder.Decode(data)
+		bytebuffers := l.frameDecoder.Decode(data)
 		size := len(bytebuffers)
 		if size == 0 { //半包，或者其他情况，任务就不要往下再传递了
 			return nil

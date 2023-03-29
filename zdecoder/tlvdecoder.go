@@ -65,31 +65,50 @@ func (this *TLVDecoder) GetLengthField() *ziface.LengthField {
 	}
 }
 
-func (this *TLVDecoder) Intercept(chain ziface.Chain) ziface.IcResp {
+func (this *TLVDecoder) Intercept(chain ziface.IChain) ziface.IcResp {
 	request := chain.Request()
-	if request != nil {
-		switch request.(type) {
-		case ziface.IRequest:
-			iRequest := request.(ziface.IRequest)
-			iMessage := iRequest.GetMessage()
-			if iMessage != nil {
-				data := iMessage.GetData()
-				zlog.Ins().DebugF("TLV-RawData size:%d data:%s\n", len(data), hex.EncodeToString(data))
-				datasize := len(data)
-				_data := TLVDecoder{}
-				if datasize >= TLV_HEADER_SIZE {
-					_data.Tag = binary.BigEndian.Uint32(data[0:4])
-					_data.Length = binary.BigEndian.Uint32(data[4:8])
-					_data.Value = make([]byte, _data.Length)
-					binary.Read(bytes.NewBuffer(data[8:8+_data.Length]), binary.BigEndian, _data.Value)
-					iMessage.SetData(_data.Value)
-					iMessage.SetMsgID(_data.Tag)
-					iMessage.SetDataLen(_data.Length)
-					iRequest.SetResponse(_data)
-					//zlog.Ins().DebugF("TLV-DecodeData size:%d data:%+v\n", unsafe.Sizeof(data), _data)
-				}
-			}
+
+	if request == nil {
+		//进入下一个责任链任务
+		return chain.Proceed(chain.Request())
+	}
+
+	switch request.(type) {
+	case ziface.IRequest:
+		//得到zinx的IRequest报文
+		iRequest := request.(ziface.IRequest)
+		iMessage := iRequest.GetMessage()
+
+		if iMessage == nil {
+			break
+		}
+
+		data := iMessage.GetData()
+		zlog.Ins().DebugF("TLV-RawData size:%d data:%s\n", len(data), hex.EncodeToString(data))
+
+		datasize := len(data)
+		_data := TLVDecoder{}
+
+		//如果读取的数据超过包头字节, 则解析包头数据
+		if datasize >= TLV_HEADER_SIZE {
+			//获取T
+			_data.Tag = binary.BigEndian.Uint32(data[0:4])
+			//获取L
+			_data.Length = binary.BigEndian.Uint32(data[4:8])
+			//确定V的长度
+			_data.Value = make([]byte, _data.Length)
+
+			//获取V
+			binary.Read(bytes.NewBuffer(data[8:8+_data.Length]), binary.BigEndian, _data.Value)
+
+			iMessage.SetMsgID(_data.Tag)
+			iMessage.SetData(_data.Value)
+			iMessage.SetDataLen(_data.Length)
+
+			iRequest.SetResponse(_data)
+			//zlog.Ins().DebugF("TLV-DecodeData size:%d data:%+v\n", unsafe.Sizeof(data), _data)
 		}
 	}
+
 	return chain.Proceed(chain.Request())
 }

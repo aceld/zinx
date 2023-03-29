@@ -7,8 +7,8 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
-	"github.com/aceld/zinx/zcode"
 	"github.com/aceld/zinx/zconf"
+	"github.com/aceld/zinx/zinterceptor"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/zpack"
 	"net"
@@ -53,7 +53,7 @@ type Connection struct {
 	//最后一次活动时间
 	lastActivityTime time.Time
 	//断粘包解码器
-	lengthFieldDecoder ziface.ILengthField
+	frameDecoder ziface.IFrameDecoder
 	//心跳检测器
 	hc ziface.IHeartbeatChecker
 }
@@ -72,7 +72,7 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 
 	lengthField := server.GetLengthField()
 	if lengthField != nil {
-		c.lengthFieldDecoder = zcode.NewLengthFieldFrameDecoderByLengthField(*lengthField)
+		c.frameDecoder = zinterceptor.NewFrameDecoder(*lengthField)
 	}
 
 	//从server继承过来的属性
@@ -102,7 +102,7 @@ func newClientConn(client ziface.IClient, conn net.Conn) ziface.IConnection {
 
 	lengthField := client.GetLengthField()
 	if lengthField != nil {
-		c.lengthFieldDecoder = zcode.NewLengthFieldFrameDecoderByLengthField(*lengthField)
+		c.frameDecoder = zinterceptor.NewFrameDecoder(*lengthField)
 	}
 
 	//从client继承过来的属性
@@ -170,9 +170,9 @@ func (c *Connection) StartReader() {
 			}
 
 			//处理自定义协议断粘包问题 add by uuxia 2023-03-21
-			if c.lengthFieldDecoder != nil {
+			if c.frameDecoder != nil {
 				//为读取到的0-n个字节的数据进行解码
-				bufArrays := c.lengthFieldDecoder.Decode(buffer[0:n])
+				bufArrays := c.frameDecoder.Decode(buffer[0:n])
 				if bufArrays == nil {
 					continue
 				}
@@ -181,13 +181,13 @@ func (c *Connection) StartReader() {
 					msg := zpack.NewMessage(uint32(len(bytes)), bytes)
 					//得到当前客户端请求的Request数据
 					req := NewRequest(c, msg)
-					c.msgHandler.Decode(req)
+					c.msgHandler.Execute(req)
 				}
 			} else {
 				msg := zpack.NewMessage(uint32(n), buffer[0:n])
 				//得到当前客户端请求的Request数据
 				req := NewRequest(c, msg)
-				c.msgHandler.Decode(req)
+				c.msgHandler.Execute(req)
 			}
 		}
 	}

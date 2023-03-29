@@ -307,7 +307,7 @@ func (s *Server) GetLengthField() *ziface.LengthField {
 	return nil
 }
 
-func (s *Server) AddInterceptor(interceptor ziface.Interceptor) {
+func (s *Server) AddInterceptor(interceptor ziface.IInterceptor) {
 	s.msgHandler.AddInterceptor(interceptor)
 }
 

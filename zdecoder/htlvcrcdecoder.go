@@ -71,37 +71,52 @@ func (hcd *HtlvCrcData) GetLengthField() *ziface.LengthField {
 	}
 }
 
-func (hcd *HtlvCrcData) Intercept(chain ziface.Chain) ziface.IcResp {
+func (hcd *HtlvCrcData) Intercept(chain ziface.IChain) ziface.IcResp {
 	request := chain.Request()
-	if request != nil {
-		switch request.(type) {
-		case ziface.IRequest:
-			iRequest := request.(ziface.IRequest)
-			iMessage := iRequest.GetMessage()
-			if iMessage != nil {
-				data := iMessage.GetData()
-				zlog.Ins().DebugF("HTLVCRC-RawData size:%d data:%s\n", len(data), hex.EncodeToString(data))
-				datasize := len(data)
-				htlvData := HtlvCrcData{
-					Data: data,
-				}
-				if datasize >= HEADER_SIZE {
-					htlvData.Head = data[0]
-					htlvData.Funcode = data[1]
-					htlvData.Length = data[2]
-					htlvData.Body = data[3 : datasize-2]
-					htlvData.Crc = data[datasize-2 : datasize]
-					if !CheckCRC(data[:datasize-2], htlvData.Crc) {
-						zlog.Ins().DebugF("crc校验失败 %s %s\n", hex.EncodeToString(data), hex.EncodeToString(htlvData.Crc))
-						return nil
-					}
-					iMessage.SetMsgID(uint32(htlvData.Funcode))
-					iRequest.SetResponse(htlvData)
-					//zlog.Ins().DebugF("2htlvData %s \n", hex.EncodeToString(htlvData.data))
-					zlog.Ins().DebugF("HTLVCRC-DecodeData size:%d data:%+v\n", unsafe.Sizeof(htlvData), htlvData)
-				}
+	if request == nil {
+		return chain.Proceed(chain.Request())
+	}
+
+	switch request.(type) {
+	case ziface.IRequest:
+		iRequest := request.(ziface.IRequest)
+		iMessage := iRequest.GetMessage()
+		if iMessage == nil {
+			break
+		}
+
+		data := iMessage.GetData()
+		zlog.Ins().DebugF("HTLVCRC-RawData size:%d data:%s\n", len(data), hex.EncodeToString(data))
+		datasize := len(data)
+
+		htlvData := HtlvCrcData{
+			Data: data,
+		}
+
+		//数据大于消息头长度，进行解析
+		if datasize >= HEADER_SIZE {
+			//解析头
+			htlvData.Head = data[0]
+			htlvData.Funcode = data[1]
+			htlvData.Length = data[2]
+			htlvData.Body = data[3 : datasize-2]
+			htlvData.Crc = data[datasize-2 : datasize]
+
+			//CRC校验
+			if !CheckCRC(data[:datasize-2], htlvData.Crc) {
+				zlog.Ins().DebugF("crc校验失败 %s %s\n", hex.EncodeToString(data), hex.EncodeToString(htlvData.Crc))
+				return nil
 			}
+
+			//设置ZinxMessage消息ID
+			iMessage.SetMsgID(uint32(htlvData.Funcode))
+			//设置ZinxMessage消息内容
+			iRequest.SetResponse(htlvData)
+
+			//zlog.Ins().DebugF("2htlvData %s \n", hex.EncodeToString(htlvData.data))
+			zlog.Ins().DebugF("HTLVCRC-DecodeData size:%d data:%+v\n", unsafe.Sizeof(htlvData), htlvData)
 		}
 	}
+
 	return chain.Proceed(chain.Request())
 }

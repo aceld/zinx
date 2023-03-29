@@ -177,7 +177,7 @@ func (c *Client) GetMsgHandler() ziface.IMsgHandle {
 	return c.msgHandler
 }
 
-func (c *Client) AddInterceptor(interceptor ziface.Interceptor) {
+func (c *Client) AddInterceptor(interceptor ziface.IInterceptor) {
 	c.msgHandler.AddInterceptor(interceptor)
 }
 

@@ -33,5 +33,5 @@ type IClient interface {
 	StartHeartBeatWithOption(time.Duration, *HeartBeatOption) //启动心跳检测(自定义回调)
 	GetLengthField() *LengthField
 	SetDecoder(IDecoder)
-	AddInterceptor(Interceptor)
+	AddInterceptor(IInterceptor)
 }
