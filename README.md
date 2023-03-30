@@ -2,7 +2,7 @@
 English | [简体中文](README-CN.md)
 
 [![License](https://img.shields.io/badge/License-GPL%203.0-black.svg)](LICENSE)
-[![Discord](https://img.shields.io/badge/zinx-Discord-blue.svg)](https://discord.gg/X7BUn6bT)
+[![Discord](https://img.shields.io/badge/zinx-Discord-blue.svg)](https://discord.gg/rM2sw5uv)
 [![Gitter](https://img.shields.io/badge/zinx-Gitter-green.svg)](https://gitter.im/zinx_go/community) 
 [![zinx tutorial](https://img.shields.io/badge/ZinxTutorial-YuQue-red.svg)](https://www.yuque.com/aceld/npyr8s/bgftov) 
 [![Original Book of Zinx](https://img.shields.io/badge/OriginalBook-YuQue-black.svg)](https://www.yuque.com/aceld)
@@ -288,24 +288,17 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
 -   张超([@zhngcho](https://github.com/zhngcho))
 -   高智辉Roger([@adsian](https://github.com/adsian))
 -   胡贵建([@huguijian](https://github.com/huguijian))
--   张继瑀([@kstwoak](https://github.com/huguijian))
+-   张继瑀([@kstwoak](https://github.com/kstwoak))
+-   夏小力([@xxl6097](https://github.com/xxl6097))
 
 
 ---
-[zinx(with C++)](https://github.com/marklion/zinx)
-#### Developers
--  刘洋([@marklion](https://github.com/marklion))
-
-
----
-[zinx(with Lua)](https://github.com/huqitt/zinx-lua)
-#### Developers
--  胡琪([@huqitt](https://github.com/huqitt))
-
----
-[zinx(for websocket)](https://github.com/aceld/zinx/tree/wsserver)
-#### Developers
--  胡贵建([@huguijian](https://github.com/huguijian))
+#### Developers of Other versions 
+|  **Zinx**   | **Author**  |
+|  ----  | ----  | 
+|[zinx(based C++)](https://github.com/marklion/zinx) |刘洋([@marklion](https://github.com/marklion))|
+|[zinx(based Lua)](https://github.com/huqitt/zinx-lua)|胡琪([@huqitt](https://github.com/huqitt))|
+|[zinx(for websocket)](https://github.com/aceld/zinx/tree/wsserver)|胡贵建([@huguijian](https://github.com/huguijian))|
 
 ---
 
