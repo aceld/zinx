@@ -21,7 +21,7 @@ import (
 // decode a binary message which has an integer header field that represents the
 // length of the message body or the whole message.
 //
-// {@link LengthFieldBasedFrameDecoder} has many configuration parameters so
+// ziface.LengthField has many configuration parameters so
 // that it can decode any message with a length field, which is often seen in
 // proprietary client-server protocols. Here are some example that will give
 // you the basic idea on which option does what.
@@ -175,10 +175,10 @@ import (
 // << 中文含义 By Aceld >>
 //
 // FrameDecoder
-// 一个解码器，根据消息中长度字段的值动态地拆分接收到的{@link ByteBuf}。
+// 一个解码器，根据消息中长度字段的值动态地拆分接收到的二进制数据帧,
 // 当您解码具有表示消息正文或整个消息长度的整数头字段的二进制消息时，它特别有用。
 //
-// {@link LengthFieldBasedFrameDecoder} 有许多配置参数，因此它可以解码任何具有长度字段的消息，
+// ziface.LengthField 有许多配置参数，因此它可以解码任何具有长度字段的消息，
 // 这在专有的客户端-服务器协议中经常见到。
 //
 // 以下是一些示例，它们将为您提供基本的想法，了解每个选项的作用。
@@ -211,7 +211,7 @@ import (
 // LengthAdjustment = 0
 // InitialBytesToStrip = 2 （等于Length字段的长度）
 //
-// BEFORE DECODE (14 bytes)         AFTER DECODE (12 bytes)
+// 解码前 (14 bytes)         		解码后 (12 bytes)
 // +--------+----------------+      +----------------+
 // | Length | Actual Content |----->| Actual Content |
 // | 0x000C | "HELLO, WORLD" |      | "HELLO, WORLD" |
@@ -228,7 +228,7 @@ import (
 // LengthAdjustment = -2 (长度字段的长度)
 // InitialBytesToStrip = 0
 //
-// BEFORE DECODE (14 bytes)         AFTER DECODE (14 bytes)
+// 解码前 (14 bytes)         		解码后 (14 bytes)
 // +--------+----------------+      +--------+----------------+
 // | Length | Actual Content |----->| Length | Actual Content |
 // | 0x000E | "HELLO, WORLD" |      | 0x000E | "HELLO, WORLD" |
@@ -244,7 +244,7 @@ import (
 // LengthAdjustment = 0
 // InitialBytesToStrip = 0
 //
-// BEFORE DECODE (17 bytes)                      AFTER DECODE (17 bytes)
+// 解码前 (17 bytes)                      		 解码后(17 bytes)
 // +----------+----------+----------------+      +----------+----------+----------------+
 // | Header 1 | Length   | Actual Content |----->| Header 1 | Length   | Actual Content |
 // | 0xCAFE   | 0x00000C | "HELLO, WORLD" |      | 0xCAFE   | 0x00000C | "HELLO, WORLD" |
@@ -260,7 +260,7 @@ import (
 // LengthAdjustment = 2 （即 Header 1 的长度）
 // InitialBytesToStrip = 0
 //
-// BEFORE DECODE (17 bytes)                      AFTER DECODE (17 bytes)
+// 解码前 (17 bytes)                      		 解码后 (17 bytes)
 // +----------+----------+----------------+      +----------+----------+----------------+
 // | Length   | Header 1 | Actual Content |----->| Length   | Header 1 | Actual Content |
 // | 0x00000C | 0xCAFE   | "HELLO, WORLD" |      | 0x00000C | 0xCAFE   | "HELLO, WORLD" |

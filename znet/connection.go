@@ -126,7 +126,7 @@ func (c *Connection) StartWriter() {
 				//有数据要写给对端
 				if _, err := c.conn.Write(data); err != nil {
 					zlog.Ins().ErrorF("Send Buff Data error:, %s Conn Writer exit", err)
-					return
+					break
 				}
 
 				//写对端成功, 更新链接活动时间
