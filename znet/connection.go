@@ -224,6 +224,11 @@ func (c *Connection) GetConnection() net.Conn {
 	return c.conn
 }
 
+// Deprecated: use GetConnection instead
+func (c *Connection) GetTCPConnection() net.Conn {
+	return c.conn
+}
+
 // GetConnID 获取当前连接ID
 func (c *Connection) GetConnID() uint64 {
 	return c.connID
