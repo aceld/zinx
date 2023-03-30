@@ -1,9 +1,8 @@
 # <img width="80px" src="https://s2.ax1x.com/2019/10/09/u4yHo9.png" /> 
 
 [English](README.md) | 简体中文
-
 [![License](https://img.shields.io/badge/License-GPL%203.0-black.svg)](LICENSE)
-[![Discord](https://img.shields.io/badge/zinx-Discord在线社区-blue.svg)](https://discord.gg/X7BUn6bT)
+[![Discord](https://img.shields.io/badge/zinx-Discord在线社区-blue.svg)](https://discord.gg/rM2sw5uv)
 [![Gitter](https://img.shields.io/badge/zinx-Gitter在线交流-green.svg)](https://gitter.im/zinx_go/community)
 [![zinx tutorial](https://img.shields.io/badge/Zinx教程-YuQue-red.svg)](https://www.yuque.com/aceld/npyr8s/bgftov)
 [![Original Book of Zinx](https://img.shields.io/badge/原创书籍-YuQue-black.svg)](https://www.yuque.com/aceld)
