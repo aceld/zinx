@@ -289,23 +289,16 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
 -   高智辉Roger([@adsian](https://github.com/adsian))
 -   胡贵建([@huguijian](https://github.com/huguijian))
 -   张继瑀([@kstwoak](https://github.com/huguijian))
+-   夏小力([@xxl6097](https://github.com/xxl6097))
 
 
 ---
-[zinx(with C++)](https://github.com/marklion/zinx)
-#### Developers
--  刘洋([@marklion](https://github.com/marklion))
-
-
----
-[zinx(with Lua)](https://github.com/huqitt/zinx-lua)
-#### Developers
--  胡琪([@huqitt](https://github.com/huqitt))
-
----
-[zinx(for websocket)](https://github.com/aceld/zinx/tree/wsserver)
-#### Developers
--  胡贵建([@huguijian](https://github.com/huguijian))
+#### Developers of Other versions 
+|  **Zinx**   | **Author**  |
+|  ----  | ----  | 
+|[zinx(based C++)](https://github.com/marklion/zinx) |刘洋([@marklion](https://github.com/marklion))|
+|[zinx(based Lua)](https://github.com/huqitt/zinx-lua)|胡琪([@huqitt](https://github.com/huqitt))|
+|[zinx(for websocket)](https://github.com/aceld/zinx/tree/wsserver)|胡贵建([@huguijian](https://github.com/huguijian))|
 
 ---
 
