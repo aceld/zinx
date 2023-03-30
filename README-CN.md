@@ -289,7 +289,7 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
 -   张超([@zhngcho](https://github.com/zhngcho))
 -   高智辉Roger([@adsian](https://github.com/adsian))
 -   胡贵建([@huguijian](https://github.com/huguijian))
--   张继瑀([@kstwoak](https://github.com/huguijian))
+-   张继瑀([@kstwoak](https://github.com/kstwoak))
 -   夏小力([@xxl6097](https://github.com/xxl6097))
 
 
