@@ -1,6 +1,7 @@
 package znet
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/aceld/zinx/zconf"
@@ -147,14 +148,15 @@ func (s *Server) Start() {
 			return
 		}
 
-		//2 监听服务器地址
+		// 2 监听服务器地址
 		listener, err := net.ListenTCP(s.IPVersion, addr)
 		if err != nil {
 			panic(err)
 		}
 
-		// 创建HTTP服务器
+		// 3. 创建HTTP服务器
 		handler := http.NewServeMux()
+		// 4. 创建 ws连接服务
 		handler.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 			if s.ConnMgr.Len() >= zconf.GlobalObject.MaxConn {
 				zlog.Ins().InfoF("Exceeded the maxConnNum:%d, Wait:%d", zconf.GlobalObject.MaxConn, AcceptDelay.duration)
@@ -175,7 +177,6 @@ func (s *Server) Start() {
 			}
 			AcceptDelay.Reset()
 
-			//3.3 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 			dealConn := newWebsocketConn(s, conn, 1)
 			go dealConn.Start()
 		})
@@ -188,7 +189,6 @@ func (s *Server) Start() {
 		go func() {
 			//已经监听成功
 			zlog.Ins().InfoF("[START] start Zinx server  %s succ, now listening...", s.Name)
-
 			if err := httpServer.Serve(listener); err != nil {
 				panic(err)
 			}
@@ -243,6 +243,11 @@ func (s *Server) Start() {
 			err := listener.Close()
 			if err != nil {
 				zlog.Ins().ErrorF("listener close err: %v", err)
+			}
+
+			err = httpServer.Shutdown(context.Background())
+			if err != nil {
+				zlog.Ins().ErrorF("http server close err: %v", err)
 			}
 		}
 	}()
