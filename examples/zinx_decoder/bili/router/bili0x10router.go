@@ -18,8 +18,8 @@ func (this *Data0x10Router) Handle(request ziface.IRequest) {
 	_response := request.GetResponse()
 	if _response != nil {
 		switch _response.(type) {
-		case zdecoder.HtlvCrcData:
-			_data := _response.(zdecoder.HtlvCrcData)
+		case zdecoder.HtlvCrcDecoder:
+			_data := _response.(zdecoder.HtlvCrcDecoder)
 			//zlog.Ins().DebugF("Data0x10Router %v \n", _data)
 			buffer := pack10(_data)
 			request.GetConnection().Send(buffer)
@@ -29,7 +29,7 @@ func (this *Data0x10Router) Handle(request ziface.IRequest) {
 
 // 头码   功能码 数据长度      Body                         CRC
 // A2      10     0E        0102030405060708091011121314 050B
-func pack10(_data zdecoder.HtlvCrcData) []byte {
+func pack10(_data zdecoder.HtlvCrcDecoder) []byte {
 	buffer := bytes.NewBuffer([]byte{})
 	buffer.WriteByte(0xA1)
 	buffer.WriteByte(_data.Funcode)
