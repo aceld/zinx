@@ -153,6 +153,9 @@ func (c *WsConnection) StartReader() {
 			//add by uuxia 2023-02-03
 			//buffer := make([]byte, zconf.GlobalObject.IOReadBuffSize)
 
+			//add by uuxia 2023-02-03
+			buffer := make([]byte, zconf.GlobalObject.IOReadBuffSize)
+
 			//从conn的IO中读取数据到内存缓冲buffer中
 			_, buffer, err := c.conn.ReadMessage()
 			n := len(buffer)
@@ -160,19 +163,33 @@ func (c *WsConnection) StartReader() {
 				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err)
 				return
 			}
-			zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer))
+			zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer[0:n]))
 
 			//正常读取到对端数据，更新心跳检测Active状态
 			if n > 0 && c.hc != nil {
 				c.updateActivity()
 			}
-			msg, err := zpack.NewDataPack().Unpack(buffer)
-			if err != nil {
-				zlog.Ins().ErrorF("read msg unpack buffer err:%+v", err)
-				continue
+
+			//处理自定义协议断粘包问题 add by uuxia 2023-03-21
+			if c.frameDecoder != nil {
+				//为读取到的0-n个字节的数据进行解码
+				bufArrays := c.frameDecoder.Decode(buffer)
+				if bufArrays == nil {
+					continue
+				}
+				for _, bytes := range bufArrays {
+					zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(bytes))
+					msg := zpack.NewMessage(uint32(len(bytes)), bytes)
+					//得到当前客户端请求的Request数据
+					req := NewRequest(c, msg)
+					c.msgHandler.Execute(req)
+				}
+			} else {
+				msg := zpack.NewMessage(uint32(n), buffer[0:n])
+				//得到当前客户端请求的Request数据
+				req := NewRequest(c, msg)
+				c.msgHandler.Execute(req)
 			}
-			req := NewRequest(c, msg)
-			c.msgHandler.Execute(req)
 		}
 	}
 }

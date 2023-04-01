@@ -16,11 +16,14 @@ func (this *PositionServerRouter) Handle(request ziface.IRequest) {
 }
 
 func main() {
+	//znet.NewUserConfServer(&zconf.Config{
+	//	TCPPort: 9999,
+	//})
 	//创建一个server句柄
 	s := znet.NewServer()
 
 	//配置路由
-	s.AddRouter(0, &PositionServerRouter{})
+	s.AddRouter(1, &PositionServerRouter{})
 
 	//开启服务
 	s.Serve()

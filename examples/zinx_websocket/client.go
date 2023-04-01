@@ -23,15 +23,15 @@ func (this *PositionClientRouter) Handle(request ziface.IRequest) {
 // 客户端自定义业务
 func business(conn *websocket.Conn) {
 	pack := zpack.Factory().NewPack(ziface.ZinxDataPack)
+
 	for {
-		msgPackage := zpack.NewMsgPackage(0, []byte("ping ping ping ..."))
+		msgPackage := zpack.NewMsgPackage(1, []byte("ping ping ping ..."))
 		msgData, err := pack.Pack(msgPackage)
 		err = conn.WriteMessage(websocket.BinaryMessage, msgData)
 		if err != nil {
 			fmt.Println(err)
-			break
-		}
 
+		}
 		time.Sleep(1 * time.Second)
 	}
 }
