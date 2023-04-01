@@ -6,7 +6,9 @@ import (
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/zlog"
+	"github.com/gorilla/websocket"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"time"
@@ -54,6 +56,9 @@ type Server struct {
 	decoder ziface.IDecoder
 	//心跳检测器
 	hc ziface.IHeartbeatChecker
+
+	// websocket
+	upgrader websocket.Upgrader
 }
 
 // NewServer 创建一个服务器句柄
@@ -71,6 +76,12 @@ func NewServer(opts ...Option) ziface.IServer {
 		//默认使用zinx的TLV封包方式
 		packet:  zpack.Factory().NewPack(ziface.ZinxDataPack),
 		decoder: zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
+		upgrader: websocket.Upgrader{
+			ReadBufferSize: int(zconf.GlobalObject.IOReadBuffSize),
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		},
 	}
 
 	for _, opt := range opts {
@@ -142,8 +153,46 @@ func (s *Server) Start() {
 			panic(err)
 		}
 
-		//已经监听成功
-		zlog.Ins().InfoF("[START] start Zinx server  %s succ, now listening...", s.Name)
+		// 创建HTTP服务器
+		handler := http.NewServeMux()
+		handler.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+			if s.ConnMgr.Len() >= zconf.GlobalObject.MaxConn {
+				zlog.Ins().InfoF("Exceeded the maxConnNum:%d, Wait:%d", zconf.GlobalObject.MaxConn, AcceptDelay.duration)
+				AcceptDelay.Delay()
+				return
+			}
+			conn, err := s.upgrader.Upgrade(w, r, nil)
+			if err != nil {
+				//Go 1.16+
+				if errors.Is(err, net.ErrClosed) {
+					zlog.Ins().ErrorF("Listener closed")
+					return
+				}
+				zlog.Ins().ErrorF("Accept err: %v", err)
+				AcceptDelay.Delay()
+				return
+
+			}
+			AcceptDelay.Reset()
+
+			//3.3 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
+			dealConn := newWebsocketConn(s, conn, 1)
+			go dealConn.Start()
+		})
+
+		httpServer := &http.Server{
+			Handler: handler,
+		}
+
+		// 将TCP连接转发给HTTP服务器处理
+		go func() {
+			//已经监听成功
+			zlog.Ins().InfoF("[START] start Zinx server  %s succ, now listening...", s.Name)
+
+			if err := httpServer.Serve(listener); err != nil {
+				panic(err)
+			}
+		}()
 
 		var cID uint64
 
