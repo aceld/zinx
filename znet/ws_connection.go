@@ -87,29 +87,29 @@ func newWebsocketConn(server ziface.IServer, conn *websocket.Conn, connID uint64
 	return c
 }
 
-// newClientConn :for Client, 创建一个Client服务端特性的连接的方法
-//func newClientConn(client ziface.IClient, conn net.Conn) ziface.IConnection {
-//	c := &WsConnection{
-//		conn:        conn,
-//		connID:      0, //client ignore
-//		isClosed:    false,
-//		msgBuffChan: nil,
-//		property:    nil,
-//	}
-//
-//	lengthField := client.GetLengthField()
-//	if lengthField != nil {
-//		c.frameDecoder = zinterceptor.NewFrameDecoder(*lengthField)
-//	}
-//
-//	//从client继承过来的属性
-//	c.packet = client.GetPacket()
-//	c.onConnStart = client.GetOnConnStart()
-//	c.onConnStop = client.GetOnConnStop()
-//	c.msgHandler = client.GetMsgHandler()
-//
-//	return c
-//}
+//newClientConn :for Client, 创建一个Client服务端特性的连接的方法
+func newWsClientConn(client ziface.IClient, conn *websocket.Conn) ziface.IConnection {
+	c := &WsConnection{
+		conn:        conn,
+		connID:      0, //client ignore
+		isClosed:    false,
+		msgBuffChan: nil,
+		property:    nil,
+	}
+
+	lengthField := client.GetLengthField()
+	if lengthField != nil {
+		c.frameDecoder = zinterceptor.NewFrameDecoder(*lengthField)
+	}
+
+	//从client继承过来的属性
+	c.packet = client.GetPacket()
+	c.onConnStart = client.GetOnConnStart()
+	c.onConnStop = client.GetOnConnStop()
+	c.msgHandler = client.GetMsgHandler()
+
+	return c
+}
 
 // StartWriter 写消息Goroutine， 用户将数据发送给客户端
 func (c *WsConnection) StartWriter() {

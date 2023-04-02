@@ -1,19 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/examples/zinx_server/s_router"
 	"github.com/aceld/zinx/znet"
 )
-
-type PositionServerRouter struct {
-	znet.BaseRouter
-}
-
-//Ping Handle
-func (this *PositionServerRouter) Handle(request ziface.IRequest) {
-	fmt.Printf("data: %s\n", string(request.GetData()))
-}
 
 func main() {
 	//znet.NewUserConfServer(&zconf.Config{
@@ -23,7 +13,9 @@ func main() {
 	s := znet.NewServer()
 
 	//配置路由
-	s.AddRouter(1, &PositionServerRouter{})
+	s.AddRouter(100, &s_router.PingRouter{})
+	s.AddRouter(1, &s_router.HelloZinxRouter{})
+
 	//开启服务
 	s.Serve()
 }

@@ -2,11 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/aceld/zinx/examples/zinx_client/c_router"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
-	"github.com/aceld/zinx/zpack"
-	"github.com/gorilla/websocket"
-	"log"
 	"os"
 	"os/signal"
 	"time"
@@ -21,13 +19,10 @@ func (this *PositionClientRouter) Handle(request ziface.IRequest) {
 }
 
 // 客户端自定义业务
-func business(conn *websocket.Conn) {
-	pack := zpack.Factory().NewPack(ziface.ZinxDataPack)
+func business(conn ziface.IConnection) {
 
 	for {
-		msgPackage := zpack.NewMsgPackage(1, []byte("ping ping ping ..."))
-		msgData, err := pack.Pack(msgPackage)
-		err = conn.WriteMessage(websocket.BinaryMessage, msgData)
+		err := conn.SendMsg(1, []byte("ping ping ping ..."))
 		if err != nil {
 			fmt.Println(err)
 
@@ -42,7 +37,7 @@ func DoClientConnectedBegin(conn ziface.IConnection) {
 	conn.SetProperty("Name", "刘丹冰")
 	conn.SetProperty("Home", "https://yuque.com/aceld")
 
-	//go business(conn)
+	go business(conn)
 }
 
 func wait() {
@@ -54,18 +49,23 @@ func wait() {
 
 func main() {
 	//创建一个Client句柄，使用Zinx的API
-	dialer := websocket.Dialer{}
-	conn, _, err := dialer.Dial("ws://localhost:8999/ws", nil)
+	client := znet.NewClient("127.0.0.1", 8999)
 
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	//离开作用域关闭连接，go 的常规操作
-	defer conn.Close()
+	//添加首次建立链接时的业务
+	client.SetOnConnStart(DoClientConnectedBegin)
+	//注册收到服务器消息业务路由
+	client.AddRouter(2, &c_router.PingRouter{})
+	client.AddRouter(3, &c_router.HelloRouter{})
 
-	//定时向客户端发送数据
-	go business(conn)
+	//启动客户端client
+	client.Start()
 
-	wait()
+	// close
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill)
+	sig := <-c
+	fmt.Println("===exit===", sig)
+	// 清理客户端
+	client.Stop()
+	time.Sleep(time.Second * 2)
 }
