@@ -19,6 +19,8 @@ type HeartbeatChecker struct {
 	router ziface.IRouter //用户自定义的心跳检测消息业务处理路由
 
 	conn ziface.IConnection // 绑定的链接
+
+	beatFunc ziface.HeartBeatFunc // 用户自定义心跳发送函数
 }
 
 /*
@@ -57,6 +59,7 @@ func NewHeartbeatChecker(interval time.Duration) ziface.IHeartbeatChecker {
 		onRemoteNotAlive: notAliveDefaultFunc,
 		msgID:            ziface.HeartBeatDefaultMsgID,
 		router:           &HeatBeatDefaultRouter{},
+		beatFunc:         nil,
 	}
 
 	return heartbeat
@@ -71,6 +74,12 @@ func (h *HeartbeatChecker) SetOnRemoteNotAlive(f ziface.OnRemoteNotAlive) {
 func (h *HeartbeatChecker) SetHeartbeatMsgFunc(f ziface.HeartBeatMsgFunc) {
 	if f != nil {
 		h.makeMsg = f
+	}
+}
+
+func (h *HeartbeatChecker) SetHeartbeatFunc(beatFunc ziface.HeartBeatFunc) {
+	if beatFunc != nil {
+		h.beatFunc = beatFunc
 	}
 }
 
@@ -128,7 +137,11 @@ func (h *HeartbeatChecker) check() (err error) {
 	if !h.conn.IsAlive() {
 		h.onRemoteNotAlive(h.conn)
 	} else {
-		err = h.SendHeartBeatMsg()
+		if h.beatFunc != nil {
+			err = h.beatFunc(h.conn)
+		} else {
+			err = h.SendHeartBeatMsg()
+		}
 	}
 
 	return err

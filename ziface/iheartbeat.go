@@ -3,6 +3,7 @@ package ziface
 type IHeartbeatChecker interface {
 	SetOnRemoteNotAlive(OnRemoteNotAlive)
 	SetHeartbeatMsgFunc(HeartBeatMsgFunc)
+	SetHeartbeatFunc(HeartBeatFunc)
 	BindRouter(uint32, IRouter)
 	Start()
 	Stop()
@@ -15,6 +16,9 @@ type IHeartbeatChecker interface {
 
 // 用户自定义的心跳检测消息处理方法
 type HeartBeatMsgFunc func(IConnection) []byte
+
+// HeartBeatFunc 用户自定义心跳函数
+type HeartBeatFunc func(IConnection) error
 
 // 用户自定义的远程连接不存活时的处理方法
 type OnRemoteNotAlive func(IConnection)
