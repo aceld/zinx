@@ -1,7 +1,7 @@
 package znet
 
 import (
-	"context"
+	"bufio"
 	"errors"
 	"fmt"
 	"github.com/aceld/zinx/zconf"
@@ -154,46 +154,8 @@ func (s *Server) Start() {
 			panic(err)
 		}
 
-		// 3. 创建HTTP服务器
-		handler := http.NewServeMux()
 		// 4. 创建 ws连接服务
-		handler.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-			if s.ConnMgr.Len() >= zconf.GlobalObject.MaxConn {
-				zlog.Ins().InfoF("Exceeded the maxConnNum:%d, Wait:%d", zconf.GlobalObject.MaxConn, AcceptDelay.duration)
-				AcceptDelay.Delay()
-				return
-			}
-			conn, err := s.upgrader.Upgrade(w, r, nil)
-			if err != nil {
-				//Go 1.16+
-				if errors.Is(err, net.ErrClosed) {
-					zlog.Ins().ErrorF("Listener closed")
-					return
-				}
-				zlog.Ins().ErrorF("Accept err: %v", err)
-				AcceptDelay.Delay()
-				return
-
-			}
-			AcceptDelay.Reset()
-
-			dealConn := newWebsocketConn(s, conn, 1)
-			go dealConn.Start()
-		})
-
-		httpServer := &http.Server{
-			Handler: handler,
-		}
-
-		// 将TCP连接转发给HTTP服务器处理
-		go func() {
-			//已经监听成功
-			zlog.Ins().InfoF("[START] start Zinx server  %s succ, now listening...", s.Name)
-			if err := httpServer.Serve(listener); err != nil {
-				panic(err)
-			}
-		}()
-
+		// 创建 HTTP 服务器
 		var cID uint64
 
 		go func() {
@@ -219,12 +181,36 @@ func (s *Server) Start() {
 					continue
 				}
 
-				AcceptDelay.Reset()
+				var dealConn ziface.IConnection
 
-				//3.3 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
-				dealConn := newServerConn(s, conn, cID)
+				reader := bufio.NewReader(conn)
+				peek, err := reader.Peek(1)
+				if err != nil {
+					zlog.Ins().ErrorF("Error peeking request err:%v", err)
+					return
+				}
+				// 判断连接是否是 HTTP 请求
+				if peek[0] == 'G' || peek[0] == 'P' || peek[0] == 'H' {
+					// 处理 HTTP 请求
+					// 创建 http ResponseWriter
+					w := newResponseWriter(conn.(*net.TCPConn))
+					// 把http连接解析成request
+					request, err := http.ReadRequest(reader)
+					if err != nil {
+						zlog.Ins().ErrorF("Error reading HTTP request err:%v", err)
+						return
+					}
+					// 创建一个 *websocket.Upgrader 对象
+					wsConn, err := s.upgrader.Upgrade(w, request, nil)
+					dealConn = newWebsocketConn(s, wsConn, cID)
+				} else {
+					// 处理 TCP 连接
+					dealConn = newServerConn(s, conn, cID)
+				}
 				cID++
 
+				AcceptDelay.Reset()
+				//3.3 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 				//HeartBeat 心跳检测
 				if s.hc != nil {
 					//从Server端克隆一个心跳检测器
@@ -235,6 +221,7 @@ func (s *Server) Start() {
 
 				//3.4 启动当前链接的处理业务
 				go dealConn.Start()
+
 			}
 		}()
 
@@ -243,11 +230,6 @@ func (s *Server) Start() {
 			err := listener.Close()
 			if err != nil {
 				zlog.Ins().ErrorF("listener close err: %v", err)
-			}
-
-			err = httpServer.Shutdown(context.Background())
-			if err != nil {
-				zlog.Ins().ErrorF("http server close err: %v", err)
 			}
 		}
 	}()

@@ -151,16 +151,19 @@ func (c *WsConnection) StartReader() {
 			return
 		default:
 			//add by uuxia 2023-02-03
-			//buffer := make([]byte, zconf.GlobalObject.IOReadBuffSize)
-
-			//add by uuxia 2023-02-03
-			buffer := make([]byte, zconf.GlobalObject.IOReadBuffSize)
-
 			//从conn的IO中读取数据到内存缓冲buffer中
-			_, buffer, err := c.conn.ReadMessage()
+			messageType, buffer, err := c.conn.ReadMessage()
+			if err != nil {
+				return
+			}
+			if messageType == websocket.PingMessage {
+				c.updateActivity()
+				continue
+			}
 			n := len(buffer)
 			if err != nil {
-				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err)
+				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err.Error())
+
 				return
 			}
 			zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer[0:n]))

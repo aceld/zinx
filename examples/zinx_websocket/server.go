@@ -24,7 +24,6 @@ func main() {
 
 	//配置路由
 	s.AddRouter(1, &PositionServerRouter{})
-
 	//开启服务
 	s.Serve()
 }
