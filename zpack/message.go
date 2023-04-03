@@ -11,8 +11,8 @@ type Message struct {
 // NewMsgPackage 创建一个Message消息包
 func NewMsgPackage(ID uint32, data []byte) *Message {
 	return &Message{
-		DataLen: uint32(len(data)),
 		ID:      ID,
+		DataLen: uint32(len(data)),
 		Data:    data,
 		rawData: data,
 	}

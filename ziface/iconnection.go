@@ -16,6 +16,7 @@ package ziface
 
 import (
 	"context"
+	"github.com/gorilla/websocket"
 	"net"
 )
 
@@ -25,7 +26,8 @@ type IConnection interface {
 	Stop()                    //停止连接，结束当前连接状态
 	Context() context.Context //返回ctx，用于用户自定义的go程获取连接退出状态
 
-	GetConnection() net.Conn //从当前连接获取原始的socket
+	GetConnection() net.Conn    //从当前连接获取原始的socket
+	GetWsConn() *websocket.Conn // 从当前连接中获取原始的websocket连接
 	// Deprecated: use GetConnection instead
 	GetTCPConnection() net.Conn //从当前连接获取原始的socket TCPConn
 	GetConnID() uint64          //获取当前连接ID

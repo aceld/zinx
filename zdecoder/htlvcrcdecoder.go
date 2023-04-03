@@ -30,7 +30,7 @@ import (
 
 const HEADER_SIZE = 5
 
-type HtlvCrcData struct {
+type HtlvCrcDecoder struct {
 	Head    byte   //头码
 	Funcode byte   //功能码
 	Length  byte   //数据长度
@@ -39,15 +39,11 @@ type HtlvCrcData struct {
 	Data    []byte //数据内容
 }
 
-type HtlvCrcDecoder interface {
-	ziface.IDecoder
-}
-
 func NewHTLVCRCDecoder() ziface.IDecoder {
-	return &HtlvCrcData{}
+	return &HtlvCrcDecoder{}
 }
 
-func (hcd *HtlvCrcData) GetLengthField() *ziface.LengthField {
+func (hcd *HtlvCrcDecoder) GetLengthField() *ziface.LengthField {
 	//+------+-------+---------+--------+--------+
 	//| 头码  | 功能码 | 数据长度 | 数据内容 | CRC校验 |
 	//| 1字节 | 1字节  | 1字节   | N字节   |  2字节  |
@@ -71,7 +67,7 @@ func (hcd *HtlvCrcData) GetLengthField() *ziface.LengthField {
 	}
 }
 
-func (hcd *HtlvCrcData) Intercept(chain ziface.IChain) ziface.IcResp {
+func (hcd *HtlvCrcDecoder) Intercept(chain ziface.IChain) ziface.IcResp {
 	request := chain.Request()
 	if request == nil {
 		return chain.Proceed(chain.Request())
@@ -89,7 +85,7 @@ func (hcd *HtlvCrcData) Intercept(chain ziface.IChain) ziface.IcResp {
 		zlog.Ins().DebugF("HTLVCRC-RawData size:%d data:%s\n", len(data), hex.EncodeToString(data))
 		datasize := len(data)
 
-		htlvData := HtlvCrcData{
+		htlvData := HtlvCrcDecoder{
 			Data: data,
 		}
 

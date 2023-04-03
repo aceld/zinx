@@ -31,9 +31,9 @@ import (
 const TLV_HEADER_SIZE = 8 //表示TLV空包长度
 
 type TLVDecoder struct {
-	Tag    uint32
-	Length uint32
-	Value  []byte
+	Tag    uint32 //消息类型
+	Length uint32 //消息长度
+	Value  []byte //消息内容
 }
 
 func NewTLVDecoder() ziface.IDecoder {
