@@ -1,5 +1,7 @@
 package zconf
 
+import "github.com/aceld/zinx/zlog"
+
 //注意如果使用UserConf应该调用方法同步至 GlobalConfObject 因为其他参数是调用的此结构体参数
 func UserConfToGlobal(config *Config) {
 
@@ -40,12 +42,18 @@ func UserConfToGlobal(config *Config) {
 	// logger
 	//默认就是False config没有初始化即使用默认配置
 	GlobalObject.LogDebugClose = config.LogDebugClose
+	if GlobalObject.LogDebugClose == true {
+		zlog.CloseDebug()
+	}
+
 	//不同于上方必填项 日志目前如果没配置应该使用默认配置
 	if config.LogDir != "" {
 		GlobalObject.LogDir = config.LogDir
 	}
+
 	if config.LogFile != "" {
 		GlobalObject.LogFile = config.LogFile
+		zlog.SetLogFile(GlobalObject.LogDir, GlobalObject.LogFile)
 	}
 
 	// Keepalive
