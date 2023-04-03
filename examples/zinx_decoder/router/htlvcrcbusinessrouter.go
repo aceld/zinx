@@ -18,8 +18,8 @@ func (this *HtlvCrcBusinessRouter) Handle(request ziface.IRequest) {
 		_response := request.GetResponse()
 		if _response != nil {
 			switch _response.(type) {
-			case zdecoder.HtlvCrcData:
-				tlvData := _response.(zdecoder.HtlvCrcData)
+			case zdecoder.HtlvCrcDecoder:
+				tlvData := _response.(zdecoder.HtlvCrcDecoder)
 				zlog.Ins().DebugF("do msgid=0x10 data business %+v\n", tlvData)
 			}
 		}
