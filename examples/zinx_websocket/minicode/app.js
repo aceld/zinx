@@ -12,6 +12,10 @@ App({
 
             })
         })
+        socket.onMessage(result => {
+            let message = this.decodeTLV(result.data)
+            console.log(message)
+        })
     },
 
     globalData: {
@@ -24,22 +28,30 @@ App({
         const typeBuffer = Buffer.alloc(this.globalData.TYPE_LENGTH);
         const lengthBuffer = Buffer.alloc(this.globalData.LENGTH_LENGTH);
         const valueBuffer = Buffer.from(value);
-
         typeBuffer.writeUInt32BE(type, 0);
         lengthBuffer.writeUInt32BE(length, 0);
-
         return Buffer.concat([typeBuffer, lengthBuffer, valueBuffer], this.globalData.TYPE_LENGTH + this.globalData.LENGTH_LENGTH + length);
     },
 
     // 从 TLV 格式解码数据
     decodeTLV(buffer) {
-        const type = buffer.readUInt8(0);
-        const length = buffer.readUInt16BE(this.globalData.TYPE_LENGTH);
-        const value = buffer.slice(this.globalData.TYPE_LENGTH + this.globalData.LENGTH_LENGTH, this.globalData.TYPE_LENGTH + this.globalData.LENGTH_LENGTH + length);
-
-        return {
-            type,
-            value
-        };
+        // 解析包头长度
+        let data = Buffer.from(buffer)
+        const tag = Buffer.alloc(this.globalData.TYPE_LENGTH);
+        let offset = 0;
+        data.copy(tag, 0, offset, 4)
+        const dataLen = Buffer.alloc(this.globalData.LENGTH_LENGTH);
+        offset += 4;
+        data.copy(dataLen, 0, offset, offset + 4)
+        // 解析数据包内容
+        const body = new Buffer(dataLen.readInt32BE())
+        offset += 4
+        data.copy(body, 0, offset, offset + dataLen.readInt32BE());
+        let message = {
+            tag: tag.readUInt32BE(),
+            dataLen: dataLen.readUInt32BE(),
+            data: body
+        }
+        return message
     }
 })
