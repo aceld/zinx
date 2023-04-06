@@ -1,7 +1,8 @@
 // Package utils 提供zinx相关工具类函数
 // 包括:
-//		全局配置
-//		配置文件加载
+//
+//	全局配置
+//	配置文件加载
 //
 // 当前文件描述:
 // @Title  globalobj.go
@@ -23,8 +24,8 @@ import (
 )
 
 /*
-	存储一切有关Zinx框架的全局参数，供其他模块使用
-	一些参数也可以通过 用户根据 zinx.json来配置
+存储一切有关Zinx框架的全局参数，供其他模块使用
+一些参数也可以通过 用户根据 zinx.json来配置
 */
 type Config struct {
 	/*
@@ -56,14 +57,20 @@ type Config struct {
 		Keepalive
 	*/
 	HeartbeatMax int //最长心跳检测间隔时间(单位：秒),超过改时间间隔，则认为超时，从配置文件读取
+
+	/*
+		TLS
+	*/
+	CertFile       string // 证书文件名称 默认""
+	PrivateKeyFile string // 私钥文件名称 默认"" --如果没有设置证书和私钥文件，则不启用TLS加密
 }
 
 /*
-	定义一个全局的对象
+定义一个全局的对象
 */
 var GlobalObject *Config
 
-//PathExists 判断一个文件是否存在
+// PathExists 判断一个文件是否存在
 func PathExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -75,7 +82,7 @@ func PathExists(path string) (bool, error) {
 	return false, err
 }
 
-//Reload 读取用户的配置文件
+// Reload 读取用户的配置文件
 func (g *Config) Reload() {
 	confFilePath := args.Args.ConfigFile
 	if confFileExists, _ := PathExists(confFilePath); confFileExists != true {
@@ -102,7 +109,7 @@ func (g *Config) Reload() {
 	}
 }
 
-//提示详细
+// 提示详细
 func (g *Config) Show() {
 	//提示当前配置信息
 	objVal := reflect.ValueOf(g).Elem()
@@ -123,7 +130,7 @@ func (g *Config) HeartbeatMaxDuration() time.Duration {
 }
 
 /*
-	提供init方法，默认加载
+提供init方法，默认加载
 */
 func init() {
 	pwd, err := os.Getwd()
@@ -158,6 +165,8 @@ func init() {
 		LogDebugClose:    true,
 		HeartbeatMax:     10, //默认心跳检测最长间隔为10秒
 		IOReadBuffSize:   1024,
+		CertFile:         "",
+		PrivateKeyFile:   "",
 	}
 	//NOTE: 从配置文件中加载一些用户配置的参数
 	GlobalObject.Reload()

@@ -1,6 +1,8 @@
 package znet
 
 import (
+	"crypto/tls"
+	"fmt"
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/ziface"
@@ -31,6 +33,8 @@ type Client struct {
 	decoder ziface.IDecoder
 	//心跳检测器
 	hc ziface.IHeartbeatChecker
+	// 使用TLS
+	useTLS bool
 }
 
 func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
@@ -47,6 +51,15 @@ func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 	for _, opt := range opts {
 		opt(c)
 	}
+
+	return c
+}
+
+func NewTLSClient(ip string, port int, opts ...ClientOption) ziface.IClient {
+
+	c, _ := NewClient(ip, port, opts...).(*Client)
+
+	c.useTLS = true
 
 	return c
 }
@@ -72,11 +85,26 @@ func (c *Client) Start() {
 		}
 
 		//创建原始Socket，得到net.Conn
-		conn, err := net.DialTCP("tcp", nil, addr)
-		if err != nil {
-			//创建链接失败
-			zlog.Ins().ErrorF("client connect to server failed, err:%v", err)
-			panic(err)
+		var conn net.Conn
+		var err error
+		if c.useTLS {
+			// TLS加密
+			config := &tls.Config{
+				InsecureSkipVerify: true, //这里是跳过证书验证，因为证书签发机构的CA证书是不被认证的
+			}
+
+			conn, err = tls.Dial("tcp", fmt.Sprintf("%v:%v", net.ParseIP(c.Ip), c.Port), config)
+			if err != nil {
+				zlog.Ins().ErrorF("tls client connect to server failed, err:%v", err)
+				panic(err)
+			}
+		} else {
+			conn, err = net.DialTCP("tcp", nil, addr)
+			if err != nil {
+				//创建链接失败
+				zlog.Ins().ErrorF("client connect to server failed, err:%v", err)
+				panic(err)
+			}
 		}
 
 		//创建Connection对象
