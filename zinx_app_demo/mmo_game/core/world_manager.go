@@ -57,6 +57,7 @@ func (wm *WorldManager) GetAllPlayers() []*Player {
 
 	//创建返回的player集合切片
 	players := make([]*Player, 0)
+	players := make([]*Player, 0, len(wm.Players))
 
 	//添加切片
 	for _, v := range wm.Players {

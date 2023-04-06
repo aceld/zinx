@@ -24,6 +24,7 @@ func NewMsgHandle() *MsgHandle {
 		WorkerPoolSize: zconf.GlobalObject.WorkerPoolSize,
 		//一个worker对应一个queue
 		TaskQueue: make([]chan ziface.IRequest, zconf.GlobalObject.WorkerPoolSize),
+		TaskQueue: make([]chan ziface.IRequest, zconf.GlobalObject.MaxWorkerTaskLen),
 		builder:   zinterceptor.NewBuilder(),
 	}
 	//此处必须把 msghandler 添加到责任链中，并且是责任链最后一环，在msghandler中进行解码后由router做数据分发
