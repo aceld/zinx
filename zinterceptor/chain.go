@@ -20,9 +20,11 @@ func (c *Chain) Request() ziface.IcReq {
 
 func (c *Chain) Proceed(request ziface.IcReq) ziface.IcResp {
 	if c.position < len(c.interceptors) {
-		chain := NewChain(c.interceptors, c.position+1, request)
+		//chain := NewChain(c.interceptors, c.position+1, request)
+		// 不需要每次拷贝实例化，
 		interceptor := c.interceptors[c.position]
-		response := interceptor.Intercept(chain)
+		c.position += 1
+		response := interceptor.Intercept(c)
 		return response
 	}
 	return request
