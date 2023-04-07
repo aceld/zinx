@@ -87,7 +87,7 @@ func newWebsocketConn(server ziface.IServer, conn *websocket.Conn, connID uint64
 	return c
 }
 
-//newClientConn :for Client, 创建一个Client服务端特性的连接的方法
+// newClientConn :for Client, 创建一个Client服务端特性的连接的方法
 func newWsClientConn(client ziface.IClient, conn *websocket.Conn) ziface.IConnection {
 	c := &WsConnection{
 		conn:        conn,
@@ -320,7 +320,7 @@ func (c *WsConnection) SendMsg(msgID uint32, data []byte) error {
 	}
 
 	//写回客户端
-	err = c.conn.WriteMessage(websocket.BinaryMessage, data)
+	err = c.conn.WriteMessage(websocket.BinaryMessage, msg)
 	if err != nil {
 		zlog.Ins().ErrorF("SendMsg err msg ID = %d, data = %+v, err = %+v", msgID, string(msg), err)
 		return err
