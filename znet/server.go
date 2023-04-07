@@ -59,7 +59,7 @@ type Server struct {
 	hc ziface.IHeartbeatChecker
 
 	// websocket
-	upgrader websocket.Upgrader
+	upgrader *websocket.Upgrader
 }
 
 // NewServer 创建一个服务器句柄
@@ -77,7 +77,7 @@ func NewServer(opts ...Option) ziface.IServer {
 		//默认使用zinx的TLV封包方式
 		packet:  zpack.Factory().NewPack(ziface.ZinxDataPack),
 		decoder: zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
-		upgrader: websocket.Upgrader{
+		upgrader: &websocket.Upgrader{
 			ReadBufferSize: int(zconf.GlobalObject.IOReadBuffSize),
 			CheckOrigin: func(r *http.Request) bool {
 				return true
@@ -110,6 +110,12 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 		exitChan:   nil,
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack),
 		decoder:    zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
+		upgrader: &websocket.Upgrader{
+			ReadBufferSize: int(zconf.GlobalObject.IOReadBuffSize),
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		},
 	}
 	//更替打包方式
 	for _, opt := range opts {
@@ -203,6 +209,9 @@ func (s *Server) Start() {
 					}
 					// 3.4 把 net.conn 转成 websocket.conn 模式
 					wsConn, err := s.upgrader.Upgrade(w, request, nil)
+					if err != nil {
+						zlog.Ins().ErrorF("http convert websocket error:%v", err)
+					}
 					// 3.5 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 					dealConn = newWebsocketConn(s, wsConn, cID)
 
