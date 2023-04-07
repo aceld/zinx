@@ -2,6 +2,8 @@ package znet
 
 import (
 	"bufio"
+	"crypto/rand"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"github.com/aceld/zinx/zconf"
@@ -149,9 +151,28 @@ func (s *Server) Start() {
 		}
 
 		// 2 监听服务器地址
-		listener, err := net.ListenTCP(s.IPVersion, addr)
-		if err != nil {
-			panic(err)
+		var listener net.Listener
+		if zconf.GlobalObject.CertFile != "" && zconf.GlobalObject.PrivateKeyFile != "" {
+			// 读取证书和密钥
+			crt, err := tls.LoadX509KeyPair(zconf.GlobalObject.CertFile, zconf.GlobalObject.PrivateKeyFile)
+			if err != nil {
+				panic(err)
+			}
+
+			// TLS连接
+			tlsConfig := &tls.Config{}
+			tlsConfig.Certificates = []tls.Certificate{crt}
+			tlsConfig.Time = time.Now
+			tlsConfig.Rand = rand.Reader
+			listener, err = tls.Listen(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port), tlsConfig)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			listener, err = net.ListenTCP(s.IPVersion, addr)
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		// 4. 创建 ws连接服务
