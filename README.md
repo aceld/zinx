@@ -10,7 +10,10 @@ English | [简体中文](README-CN.md)
 
 Zinx is a lightweight concurrent server framework based on Golang.
 
-Website:http://zinx.me
+##  Document 
+
+[《Zinx Documentation》](https://www.yuque.com/aceld/tsgooa/sbvzgczh3hqz8q3l)
+
 
 > **ps**:   
 > Zinx has been developed and used in many enterprises: Service of message transfer, Persistent Connection TCP/IP Server, The middleware of Web Service and so on. 
@@ -23,6 +26,9 @@ Git: https://github.com/aceld/zinx
 
 ### Gitee(China)
 Git: https://gitee.com/Aceld/zinx
+
+### Website
+http://zinx.me
 
 ---
 
