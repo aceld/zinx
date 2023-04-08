@@ -78,11 +78,6 @@ func (c *Client) Start() {
 	zconf.GlobalObject.WorkerPoolSize = 0
 
 	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				zlog.Ins().ErrorF("Client  Start() error: %v", err)
-			}
-		}()
 		addr := &net.TCPAddr{
 			IP:   net.ParseIP(c.Ip),
 			Port: c.Port,
