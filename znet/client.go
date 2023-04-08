@@ -8,6 +8,7 @@ import (
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/zpack"
+	"github.com/gorilla/websocket"
 	"net"
 	"time"
 )
@@ -17,6 +18,8 @@ type Client struct {
 	Ip string
 	//目标链接服务器的端口
 	Port int
+	// 客户端版本 tcp,websocket
+	version string
 	//客户端链接
 	conn ziface.IConnection
 	//该client的连接创建时Hook函数
@@ -35,6 +38,12 @@ type Client struct {
 	hc ziface.IHeartbeatChecker
 	// 使用TLS
 	useTLS bool
+
+	// websocket
+	dialer *websocket.Dialer
+
+	// errChan
+	ErrChan chan error
 }
 
 func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
@@ -45,6 +54,29 @@ func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 		msgHandler: NewMsgHandle(),
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack), //默认使用zinx的TLV封包方式
 		decoder:    zdecoder.NewTLVDecoder(),                     //默认使用zinx的TLV解码器
+		version:    "tcp",
+		ErrChan:    make(chan error),
+	}
+
+	//应用Option设置
+	for _, opt := range opts {
+		opt(c)
+	}
+
+	return c
+}
+
+func NewWsClient(ip string, port int, opts ...ClientOption) ziface.IClient {
+
+	c := &Client{
+		Ip:         ip,
+		Port:       port,
+		msgHandler: NewMsgHandle(),
+		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack), //默认使用zinx的TLV封包方式
+		decoder:    zdecoder.NewTLVDecoder(),                     //默认使用zinx的TLV解码器
+		version:    "websocket",
+		dialer:     &websocket.Dialer{},
+		ErrChan:    make(chan error),
 	}
 
 	//应用Option设置
@@ -78,12 +110,7 @@ func (c *Client) Start() {
 	zconf.GlobalObject.WorkerPoolSize = 0
 
 	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				zlog.Ins().ErrorF("Client  Start() error: %v", err)
-			}
-		}()
-		
+
 		addr := &net.TCPAddr{
 			IP:   net.ParseIP(c.Ip),
 			Port: c.Port,
@@ -91,32 +118,47 @@ func (c *Client) Start() {
 		}
 
 		//创建原始Socket，得到net.Conn
-		var conn net.Conn
-		var err error
-		if c.useTLS {
-			// TLS加密
-			config := &tls.Config{
-				InsecureSkipVerify: true, //这里是跳过证书验证，因为证书签发机构的CA证书是不被认证的
-			}
+		switch c.version {
+		case "websocket":
+			wsAddr := fmt.Sprintf("ws://%s", addr.String())
 
-			conn, err = tls.Dial("tcp", fmt.Sprintf("%v:%v", net.ParseIP(c.Ip), c.Port), config)
-			if err != nil {
-				zlog.Ins().ErrorF("tls client connect to server failed, err:%v", err)
-				panic(err)
-			}
-		} else {
-			conn, err = net.DialTCP("tcp", nil, addr)
+			//创建原始Socket，得到net.Conn
+			wsConn, _, err := c.dialer.Dial(wsAddr, nil)
 			if err != nil {
 				//创建链接失败
-				zlog.Ins().ErrorF("client connect to server failed, err:%v", err)
-				panic(err)
+				zlog.Ins().ErrorF("WsClient connect to server failed, err:%v", err)
+				c.ErrChan <- err
 			}
+			//创建Connection对象
+			c.conn = newWsClientConn(c, wsConn)
+
+		default:
+			var conn net.Conn
+			var err error
+			if c.useTLS {
+				// TLS加密
+				config := &tls.Config{
+					InsecureSkipVerify: true, //这里是跳过证书验证，因为证书签发机构的CA证书是不被认证的
+				}
+
+				conn, err = tls.Dial("tcp", fmt.Sprintf("%v:%v", net.ParseIP(c.Ip), c.Port), config)
+				if err != nil {
+					zlog.Ins().ErrorF("tls client connect to server failed, err:%v", err)
+					c.ErrChan <- err
+				}
+			} else {
+				conn, err = net.DialTCP("tcp", nil, addr)
+				if err != nil {
+					//创建链接失败
+					zlog.Ins().ErrorF("client connect to server failed, err:%v", err)
+					c.ErrChan <- err
+				}
+			}
+			//创建Connection对象
+			c.conn = newClientConn(c, conn)
 		}
 
-		//创建Connection对象
-		c.conn = newClientConn(c, conn)
-		zlog.Ins().InfoF("[START] Zinx Client LocalAddr: %s, RemoteAddr: %s\n", conn.LocalAddr(), conn.RemoteAddr())
-
+		zlog.Ins().InfoF("[START] Zinx Client LocalAddr: %s, RemoteAddr: %s\n", c.conn.LocalAddr(), c.conn.RemoteAddr())
 		//HeartBeat心跳检测
 		if c.hc != nil {
 			//创建链接成功，绑定链接与心跳检测器
