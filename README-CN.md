@@ -9,7 +9,9 @@
 
 Zinx 是一个基于Golang的轻量级并发服务器框架
 
-官网:http://zinx.me
+## 开发者文档
+
+[《Zinx Documentation》](https://www.yuque.com/aceld/tsgooa/sbvzgczh3hqz8q3l)
 
 > **说明**:目前zinx已经在很多企业进行开发使用，具体使用领域包括:后端模块的消息中转、长链接游戏服务器、Web框架中的消息处理插件等。zinx的定位是代码简洁，让更多的开发者迅速的了解框架的内脏细节并且可以快速基于zinx DIY(二次开发)一款适合自己企业场景的模块。
 
@@ -20,6 +22,9 @@ Git: https://github.com/aceld/zinx
 
 ### 码云(Gitee)
 Git: https://gitee.com/Aceld/zinx
+
+### 官网
+http://zinx.me
 
 ---
 
