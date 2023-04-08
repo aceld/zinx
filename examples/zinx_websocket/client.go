@@ -49,7 +49,7 @@ func wait() {
 
 func main() {
 	//创建一个Client句柄，使用Zinx的API
-	client := znet.NewClient("127.0.0.1", 8999)
+	client := znet.NewWsClient("127.0.0.1", 8999)
 
 	//添加首次建立链接时的业务
 	client.SetOnConnStart(DoClientConnectedBegin)
