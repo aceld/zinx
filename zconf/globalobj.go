@@ -49,9 +49,9 @@ type Config struct {
 	/*
 		logger
 	*/
-	LogDir        string //日志所在文件夹 默认"./log"
-	LogFile       string //日志文件名称   默认""  --如果没有设置日志文件，打印信息将打印至stderr
-	LogDebugClose bool   //是否关闭Debug日志级别调试信息 默认false  -- 默认打开debug信息
+	LogDir            string //日志所在文件夹 默认"./log"
+	LogFile           string //日志文件名称   默认""  --如果没有设置日志文件，打印信息将打印至stderr
+	LogIsolationLevel int    //日志隔离级别  -- 0：全开 1：关debug 2：关debug/info 3：关debug/info/warn ...
 
 	/*
 		Keepalive
@@ -104,8 +104,8 @@ func (g *Config) Reload() {
 	if g.LogFile != "" {
 		zlog.SetLogFile(g.LogDir, g.LogFile)
 	}
-	if g.LogDebugClose == true {
-		zlog.CloseDebug()
+	if g.LogIsolationLevel > zlog.LogDebug {
+		zlog.SetLogLevel(g.LogIsolationLevel)
 	}
 }
 
@@ -151,22 +151,22 @@ func init() {
 
 	//初始化GlobalObject变量，设置一些默认值
 	GlobalObject = &Config{
-		Name:             "ZinxServerApp",
-		Version:          "V1.0",
-		TCPPort:          8999,
-		Host:             "0.0.0.0",
-		MaxConn:          12000,
-		MaxPacketSize:    4096,
-		WorkerPoolSize:   10,
-		MaxWorkerTaskLen: 1024,
-		MaxMsgChanLen:    1024,
-		LogDir:           pwd + "/log",
-		LogFile:          "",
-		LogDebugClose:    true,
-		HeartbeatMax:     10, //默认心跳检测最长间隔为10秒
-		IOReadBuffSize:   1024,
-		CertFile:         "",
-		PrivateKeyFile:   "",
+		Name:              "ZinxServerApp",
+		Version:           "V1.0",
+		TCPPort:           8999,
+		Host:              "0.0.0.0",
+		MaxConn:           12000,
+		MaxPacketSize:     4096,
+		WorkerPoolSize:    10,
+		MaxWorkerTaskLen:  1024,
+		MaxMsgChanLen:     1024,
+		LogDir:            pwd + "/log",
+		LogFile:           "",
+		LogIsolationLevel: 0,
+		HeartbeatMax:      10, //默认心跳检测最长间隔为10秒
+		IOReadBuffSize:    1024,
+		CertFile:          "",
+		PrivateKeyFile:    "",
 	}
 	//NOTE: 从配置文件中加载一些用户配置的参数
 	GlobalObject.Reload()

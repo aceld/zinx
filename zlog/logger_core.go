@@ -63,18 +63,18 @@ var levels = []string{
 }
 
 type ZinxLoggerCore struct {
-	mu            sync.Mutex   //确保多协程读写文件，防止文件内容混乱，做到协程安全
-	prefix        string       //每行log日志的前缀字符串,拥有日志标记
-	flag          int          //日志标记位
-	out           io.Writer    //日志输出的文件描述符
-	buf           bytes.Buffer //输出的缓冲区
-	file          *os.File     //当前日志绑定的输出文件
-	debugClose    bool         //是否打印调试debug信息
-	calldDepth    int          //获取日志文件名和代码上述的runtime.Call 的函数调用层数
-	fileName      string       //日志文件名称
-	fileDir       string       //日志文件目录
-	lastWriteDate int          //上次写入日期
-	fsLock        sync.Mutex   //文件交换锁
+	mu             sync.Mutex   //确保多协程读写文件，防止文件内容混乱，做到协程安全
+	prefix         string       //每行log日志的前缀字符串,拥有日志标记
+	flag           int          //日志标记位
+	out            io.Writer    //日志输出的文件描述符
+	buf            bytes.Buffer //输出的缓冲区
+	file           *os.File     //当前日志绑定的输出文件
+	isolationLevel int          //日志隔离级别
+	calldDepth     int          //获取日志文件名和代码上述的runtime.Call 的函数调用层数
+	fileName       string       //日志文件名称
+	fileDir        string       //日志文件目录
+	lastWriteDate  int          //上次写入日期
+	fsLock         sync.Mutex   //文件交换锁
 }
 
 /*
@@ -86,7 +86,7 @@ flag: 当前日志头部信息的标记位
 func NewZinxLog(out io.Writer, prefix string, flag int) *ZinxLoggerCore {
 
 	//默认 debug打开， calledDepth深度为2,ZinxLogger对象调用日志打印方法最多调用两层到达output函数
-	zlog := &ZinxLoggerCore{out: out, prefix: prefix, flag: flag, file: nil, debugClose: false, calldDepth: 2}
+	zlog := &ZinxLoggerCore{out: out, prefix: prefix, flag: flag, file: nil, isolationLevel: 0, calldDepth: 2}
 	//设置log对象 回收资源 析构方法(不设置也可以，go的Gc会自动回收，强迫症没办法)
 	runtime.SetFinalizer(zlog, CleanZinxLog)
 	return zlog
@@ -208,16 +208,24 @@ func (log *ZinxLoggerCore) OutPut(level int, s string) error {
 	return err
 }
 
+func (log *ZinxLoggerCore) verifyLogIsolation(logLevel int) bool {
+	if log.isolationLevel > logLevel {
+		return true
+	} else {
+		return false
+	}
+}
+
 // ====> Debug <====
 func (log *ZinxLoggerCore) Debugf(format string, v ...interface{}) {
-	if log.debugClose == true {
+	if log.verifyLogIsolation(LogDebug) {
 		return
 	}
 	_ = log.OutPut(LogDebug, fmt.Sprintf(format, v...))
 }
 
 func (log *ZinxLoggerCore) Debug(v ...interface{}) {
-	if log.debugClose == true {
+	if log.verifyLogIsolation(LogDebug) {
 		return
 	}
 	_ = log.OutPut(LogDebug, fmt.Sprintln(v...))
@@ -225,50 +233,80 @@ func (log *ZinxLoggerCore) Debug(v ...interface{}) {
 
 // ====> Info <====
 func (log *ZinxLoggerCore) Infof(format string, v ...interface{}) {
+	if log.verifyLogIsolation(LogInfo) {
+		return
+	}
 	_ = log.OutPut(LogInfo, fmt.Sprintf(format, v...))
 }
 
 func (log *ZinxLoggerCore) Info(v ...interface{}) {
+	if log.verifyLogIsolation(LogInfo) {
+		return
+	}
 	_ = log.OutPut(LogInfo, fmt.Sprintln(v...))
 }
 
 // ====> Warn <====
 func (log *ZinxLoggerCore) Warnf(format string, v ...interface{}) {
+	if log.verifyLogIsolation(LogWarn) {
+		return
+	}
 	_ = log.OutPut(LogWarn, fmt.Sprintf(format, v...))
 }
 
 func (log *ZinxLoggerCore) Warn(v ...interface{}) {
+	if log.verifyLogIsolation(LogWarn) {
+		return
+	}
 	_ = log.OutPut(LogWarn, fmt.Sprintln(v...))
 }
 
 // ====> Error <====
 func (log *ZinxLoggerCore) Errorf(format string, v ...interface{}) {
+	if log.verifyLogIsolation(LogError) {
+		return
+	}
 	_ = log.OutPut(LogError, fmt.Sprintf(format, v...))
 }
 
 func (log *ZinxLoggerCore) Error(v ...interface{}) {
+	if log.verifyLogIsolation(LogError) {
+		return
+	}
 	_ = log.OutPut(LogError, fmt.Sprintln(v...))
 }
 
 // ====> Fatal 需要终止程序 <====
 func (log *ZinxLoggerCore) Fatalf(format string, v ...interface{}) {
+	if log.verifyLogIsolation(LogFatal) {
+		return
+	}
 	_ = log.OutPut(LogFatal, fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
 
 func (log *ZinxLoggerCore) Fatal(v ...interface{}) {
+	if log.verifyLogIsolation(LogFatal) {
+		return
+	}
 	_ = log.OutPut(LogFatal, fmt.Sprintln(v...))
 	os.Exit(1)
 }
 
 // ====> Panic  <====
 func (log *ZinxLoggerCore) Panicf(format string, v ...interface{}) {
+	if log.verifyLogIsolation(LogPanic) {
+		return
+	}
 	s := fmt.Sprintf(format, v...)
 	_ = log.OutPut(LogPanic, s)
 	panic(s)
 }
 
 func (log *ZinxLoggerCore) Panic(v ...interface{}) {
+	if log.verifyLogIsolation(LogPanic) {
+		return
+	}
 	s := fmt.Sprintln(v...)
 	_ = log.OutPut(LogPanic, s)
 	panic(s)
@@ -372,12 +410,8 @@ func (log *ZinxLoggerCore) updateOutputFile() {
 
 }
 
-func (log *ZinxLoggerCore) CloseDebug() {
-	log.debugClose = true
-}
-
-func (log *ZinxLoggerCore) OpenDebug() {
-	log.debugClose = false
+func (log *ZinxLoggerCore) SetLogLevel(logLevel int) {
+	log.isolationLevel = logLevel
 }
 
 // ================== 以下是一些工具方法 ==========

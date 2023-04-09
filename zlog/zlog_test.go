@@ -31,11 +31,32 @@ func TestStdZLog(t *testing.T) {
 	zlog.Debug("===> zinx debug content ~~888")
 	zlog.Error("===> zinx Error!!!! ~~~555~~~")
 
-	//关闭debug调试
-	zlog.CloseDebug()
-	zlog.Debug("===> 我不应该出现~！")
-	zlog.Debug("===> 我不应该出现~！")
-	zlog.Error("===> zinx Error  after debug close !!!!")
+	//调试隔离级别
+	zlog.Debug("=================================>")
+	//1.debug
+	zlog.SetLogLevel(zlog.LogInfo)
+	zlog.Debug("===> 调试Debug：debug不应该出现")
+	zlog.Info("===> 调试Debug：info应该出现")
+	zlog.Warn("===> 调试Debug：warn应该出现")
+	zlog.Error("===> 调试Debug：error应该出现")
+	//2.info
+	zlog.SetLogLevel(zlog.LogWarn)
+	zlog.Debug("===> 调试Info：debug不应该出现")
+	zlog.Info("===> 调试Info：info不应该出现")
+	zlog.Warn("===> 调试Info：warn应该出现")
+	zlog.Error("===> 调试Info：error应该出现")
+	//3.warn
+	zlog.SetLogLevel(zlog.LogError)
+	zlog.Debug("===> 调试Warn：debug不应该出现")
+	zlog.Info("===> 调试Warn：info不应该出现")
+	zlog.Warn("===> 调试Warn：warn不应该出现")
+	zlog.Error("===> 调试Warn：error应该出现")
+	//4.error
+	zlog.SetLogLevel(zlog.LogPanic)
+	zlog.Debug("===> 调试Error：debug不应该出现")
+	zlog.Info("===> 调试Error：info不应该出现")
+	zlog.Warn("===> 调试Error：warn不应该出现")
+	zlog.Error("===> 调试Error：error不应该出现")
 }
 
 func TestZLogger(t *testing.T) {
