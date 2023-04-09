@@ -267,7 +267,8 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
   "MaxConn":3,
   "WorkerPoolSize":10,
   "LogDir": "./mylog",
-  "LogFile":"zinx.log"
+  "LogFile":"zinx.log",
+  "LogIsolationLevel": 0
 }
 ```
 
@@ -285,6 +286,7 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
 
 `LogFile`: 日志文件名称(如果不提供，则日志信息打印到Stderr)
 
+`LogIsolationLevel`: 日志隔离级别 0：全开, 1：关debug, 2：关debug/info, 3：关debug/info/warn 
 
 ---
 

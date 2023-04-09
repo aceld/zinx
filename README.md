@@ -268,7 +268,8 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
   "MaxConn":3,
   "WorkerPoolSize":10,
   "LogDir": "./mylog",
-  "LogFile":"zinx.log"
+  "LogFile":"zinx.log",
+  "LogIsolationLevel":0
 }
 ```
 
@@ -285,6 +286,8 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
 `LogDir`: Log folder
 
 `LogFile`: Log file name (if not provided, log information is printed to Stderr)
+
+`LogIsolationLevel`: Log Isolation Level -0: Full On 1: Off debug 2: Off debug/info 3: Off debug/info/warn
 
 
 ---
