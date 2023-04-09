@@ -6,5 +6,5 @@
   "WorkerPoolSize":10,
   "LogDir": "./mylog",
   "LogFile":"zinx.log",
-  "LogDebugClose":false
+  "LogIsolationLevel": 0
 }

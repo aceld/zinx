@@ -4,6 +4,6 @@
   "TcpPort":8999,
   "MaxConn":3,
   "WorkerPoolSize":10,
-  "LogDebugClose": true,
+  "LogIsolationLevel": 1,
   "HeartbeatMax": 10
 }

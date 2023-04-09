@@ -41,9 +41,9 @@ func UserConfToGlobal(config *Config) {
 
 	// logger
 	//默认就是False config没有初始化即使用默认配置
-	GlobalObject.LogDebugClose = config.LogDebugClose
-	if GlobalObject.LogDebugClose == true {
-		zlog.CloseDebug()
+	GlobalObject.LogIsolationLevel = config.LogIsolationLevel
+	if GlobalObject.LogIsolationLevel > zlog.LogDebug {
+		zlog.SetLogLevel(GlobalObject.LogIsolationLevel)
 	}
 
 	//不同于上方必填项 日志目前如果没配置应该使用默认配置

@@ -1,7 +1,8 @@
 // Package zlog 主要提供zinx相关日志记录接口
 // 包括:
-//		stdzlog模块， 提供全局日志方法
-//		zlogger模块,  日志内部定义协议，均为对象类方法
+//
+//	stdzlog模块， 提供全局日志方法
+//	zlogger模块,  日志内部定义协议，均为对象类方法
 //
 // 当前文件描述:
 // @Title  stdzlog.go
@@ -21,60 +22,55 @@ package zlog
 
 import "os"
 
-//StdZinxLog 创建全局log
+// StdZinxLog 创建全局log
 var StdZinxLog = NewZinxLog(os.Stderr, "", BitDefault)
 
-//Flags 获取StdZinxLog 标记位
+// Flags 获取StdZinxLog 标记位
 func Flags() int {
 	return StdZinxLog.Flags()
 }
 
-//ResetFlags 设置StdZinxLog标记位
+// ResetFlags 设置StdZinxLog标记位
 func ResetFlags(flag int) {
 	StdZinxLog.ResetFlags(flag)
 }
 
-//AddFlag 添加flag标记
+// AddFlag 添加flag标记
 func AddFlag(flag int) {
 	StdZinxLog.AddFlag(flag)
 }
 
-//SetPrefix 设置StdZinxLog 日志头前缀
+// SetPrefix 设置StdZinxLog 日志头前缀
 func SetPrefix(prefix string) {
 	StdZinxLog.SetPrefix(prefix)
 }
 
-//SetLogFile 设置StdZinxLog绑定的日志文件
+// SetLogFile 设置StdZinxLog绑定的日志文件
 func SetLogFile(fileDir string, fileName string) {
 	StdZinxLog.SetLogFile(fileDir, fileName)
 }
 
-//CloseDebug 设置关闭debug
-func CloseDebug() {
-	StdZinxLog.CloseDebug()
+// SetLogLevel 设置日志隔离级别
+func SetLogLevel(logLevel int) {
+	StdZinxLog.SetLogLevel(logLevel)
 }
 
-//OpenDebug 设置打开debug
-func OpenDebug() {
-	StdZinxLog.OpenDebug()
-}
-
-//Debugf ====> Debug <====
+// Debugf ====> Debug <====
 func Debugf(format string, v ...interface{}) {
 	StdZinxLog.Debugf(format, v...)
 }
 
-//Debug Debug
+// Debug Debug
 func Debug(v ...interface{}) {
 	StdZinxLog.Debug(v...)
 }
 
-//Infof ====> Info <====
+// Infof ====> Info <====
 func Infof(format string, v ...interface{}) {
 	StdZinxLog.Infof(format, v...)
 }
 
-//Info -
+// Info -
 func Info(v ...interface{}) {
 	StdZinxLog.Info(v...)
 }
