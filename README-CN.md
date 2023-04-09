@@ -165,7 +165,7 @@ MaxMsgChanLen: 1024
 ConfFilePath: /Users/Aceld/go/src/zinx-usage/quick_start/conf/zinx.json
 LogDir: /Users/Aceld/go/src/zinx-usage/quick_start/log
 LogFile: 
-LogDebugClose: false
+LogIsolationLevel: 0
 HeartbeatMax: 10
 ==============================
 2023/03/09 18:39:49 [INFO]msghandler.go:61: Add api msgID = 1
