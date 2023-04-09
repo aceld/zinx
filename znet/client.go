@@ -209,6 +209,7 @@ func (c *Client) Stop() {
 	c.conn.Stop()
 	c.exitChan <- struct{}{}
 	close(c.exitChan)
+	close(c.ErrChan)
 }
 
 func (c *Client) AddRouter(msgID uint32, router ziface.IRouter) {
