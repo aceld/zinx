@@ -86,6 +86,10 @@ func PathExists(path string) (bool, error) {
 func (g *Config) Reload() {
 	confFilePath := args.Args.ConfigFile
 	if confFileExists, _ := PathExists(confFilePath); confFileExists != true {
+
+		// 配置文件不存在也需要用默认参数初始化日志模块配置
+		g.InitLogConfig()
+
 		zlog.Ins().ErrorF("Config File %s is not exist!!", confFilePath)
 		return
 	}
@@ -100,13 +104,9 @@ func (g *Config) Reload() {
 		panic(err)
 	}
 
-	//Logger 设置
-	if g.LogFile != "" {
-		zlog.SetLogFile(g.LogDir, g.LogFile)
-	}
-	if g.LogIsolationLevel > zlog.LogDebug {
-		zlog.SetLogLevel(g.LogIsolationLevel)
-	}
+	//Logger 初始化配置
+	g.InitLogConfig()
+
 }
 
 // 提示详细
@@ -127,6 +127,15 @@ func (g *Config) Show() {
 
 func (g *Config) HeartbeatMaxDuration() time.Duration {
 	return time.Duration(g.HeartbeatMax) * time.Second
+}
+
+func (g *Config) InitLogConfig() {
+	if g.LogFile != "" {
+		zlog.SetLogFile(g.LogDir, g.LogFile)
+	}
+	if g.LogIsolationLevel > zlog.LogDebug {
+		zlog.SetLogLevel(g.LogIsolationLevel)
+	}
 }
 
 /*
