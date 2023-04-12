@@ -32,7 +32,7 @@ func (r *Request) SetResponse(response ziface.IcResp) {
 	r.icResp = response
 }
 
-func NewRequest(conn ziface.IConnection, msg ziface.IMessage) *Request {
+func NewRequest(conn ziface.IConnection, msg ziface.IMessage) ziface.IRequest {
 	req := new(Request)
 	req.steps = PRE_HANDLE
 	req.conn = conn
