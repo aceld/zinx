@@ -249,7 +249,7 @@ func (s *Server) Start() {
 
 				} else {
 					//3.4 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
-					dealConn = newServerConn(s, conn, cID)
+					dealConn = newServerConn(s, conn, cID, reader)
 
 					// TCP HeartBeat 心跳检测
 					if s.hc != nil {

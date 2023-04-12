@@ -406,7 +406,7 @@ func (d *FrameDecoder) getUnadjustedFrameLength(buf *bytes.Buffer, offset int, l
 		}
 	case 4:
 		//int
-		var value int32
+		var value uint32
 		binary.Read(buffer, order, &value)
 		frameLength = int64(value)
 	case 8:

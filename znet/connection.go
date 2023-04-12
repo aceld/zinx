@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"io"
 	"net"
 	"sync"
 	"time"
@@ -25,6 +26,7 @@ import (
 type Connection struct {
 	// 当前连接的socket TCP套接字
 	conn net.Conn
+	reader io.Reader
 	// 当前连接的ID 也可以称作为SessionID，ID全局唯一 ，服务端Connection使用
 	// uint64 取值范围：0 ~ 18,446,744,073,709,551,615
 	// 这个是理论支持的进程connID的最大数量
@@ -62,7 +64,7 @@ type Connection struct {
 
 // newServerConn :for Server, 创建一个Server服务端特性的连接的方法
 // Note: 名字由 NewConnection 更变
-func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.IConnection {
+func newServerConn(server ziface.IServer, conn net.Conn, connID uint64, reader io.Reader) ziface.IConnection {
 	// 初始化Conn属性
 	c := &Connection{
 		conn:        conn,
@@ -70,6 +72,7 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 		isClosed:    false,
 		msgBuffChan: nil,
 		property:    nil,
+		reader:      reader,
 	}
 
 	lengthField := server.GetLengthField()
@@ -164,7 +167,7 @@ func (c *Connection) StartReader() {
 			buffer := make([]byte, zconf.GlobalObject.IOReadBuffSize)
 
 			// 从conn的IO中读取数据到内存缓冲buffer中
-			n, err := c.conn.Read(buffer[:])
+			n, err := c.reader.Read(buffer)
 			if err != nil {
 				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err)
 				return
