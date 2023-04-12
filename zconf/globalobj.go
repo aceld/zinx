@@ -161,7 +161,7 @@ func init() {
 		MaxWorkerTaskLen:  1024,
 		MaxMsgChanLen:     1024,
 		LogDir:            pwd + "/log",
-		LogFile:           "zing.log",
+		LogFile:           "zinx.log",
 		LogIsolationLevel: 0,
 		HeartbeatMax:      10, //默认心跳检测最长间隔为10秒
 		IOReadBuffSize:    1024,
