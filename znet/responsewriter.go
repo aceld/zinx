@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"net"
 	"net/http"
+	"github.com/aceld/zinx/zlog"
 )
 
 type customWriterRecorder struct {
@@ -32,6 +33,7 @@ func (w *customWriterRecorder) WriteHeader(statusCode int) {
 	//TODO implement me
 	zlog.Ins().ErrorF("WriteHeader has not been implemented")
 }
+
 func (w *customWriterRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return w.conn, w.rw, nil
 }
