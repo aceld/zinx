@@ -378,37 +378,37 @@ func (d *FrameDecoder) discardingTooLongFrameFunc(buffer *bytes.Buffer) {
 	d.failIfNecessary(false)
 }
 
-func (d *FrameDecoder) getUnadjustedFrameLength(buf *bytes.Buffer, offset int, length int, order binary.ByteOrder) int64 {
+func (d *FrameDecoder) getUnadjustedFrameLength(buf *bytes.Buffer, offset int, length int, order binary.ByteOrder) uint64 {
 	//长度字段的值
-	var frameLength int64
+	var frameLength uint64
 	arr := buf.Bytes()
 	arr = arr[offset : offset+length]
 	buffer := bytes.NewBuffer(arr)
 	switch length {
 	case 1:
 		//byte
-		var value byte
+		var value uint8
 		binary.Read(buffer, order, &value)
-		frameLength = int64(value)
+		frameLength = uint64(value)
 	case 2:
 		//short
-		var value int16
+		var value uint16
 		binary.Read(buffer, order, &value)
-		frameLength = int64(value)
+		frameLength = uint64(value)
 	case 3:
 		//int占32位，这里取出后24位，返回int类型
 		if order == binary.LittleEndian {
-			n := int(uint(arr[0]) | uint(arr[1])<<8 | uint(arr[2])<<16)
-			frameLength = int64(n)
+			n := uint(uint(arr[0]) | uint(arr[1])<<8 | uint(arr[2])<<16)
+			frameLength = uint64(n)
 		} else {
-			n := int(uint(arr[2]) | uint(arr[1])<<8 | uint(arr[0])<<16)
-			frameLength = int64(n)
+			n := uint(uint(arr[2]) | uint(arr[1])<<8 | uint(arr[0])<<16)
+			frameLength = uint64(n)
 		}
 	case 4:
 		//int
 		var value uint32
 		binary.Read(buffer, order, &value)
-		frameLength = int64(value)
+		frameLength = uint64(value)
 	case 8:
 		//long
 		binary.Read(buffer, order, &frameLength)
@@ -418,7 +418,7 @@ func (d *FrameDecoder) getUnadjustedFrameLength(buf *bytes.Buffer, offset int, l
 	return frameLength
 }
 
-func (d *FrameDecoder) failOnNegativeLengthField(in *bytes.Buffer, frameLength int64, lengthFieldEndOffset int) {
+func (d *FrameDecoder) failOnNegativeLengthField(in *bytes.Buffer, frameLength uint64, lengthFieldEndOffset int) {
 	in.Next(lengthFieldEndOffset)
 	panic(fmt.Sprintf("negative pre-adjustment length field: %d", frameLength))
 }
@@ -502,12 +502,12 @@ func (d *FrameDecoder) decode(buf []byte) []byte {
 	//frameLength就是长度字段的值，加上lengthAdjustment等于长度字段后的数据字节数
 	//lengthFieldEndOffset为lengthFieldOffset+lengthFieldLength
 	//那说明最后计算出的framLength就是整个数据包的长度
-	frameLength += int64(d.LengthAdjustment) + int64(d.LengthFieldEndOffset)
+	frameLength += uint64(d.LengthAdjustment) + uint64(d.LengthFieldEndOffset)
 	//丢弃模式就是在这开启的
 	//如果数据包长度大于最大长度
-	if frameLength > int64(d.MaxFrameLength) {
+	if frameLength > d.MaxFrameLength {
 		//对超过的部分进行处理
-		d.exceededFrameLength(in, frameLength)
+		d.exceededFrameLength(in, int64(frameLength))
 		return nil
 	}
 
@@ -524,7 +524,7 @@ func (d *FrameDecoder) decode(buf []byte) []byte {
 
 	//跳过的字节数是否大于数据包长度
 	if d.InitialBytesToStrip > frameLengthInt {
-		d.failOnFrameLengthLessThanInitialBytesToStrip(in, frameLength, d.InitialBytesToStrip)
+		d.failOnFrameLengthLessThanInitialBytesToStrip(in, int64(frameLength), d.InitialBytesToStrip)
 	}
 	//跳过initialBytesToStrip个字节
 	in.Next(d.InitialBytesToStrip)
