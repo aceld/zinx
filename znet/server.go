@@ -232,41 +232,28 @@ func (s *Server) Start() {
 					wsConn, err := s.upgrader.Upgrade(w, request, nil)
 					if err != nil {
 						zlog.Ins().ErrorF("http convert websocket error:%v", err)
+						return
 					}
 					// 3.5 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 					dealConn = newWebsocketConn(s, wsConn, cID)
 
-					// Websocket HeartBeat 心跳检测
-					if s.hc != nil {
-						//从Server端克隆一个心跳检测器
-						heartBeatChecker := s.hc.Clone()
-						heartBeatChecker.SetHeartbeatFunc(func(connection ziface.IConnection) error {
-							return connection.GetWsConn().WriteMessage(websocket.PingMessage, nil)
-						})
-						//绑定当前链接
-						heartBeatChecker.BindConn(dealConn)
-					}
-
 				} else {
 					//3.4 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 					dealConn = newServerConn(s, conn, cID, reader)
+				}
 
-					// TCP HeartBeat 心跳检测
-					if s.hc != nil {
-						//从Server端克隆一个心跳检测器
-						heartBeatChecker := s.hc.Clone()
+				// HeartBeat 心跳检测
+				if s.hc != nil {
+					//从Server端克隆一个心跳检测器
+					heartBeatChecker := s.hc.Clone()
 
-						//绑定当前链接
-						heartBeatChecker.BindConn(dealConn)
-					}
-
+					//绑定当前链接
+					heartBeatChecker.BindConn(dealConn)
 				}
 
 				cID++
-
 				//3.4 启动当前链接的处理业务
 				go dealConn.Start()
-
 			}
 		}()
 
