@@ -221,7 +221,7 @@ func (s *Server) Start() {
 				if peek[0] == 'G' || peek[0] == 'P' || peek[0] == 'H' {
 					// 处理 HTTP 请求
 					// 创建 http ResponseWriter
-					w := newResponseWriter(conn.(*net.TCPConn))
+					w := newResponseWriter(conn.(*net.TCPConn), reader)
 					// 把http连接解析成request
 					request, err := http.ReadRequest(reader)
 					if err != nil {
