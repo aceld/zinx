@@ -4,6 +4,7 @@
 package znet
 
 import (
+	"bufio"
 	"context"
 	"encoding/hex"
 	"errors"
@@ -103,6 +104,7 @@ func newClientConn(client ziface.IClient, conn net.Conn) ziface.IConnection {
 		isClosed:    false,
 		msgBuffChan: nil,
 		property:    nil,
+		reader:      bufio.NewReader(conn),
 	}
 
 	lengthField := client.GetLengthField()

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"net"
 	"net/http"
+	"github.com/aceld/zinx/zlog"
 )
 
 type customWriterRecorder struct {
@@ -20,7 +21,8 @@ func newResponseWriter(conn *net.TCPConn, reader *bufio.Reader) *customWriterRec
 }
 
 func (w *customWriterRecorder) Header() http.Header {
-	return nil
+	zlog.Ins().ErrorF("Header has not been implemented")
+	return http.Header{}
 }
 
 func (w *customWriterRecorder) Write(bytes []byte) (int, error) {
@@ -29,8 +31,9 @@ func (w *customWriterRecorder) Write(bytes []byte) (int, error) {
 
 func (w *customWriterRecorder) WriteHeader(statusCode int) {
 	//TODO implement me
-	panic("implement me")
+	zlog.Ins().ErrorF("WriteHeader has not been implemented")
 }
+
 func (w *customWriterRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return w.conn, w.rw, nil
 }
