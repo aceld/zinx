@@ -159,6 +159,7 @@ func (h *HeartbeatChecker) Clone() ziface.IHeartbeatChecker {
 	heartbeat := &HeartbeatChecker{
 		interval:         h.interval,
 		quitChan:         make(chan bool),
+		beatFunc:         h.beatFunc,
 		makeMsg:          h.makeMsg,
 		onRemoteNotAlive: h.onRemoteNotAlive,
 		msgID:            h.msgID,

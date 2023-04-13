@@ -12,7 +12,6 @@ import "github.com/aceld/zinx/ziface"
 type Builder struct {
 	body       []ziface.IInterceptor
 	head, tail ziface.IInterceptor
-	req        ziface.IcReq
 }
 
 func NewBuilder() ziface.IBuilder {
@@ -34,7 +33,6 @@ func (ic *Builder) AddInterceptor(interceptor ziface.IInterceptor) {
 }
 
 func (ic *Builder) Execute(req ziface.IcReq) ziface.IcResp {
-	ic.req = req
 
 	//将全部拦截器放入Builder中
 	var interceptors []ziface.IInterceptor
@@ -52,5 +50,5 @@ func (ic *Builder) Execute(req ziface.IcReq) ziface.IcResp {
 	chain := NewChain(interceptors, 0, req)
 
 	//进入责任链执行
-	return chain.Proceed(ic.req)
+	return chain.Proceed(req)
 }
