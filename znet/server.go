@@ -1,7 +1,6 @@
 package znet
 
 import (
-	"bufio"
 	"crypto/rand"
 	"crypto/tls"
 	"errors"
@@ -43,6 +42,8 @@ type Server struct {
 	IP string
 	//服务绑定的端口
 	Port int
+	// 服务绑定的websocket 端口
+	WsPort int
 	//当前Server的消息管理模块，用来绑定MsgID和对应的处理方法
 	msgHandler ziface.IMsgHandle
 	//当前Server的链接管理器
@@ -73,6 +74,7 @@ func NewServer(opts ...Option) ziface.IServer {
 		IPVersion:  "tcp",
 		IP:         zconf.GlobalObject.Host,
 		Port:       zconf.GlobalObject.TCPPort,
+		WsPort:     zconf.GlobalObject.WsPort,
 		msgHandler: NewMsgHandle(),
 		ConnMgr:    NewConnManager(),
 		exitChan:   nil,
@@ -133,50 +135,117 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 }
 
 // ============== 实现 ziface.IServer 里的全部接口方法 ========
-func (s *Server) StartConn(conn net.Conn, cID uint64) {
-	var dealConn ziface.IConnection
-	reader := bufio.NewReader(conn)
-	peek, err := reader.Peek(1)
-	if err != nil {
-		zlog.Ins().ErrorF("Error peeking request err:%v", err)
-		return
-	}
-	// 3.3 判断连接是否是 HTTP 请求
-	if peek[0] == 'G' || peek[0] == 'P' || peek[0] == 'H' {
-		// 处理 HTTP 请求
-		// 创建 http ResponseWriter
-		w := newResponseWriter(conn.(*net.TCPConn), reader)
-		// 把http连接解析成request
-		request, err := http.ReadRequest(reader)
-		if err != nil {
-			zlog.Ins().ErrorF("Error reading HTTP request err:%v", err)
-			return
-		}
-		// 3.4 把 net.conn 转成 websocket.conn 模式
-		wsConn, err := s.upgrader.Upgrade(w, request, nil)
-		if err != nil {
-			zlog.Ins().ErrorF("http convert websocket error:%v", err)
-			return
-		}
-		// 3.5 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
-		dealConn = newWebsocketConn(s, wsConn, cID)
-
-	} else {
-		//3.4 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
-		dealConn = newServerConn(s, conn, cID, reader)
-	}
-
-	// HeartBeat 心跳检测
+func (s *Server) StartConn(conn ziface.IConnection) {
 	if s.hc != nil {
 		//从Server端克隆一个心跳检测器
 		heartBeatChecker := s.hc.Clone()
 
 		//绑定当前链接
-		heartBeatChecker.BindConn(dealConn)
+		heartBeatChecker.BindConn(conn)
 	}
 
 	//3.4 启动当前链接的处理业务
-	dealConn.Start()
+	conn.Start()
+
+}
+
+func (s *Server) ListenTcpConn() {
+	//1 获取一个TCP的Addr
+	addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
+	if err != nil {
+		zlog.Ins().ErrorF("[START] resolve tcp addr err: %v\n", err)
+		return
+	}
+	// 2 监听服务器地址
+	var listener net.Listener
+	if zconf.GlobalObject.CertFile != "" && zconf.GlobalObject.PrivateKeyFile != "" {
+		// 读取证书和密钥
+		crt, err := tls.LoadX509KeyPair(zconf.GlobalObject.CertFile, zconf.GlobalObject.PrivateKeyFile)
+		if err != nil {
+			panic(err)
+		}
+
+		// TLS连接
+		tlsConfig := &tls.Config{}
+		tlsConfig.Certificates = []tls.Certificate{crt}
+		tlsConfig.Time = time.Now
+		tlsConfig.Rand = rand.Reader
+		listener, err = tls.Listen(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port), tlsConfig)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		listener, err = net.ListenTCP(s.IPVersion, addr)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	var cID uint64
+	go func() {
+		//3 启动server网络连接业务
+		for {
+			//3.1 设置服务器最大连接控制,如果超过最大连接，则等待
+			if s.ConnMgr.Len() >= zconf.GlobalObject.MaxConn {
+				zlog.Ins().InfoF("Exceeded the maxConnNum:%d, Wait:%d", zconf.GlobalObject.MaxConn, AcceptDelay.duration)
+				AcceptDelay.Delay()
+				continue
+			}
+			//3.2 阻塞等待客户端建立连接请求
+			conn, err := listener.Accept()
+			if err != nil {
+				//Go 1.16+
+				if errors.Is(err, net.ErrClosed) {
+					zlog.Ins().ErrorF("Listener closed")
+					return
+				}
+				zlog.Ins().ErrorF("Accept err: %v", err)
+				AcceptDelay.Delay()
+				continue
+			}
+
+			AcceptDelay.Reset()
+
+			//3.4 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
+			dealConn := newServerConn(s, conn, cID)
+			// HeartBeat 心跳检测
+			s.StartConn(dealConn)
+			cID++
+		}
+	}()
+	select {
+	case <-s.exitChan:
+		err := listener.Close()
+		if err != nil {
+			zlog.Ins().ErrorF("listener close err: %v", err)
+		}
+	}
+}
+
+func (s *Server) ListenWebsocketConn() {
+	var cID uint64
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if s.ConnMgr.Len() >= zconf.GlobalObject.MaxConn {
+			zlog.Ins().InfoF("Exceeded the maxConnNum:%d, Wait:%d", zconf.GlobalObject.MaxConn, AcceptDelay.duration)
+			AcceptDelay.Delay()
+			return
+		}
+		conn, err := s.upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			zlog.Ins().ErrorF("new websocket err:%v", err)
+			w.WriteHeader(500)
+			AcceptDelay.Delay()
+			return
+		}
+		wsConn := newWebsocketConn(s, conn, cID)
+		s.StartConn(wsConn)
+		cID++
+	})
+
+	err := http.ListenAndServe(fmt.Sprintf("%s:%d", s.IP, s.WsPort), nil)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // Start 开启网络服务
@@ -188,87 +257,20 @@ func (s *Server) Start() {
 	if s.decoder != nil {
 		s.msgHandler.AddInterceptor(s.decoder)
 	}
+	//0 启动worker工作池机制
+	s.msgHandler.StartWorkerPool()
 
 	//开启一个go去做服务端Listener业务
-	go func() {
-		//0 启动worker工作池机制
-		s.msgHandler.StartWorkerPool()
+	switch zconf.GlobalObject.Mode {
+	case "tcp":
+		go s.ListenTcpConn()
+	case "websocket":
+		go s.ListenWebsocketConn()
+	default:
+		go s.ListenTcpConn()
+		go s.ListenWebsocketConn()
 
-		//1 获取一个TCP的Addr
-		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
-		if err != nil {
-			zlog.Ins().ErrorF("[START] resolve tcp addr err: %v\n", err)
-			return
-		}
-
-		// 2 监听服务器地址
-		var listener net.Listener
-		if zconf.GlobalObject.CertFile != "" && zconf.GlobalObject.PrivateKeyFile != "" {
-			// 读取证书和密钥
-			crt, err := tls.LoadX509KeyPair(zconf.GlobalObject.CertFile, zconf.GlobalObject.PrivateKeyFile)
-			if err != nil {
-				panic(err)
-			}
-
-			// TLS连接
-			tlsConfig := &tls.Config{}
-			tlsConfig.Certificates = []tls.Certificate{crt}
-			tlsConfig.Time = time.Now
-			tlsConfig.Rand = rand.Reader
-			listener, err = tls.Listen(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port), tlsConfig)
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			listener, err = net.ListenTCP(s.IPVersion, addr)
-			if err != nil {
-				panic(err)
-			}
-		}
-
-		// 4. 创建 ws连接服务
-		// 创建 HTTP 服务器
-		var cID uint64
-
-		go func() {
-			//3 启动server网络连接业务
-			for {
-				//3.1 设置服务器最大连接控制,如果超过最大连接，则等待
-				if s.ConnMgr.Len() >= zconf.GlobalObject.MaxConn {
-					zlog.Ins().InfoF("Exceeded the maxConnNum:%d, Wait:%d", zconf.GlobalObject.MaxConn, AcceptDelay.duration)
-					AcceptDelay.Delay()
-					continue
-				}
-
-				//3.2 阻塞等待客户端建立连接请求
-				conn, err := listener.Accept()
-				if err != nil {
-					//Go 1.16+
-					if errors.Is(err, net.ErrClosed) {
-						zlog.Ins().ErrorF("Listener closed")
-						return
-					}
-					zlog.Ins().ErrorF("Accept err: %v", err)
-					AcceptDelay.Delay()
-					continue
-				}
-
-				AcceptDelay.Reset()
-
-				go s.StartConn(conn, cID)
-
-				cID++
-			}
-		}()
-
-		select {
-		case <-s.exitChan:
-			err := listener.Close()
-			if err != nil {
-				zlog.Ins().ErrorF("listener close err: %v", err)
-			}
-		}
-	}()
+	}
 }
 
 // Stop 停止服务
@@ -396,4 +398,5 @@ func printLogo() {
 		zconf.GlobalObject.MaxPacketSize)
 }
 
-func init() {}
+func init() {
+}

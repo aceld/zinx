@@ -33,6 +33,7 @@ type Config struct {
 	*/
 	Host    string //当前服务器主机IP
 	TCPPort int    //当前服务器主机监听端口号
+	WsPort  int    // 当前服务器主机websocket监听端口
 	Name    string //当前服务器名称
 
 	/*
@@ -45,6 +46,7 @@ type Config struct {
 	MaxWorkerTaskLen uint32 //业务工作Worker对应负责的任务队列最大任务存储数量
 	MaxMsgChanLen    uint32 //SendBuffMsg发送消息的缓冲最大长度
 	IOReadBuffSize   uint32 //每次IO最大的读取长度
+	Mode             string // tcp. tcp监听 websocket . websocket 监听 为空时同时开启
 
 	/*
 		logger
@@ -63,6 +65,7 @@ type Config struct {
 	*/
 	CertFile       string // 证书文件名称 默认""
 	PrivateKeyFile string // 私钥文件名称 默认"" --如果没有设置证书和私钥文件，则不启用TLS加密
+
 }
 
 /*
@@ -163,6 +166,7 @@ func init() {
 		Name:              "ZinxServerApp",
 		Version:           "V1.0",
 		TCPPort:           8999,
+		WsPort:            9000,
 		Host:              "0.0.0.0",
 		MaxConn:           12000,
 		MaxPacketSize:     4096,
@@ -176,6 +180,7 @@ func init() {
 		IOReadBuffSize:    1024,
 		CertFile:          "",
 		PrivateKeyFile:    "",
+		Mode:              "tcp",
 	}
 	//NOTE: 从配置文件中加载一些用户配置的参数
 	GlobalObject.Reload()

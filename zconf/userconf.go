@@ -68,4 +68,11 @@ func UserConfToGlobal(config *Config) {
 	if config.PrivateKeyFile != "" {
 		GlobalObject.PrivateKeyFile = config.PrivateKeyFile
 	}
+
+	if config.Mode != "" {
+		GlobalObject.Mode = config.Mode
+	}
+	if config.WsPort != 0 {
+		GlobalObject.WsPort = config.WsPort
+	}
 }

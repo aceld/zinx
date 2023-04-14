@@ -34,4 +34,5 @@ type IClient interface {
 	GetLengthField() *LengthField
 	SetDecoder(IDecoder)
 	AddInterceptor(IInterceptor)
+	GetErrChan() chan error // 获取客户端错误管道
 }
