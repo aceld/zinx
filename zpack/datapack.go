@@ -56,12 +56,12 @@ func (dp *DataPack) Unpack(binaryData []byte) (ziface.IMessage, error) {
 	msg := &Message{}
 
 	//读msgID
-	if err := binary.Read(dataBuff, binary.BigEndian, msg.GetMsgID()); err != nil {
+	if err := binary.Read(dataBuff, binary.BigEndian, &msg.ID); err != nil {
 		return nil, err
 	}
 
 	//读dataLen
-	if err := binary.Read(dataBuff, binary.BigEndian, msg.GetDataLen()); err != nil {
+	if err := binary.Read(dataBuff, binary.BigEndian, &msg.DataLen); err != nil {
 		return nil, err
 	}
 

@@ -1,4 +1,4 @@
-package utils
+package zutils
 
 import (
 	"fmt"

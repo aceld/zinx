@@ -6,7 +6,6 @@ import (
 
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/zinterceptor"
 	"github.com/aceld/zinx/zlog"
 )
 
@@ -15,7 +14,7 @@ type MsgHandle struct {
 	Apis           map[uint32]ziface.IRouter // 存放每个MsgID 所对应的处理方法的map属性
 	WorkerPoolSize uint32                    // 业务工作Worker池的数量
 	TaskQueue      []chan ziface.IRequest    // Worker负责取任务的消息队列
-	builder        ziface.IBuilder           // 责任链构造器
+	builder        *chainBuilder             // 责任链构造器
 }
 
 // NewMsgHandle 创建MsgHandle
@@ -25,7 +24,7 @@ func NewMsgHandle() *MsgHandle {
 		WorkerPoolSize: zconf.GlobalObject.WorkerPoolSize,
 		// 一个worker对应一个queue
 		TaskQueue: make([]chan ziface.IRequest, zconf.GlobalObject.WorkerPoolSize),
-		builder:   zinterceptor.NewBuilder(),
+		builder:   newChainBuilder(),
 	}
 	// 此处必须把 msghandler 添加到责任链中，并且是责任链最后一环，在msghandler中进行解码后由router做数据分发
 	handle.builder.Tail(handle)
