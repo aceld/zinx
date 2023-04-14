@@ -101,6 +101,13 @@ func NewServer(opts ...Option) ziface.IServer {
 
 // NewServer 创建一个服务器句柄
 func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
+
+	//刷新用户配置到全局配置变量
+	zconf.UserConfToGlobal(config)
+
+	//提示当前配置信息
+	zconf.GlobalObject.Show()
+
 	//打印logo
 	printLogo()
 
@@ -125,11 +132,6 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 	for _, opt := range opts {
 		opt(s)
 	}
-	//刷新用户配置到全局配置变量
-	zconf.UserConfToGlobal(config)
-
-	//提示当前配置信息
-	zconf.GlobalObject.Show()
 
 	return s
 }
