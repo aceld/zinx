@@ -2,7 +2,7 @@ const Buffer = require("buffer").Buffer;
 App({
     onLaunch() {
         const socket = wx.connectSocket({
-            url: 'ws://localhost:8999',
+            url: 'ws://localhost:9000',
         })
         wx.onSocketOpen((result) => {
             console.log("连接成功")
