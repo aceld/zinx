@@ -14,3 +14,6 @@ examples/zinx_client/client
 
 
 log
+
+/examples/zinx_websocket/minicode/node_modules
+/examples/zinx_websocket/minicode/miniprogram_npm

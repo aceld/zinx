@@ -63,6 +63,8 @@ type Server struct {
 
 	// websocket
 	upgrader *websocket.Upgrader
+	// websocket 连接认证
+	websocketAuth func(r *http.Request) error
 }
 
 // NewServer 创建一个服务器句柄
@@ -211,7 +213,7 @@ func (s *Server) ListenTcpConn() {
 			//3.4 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 			dealConn := newServerConn(s, conn, cID)
 			// HeartBeat 心跳检测
-			s.StartConn(dealConn)
+			go s.StartConn(dealConn)
 			cID++
 		}
 	}()
@@ -232,6 +234,15 @@ func (s *Server) ListenWebsocketConn() {
 			AcceptDelay.Delay()
 			return
 		}
+		if s.websocketAuth != nil {
+			err := s.websocketAuth(r)
+			if err != nil {
+				zlog.Ins().ErrorF(" websocket auth err:%v", err)
+				w.WriteHeader(401)
+				AcceptDelay.Delay()
+				return
+			}
+		}
 		conn, err := s.upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			zlog.Ins().ErrorF("new websocket err:%v", err)
@@ -240,7 +251,7 @@ func (s *Server) ListenWebsocketConn() {
 			return
 		}
 		wsConn := newWebsocketConn(s, conn, cID)
-		s.StartConn(wsConn)
+		go s.StartConn(wsConn)
 		cID++
 	})
 
@@ -398,6 +409,10 @@ func printLogo() {
 		zconf.GlobalObject.Version,
 		zconf.GlobalObject.MaxConn,
 		zconf.GlobalObject.MaxPacketSize)
+}
+
+func (s *Server) AddWebsocketAuth(f func(r *http.Request) error) {
+	s.websocketAuth = f
 }
 
 func init() {
