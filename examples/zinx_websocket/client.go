@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/aceld/zinx/examples/zinx_client/c_router"
 	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/znet"
 	"os"
 	"os/signal"
@@ -49,17 +50,21 @@ func wait() {
 
 func main() {
 	//创建一个Client句柄，使用Zinx的API
-	client := znet.NewWsClient("127.0.0.1", 8999)
+	client := znet.NewWsClient("127.0.0.1", 9000)
 
 	//添加首次建立链接时的业务
 	client.SetOnConnStart(DoClientConnectedBegin)
 	//注册收到服务器消息业务路由
 	client.AddRouter(2, &c_router.PingRouter{})
 	client.AddRouter(3, &c_router.HelloRouter{})
-
 	//启动客户端client
 	client.Start()
+	select {
+	case err := <-client.GetErrChan():
+		// 处理客户端返回的错误
+		zlog.Ins().ErrorF("client err:%v", err)
 
+	}
 	// close
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, os.Kill)

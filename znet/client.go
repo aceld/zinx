@@ -49,8 +49,9 @@ type Client struct {
 func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 
 	c := &Client{
-		Ip:         ip,
-		Port:       port,
+		Ip:   ip,
+		Port: port,
+
 		msgHandler: NewMsgHandle(),
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack), //默认使用zinx的TLV封包方式
 		decoder:    zdecoder.NewTLVDecoder(),                     //默认使用zinx的TLV解码器
@@ -69,8 +70,9 @@ func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 func NewWsClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 
 	c := &Client{
-		Ip:         ip,
-		Port:       port,
+		Ip:   ip,
+		Port: port,
+
 		msgHandler: NewMsgHandle(),
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack), //默认使用zinx的TLV封包方式
 		decoder:    zdecoder.NewTLVDecoder(),                     //默认使用zinx的TLV解码器
@@ -120,7 +122,7 @@ func (c *Client) Start() {
 		//创建原始Socket，得到net.Conn
 		switch c.version {
 		case "websocket":
-			wsAddr := fmt.Sprintf("ws://%s", addr.String())
+			wsAddr := fmt.Sprintf("ws://%s:%d", c.Ip, c.Port)
 
 			//创建原始Socket，得到net.Conn
 			wsConn, _, err := c.dialer.Dial(wsAddr, nil)
@@ -128,6 +130,7 @@ func (c *Client) Start() {
 				//创建链接失败
 				zlog.Ins().ErrorF("WsClient connect to server failed, err:%v", err)
 				c.ErrChan <- err
+				return
 			}
 			//创建Connection对象
 			c.conn = newWsClientConn(c, wsConn)
@@ -145,6 +148,7 @@ func (c *Client) Start() {
 				if err != nil {
 					zlog.Ins().ErrorF("tls client connect to server failed, err:%v", err)
 					c.ErrChan <- err
+					return
 				}
 			} else {
 				conn, err = net.DialTCP("tcp", nil, addr)
@@ -152,6 +156,7 @@ func (c *Client) Start() {
 					//创建链接失败
 					zlog.Ins().ErrorF("client connect to server failed, err:%v", err)
 					c.ErrChan <- err
+					return
 				}
 			}
 			//创建Connection对象
@@ -266,4 +271,8 @@ func (c *Client) GetLengthField() *ziface.LengthField {
 		return c.decoder.GetLengthField()
 	}
 	return nil
+}
+
+func (c *Client) GetErrChan() chan error {
+	return c.ErrChan
 }

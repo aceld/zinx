@@ -11,7 +11,6 @@ func main() {
 	//})
 	//创建一个server句柄
 	s := znet.NewServer()
-
 	//配置路由
 	s.AddRouter(100, &s_router.PingRouter{})
 	s.AddRouter(1, &s_router.HelloZinxRouter{})
