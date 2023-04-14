@@ -246,8 +246,13 @@ func (s *Server) ListenWebsocketConn() {
 				AcceptDelay.Delay()
 				return
 			}
+
 		}
-		// 3. 升级成 websocket 连接
+		// 判断 header 里面是有子协议
+		if len(r.Header.Get("Sec-Websocket-Protocol")) > 0 {
+			s.upgrader.Subprotocols = websocket.Subprotocols(r)
+		}
+		// 4. 升级成 websocket 连接
 		conn, err := s.upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			zlog.Ins().ErrorF("new websocket err:%v", err)
@@ -255,7 +260,7 @@ func (s *Server) ListenWebsocketConn() {
 			AcceptDelay.Delay()
 			return
 		}
-		// 4. 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
+		// 5. 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 		wsConn := newWebsocketConn(s, conn, cID)
 		go s.StartConn(wsConn)
 		cID++

@@ -154,6 +154,7 @@ func (c *WsConnection) StartReader() {
 			//从conn的IO中读取数据到内存缓冲buffer中
 			messageType, buffer, err := c.conn.ReadMessage()
 			if err != nil {
+				c.cancel()
 				return
 			}
 			if messageType == websocket.PingMessage {
