@@ -1,6 +1,7 @@
 package router
 
 import (
+	"encoding/hex"
 	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
@@ -12,16 +13,18 @@ type HtlvCrcBusinessRouter struct {
 }
 
 func (this *HtlvCrcBusinessRouter) Handle(request ziface.IRequest) {
-	//zlog.Ins().DebugF("Call HtlvCrcBusinessRouter Handle %d %s\n", request.GetMessage().GetMsgID(), hex.EncodeToString(request.GetMessage().GetData()))
+
+	//MsgID
 	msgID := request.GetMessage().GetMsgID()
-	if msgID == 0x10 {
-		_response := request.GetResponse()
-		if _response != nil {
-			switch _response.(type) {
-			case zdecoder.HtlvCrcDecoder:
-				tlvData := _response.(zdecoder.HtlvCrcDecoder)
-				zlog.Ins().DebugF("do msgid=0x10 data business %+v\n", tlvData)
-			}
-		}
+	zlog.Ins().DebugF("Call HtlvCrcBusinessRouter Handle %d %s\n", msgID, hex.EncodeToString(request.GetMessage().GetData()))
+
+	resp := request.GetResponse()
+	if resp == nil {
+		return
 	}
+
+	//得到解码后的数据
+	tlvData := resp.(zdecoder.HtlvCrcDecoder)
+
+	zlog.Ins().DebugF("do msgid=0x10 data business %+v\n", tlvData)
 }
