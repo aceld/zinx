@@ -2,13 +2,13 @@ package main
 
 import (
 	"github.com/aceld/zinx/examples/zinx_server/s_router"
+	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/znet"
 )
 
 func main() {
-	//znet.NewUserConfServer(&zconf.Config{
-	//	TCPPort: 9999,
-	//})
+	// 在启动之前设置为 websocket
+	zconf.GlobalObject.Mode = "websocket"
 	//创建一个server句柄
 	s := znet.NewServer()
 	//配置路由
