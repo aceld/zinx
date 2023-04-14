@@ -97,7 +97,7 @@ func (h *HeartbeatChecker) start() {
 		case <-ticker.C:
 			if !h.conn.IsAlive() {
 				h.onRemoteNotAlive(h.conn)
-				return
+				ticker.Stop()
 			}
 			h.check()
 		case <-h.quitChan:
