@@ -39,5 +39,5 @@ type IServer interface {
 	GetLengthField() *LengthField
 	SetDecoder(IDecoder)
 	AddInterceptor(IInterceptor)
-	AddWebsocketAuth(func(r *http.Request) error) // 添加websocket认证方法
+	SetWebsocketAuth(func(r *http.Request) error) // 添加websocket认证方法
 }
