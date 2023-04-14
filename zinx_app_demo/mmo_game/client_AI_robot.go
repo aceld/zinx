@@ -7,6 +7,8 @@ import (
 	"io"
 	"math/rand"
 	"net"
+	"runtime"
+	"sync"
 	"time"
 
 	"github.com/aceld/zinx/zinx_app_demo/mmo_game/pb"
@@ -265,40 +267,36 @@ func NewTcpClient(ip string, port int) *TcpClient {
 func main() {
 	// 开启一个waitgroup，同时运行3个goroutine
 
-	/*
-		runtime.GOMAXPROCS(runtime.NumCPU())
-		var wg sync.WaitGroup
-		wg.Add(3)
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	var wg sync.WaitGroup
+	wg.Add(3)
 
-		go func() {
-			defer wg.Done()
-			for i := 0; i < 10; i++ {
-				client := NewTcpClient("127.0.0.1", 8999)
-				client.Start()
-			}
-		}()
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 10; i++ {
+			client := NewTcpClient("127.0.0.1", 8999)
+			client.Start()
+		}
+	}()
 
-		go func() {
-			defer wg.Done()
-			for i := 0; i < 10; i++ {
-				client := NewTcpClient("127.0.0.1", 8999)
-				client.Start()
-			}
-		}()
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 10; i++ {
+			client := NewTcpClient("127.0.0.1", 8999)
+			client.Start()
+		}
+	}()
 
-		go func() {
-			defer wg.Done()
-			for i := 0; i < 10; i++ {
-				client := NewTcpClient("127.0.0.1", 8999)
-				client.Start()
-			}
-		}()
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 10; i++ {
+			client := NewTcpClient("127.0.0.1", 8999)
+			client.Start()
+		}
+	}()
 
-		fmt.Println("AI robot start")
-		wg.Wait()
-	*/
-	client := NewTcpClient("127.0.0.1", 8999)
-	client.Start()
+	fmt.Println("AI robot start")
+	wg.Wait()
 
 	fmt.Println("AI robot exit")
 	select {}

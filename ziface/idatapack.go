@@ -23,10 +23,10 @@ type IDataPack interface {
 	Unpack([]byte) (IMessage, error)   //拆包方法
 }
 
-
 const (
 	//Zinx 标准封包和拆包方式
-	ZinxDataPack string = "zinx_pack"
+	ZinxDataPack    string = "zinx_pack_tlv_big_endian"
+	ZinxDataPackOld string = "zinx_pack_ltv_little_endian"
 
 	//...(+)
 	//自定义封包方式在此添加

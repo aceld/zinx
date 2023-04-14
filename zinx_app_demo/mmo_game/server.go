@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/aceld/zinx/zdecoder"
+	"github.com/aceld/zinx/zpack"
 
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zinx_app_demo/mmo_game/api"
@@ -69,6 +70,8 @@ func main() {
 
 	//添加LTV数据格式Decoder
 	s.SetDecoder(zdecoder.NewLTV_Little_Decoder())
+	//添加LTV数据格式的Pack封包Encoder
+	s.SetPacket(zpack.NewDataPackLtv())
 
 	//启动服务
 	s.Serve()
