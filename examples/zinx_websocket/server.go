@@ -8,7 +8,8 @@ import (
 
 func main() {
 	// 在启动之前设置为 websocket
-	zconf.GlobalObject.Mode = "websocket"
+	zconf.GlobalObject.Mode = ""
+	zconf.GlobalObject.LogFile = ""
 	//创建一个server句柄
 	s := znet.NewServer()
 	//配置路由

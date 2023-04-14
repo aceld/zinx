@@ -3,6 +3,7 @@ App({
     onLaunch() {
         const socket = wx.connectSocket({
             url: 'ws://localhost:9000',
+            protocols:["12321","321321321",32132121]
         })
         wx.onSocketOpen((result) => {
             console.log("连接成功")

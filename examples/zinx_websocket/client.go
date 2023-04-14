@@ -50,6 +50,7 @@ func wait() {
 
 func main() {
 	//创建一个Client句柄，使用Zinx的API
+
 	client := znet.NewWsClient("127.0.0.1", 9000)
 
 	//添加首次建立链接时的业务
@@ -63,8 +64,8 @@ func main() {
 	case err := <-client.GetErrChan():
 		// 处理客户端返回的错误
 		zlog.Ins().ErrorF("client err:%v", err)
-
 	}
+
 	// close
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, os.Kill)

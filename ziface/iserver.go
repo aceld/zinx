@@ -15,6 +15,7 @@
 package ziface
 
 import (
+	"net/http"
 	"time"
 )
 
@@ -38,4 +39,5 @@ type IServer interface {
 	GetLengthField() *LengthField
 	SetDecoder(IDecoder)
 	AddInterceptor(IInterceptor)
+	SetWebsocketAuth(func(r *http.Request) error) // 添加websocket认证方法
 }

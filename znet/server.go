@@ -63,6 +63,8 @@ type Server struct {
 
 	// websocket
 	upgrader *websocket.Upgrader
+	// websocket 连接认证
+	websocketAuth func(r *http.Request) error
 }
 
 // NewServer 创建一个服务器句柄
@@ -138,6 +140,8 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 
 // ============== 实现 ziface.IServer 里的全部接口方法 ========
 func (s *Server) StartConn(conn ziface.IConnection) {
+
+	// HeartBeat 心跳检测
 	if s.hc != nil {
 		//从Server端克隆一个心跳检测器
 		heartBeatChecker := s.hc.Clone()
@@ -184,8 +188,8 @@ func (s *Server) ListenTcpConn() {
 	}
 
 	var cID uint64
+	//3 启动server网络连接业务
 	go func() {
-		//3 启动server网络连接业务
 		for {
 			//3.1 设置服务器最大连接控制,如果超过最大连接，则等待
 			if s.ConnMgr.Len() >= zconf.GlobalObject.MaxConn {
@@ -207,11 +211,10 @@ func (s *Server) ListenTcpConn() {
 			}
 
 			AcceptDelay.Reset()
-
 			//3.4 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 			dealConn := newServerConn(s, conn, cID)
-			// HeartBeat 心跳检测
-			s.StartConn(dealConn)
+
+			go s.StartConn(dealConn)
 			cID++
 		}
 	}()
@@ -226,12 +229,30 @@ func (s *Server) ListenTcpConn() {
 
 func (s *Server) ListenWebsocketConn() {
 	var cID uint64
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		//1. 设置服务器最大连接控制,如果超过最大连接，则等待
 		if s.ConnMgr.Len() >= zconf.GlobalObject.MaxConn {
 			zlog.Ins().InfoF("Exceeded the maxConnNum:%d, Wait:%d", zconf.GlobalObject.MaxConn, AcceptDelay.duration)
 			AcceptDelay.Delay()
 			return
 		}
+		// 2. 如果需要 websocket 认证请设置认证信息
+		if s.websocketAuth != nil {
+			err := s.websocketAuth(r)
+			if err != nil {
+				zlog.Ins().ErrorF(" websocket auth err:%v", err)
+				w.WriteHeader(401)
+				AcceptDelay.Delay()
+				return
+			}
+
+		}
+		// 判断 header 里面是有子协议
+		if len(r.Header.Get("Sec-Websocket-Protocol")) > 0 {
+			s.upgrader.Subprotocols = websocket.Subprotocols(r)
+		}
+		// 4. 升级成 websocket 连接
 		conn, err := s.upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			zlog.Ins().ErrorF("new websocket err:%v", err)
@@ -239,8 +260,9 @@ func (s *Server) ListenWebsocketConn() {
 			AcceptDelay.Delay()
 			return
 		}
+		// 5. 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 		wsConn := newWebsocketConn(s, conn, cID)
-		s.StartConn(wsConn)
+		go s.StartConn(wsConn)
 		cID++
 	})
 
@@ -398,6 +420,10 @@ func printLogo() {
 		zconf.GlobalObject.Version,
 		zconf.GlobalObject.MaxConn,
 		zconf.GlobalObject.MaxPacketSize)
+}
+
+func (s *Server) SetWebsocketAuth(f func(r *http.Request) error) {
+	s.websocketAuth = f
 }
 
 func init() {
