@@ -31,6 +31,7 @@ func NewMsgHandle() *MsgHandle {
 	return handle
 }
 
+// Zinx默认必经的数据处理拦截器
 func (mh *MsgHandle) Intercept(chain ziface.IChain) ziface.IcResp {
 	request := chain.Request()
 	if request != nil {
