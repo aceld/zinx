@@ -1,9 +1,8 @@
 package args
 
 import (
-	"github.com/aceld/zinx/utils/commandline/uflag"
+	"github.com/aceld/zinx/zutils/commandline/uflag"
 	"os"
-	"path"
 	"path/filepath"
 )
 
@@ -27,7 +26,7 @@ func init() {
 	}
 
 	Args.ExeAbsDir = pwd
-	Args.ExeName = path.Base(exe)
+	Args.ExeName = filepath.Base(exe)
 }
 
 func InitConfigFlag(defaultValue string, tips string) {

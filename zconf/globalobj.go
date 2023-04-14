@@ -1,4 +1,4 @@
-// Package utils 提供zinx相关工具类函数
+// Package zutils 提供zinx相关工具类函数
 // 包括:
 //
 //	全局配置
@@ -13,9 +13,9 @@ package zconf
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/aceld/zinx/utils/commandline/args"
-	"github.com/aceld/zinx/utils/commandline/uflag"
 	"github.com/aceld/zinx/zlog"
+	"github.com/aceld/zinx/zutils/commandline/args"
+	"github.com/aceld/zinx/zutils/commandline/uflag"
 	"io/ioutil"
 	"os"
 	"reflect"
