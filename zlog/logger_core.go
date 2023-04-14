@@ -79,6 +79,7 @@ type ZinxLoggerCore struct {
 }
 
 /*
+NewZinxLog
 创建一个日志
 out: 标准输出的文件io
 prefix: 日志的前缀
@@ -93,9 +94,7 @@ func NewZinxLog(out io.Writer, prefix string, flag int) *ZinxLoggerCore {
 	return zlog
 }
 
-/*
-回收日志处理
-*/
+// CleanZinxLog 回收日志处理
 func CleanZinxLog(log *ZinxLoggerCore) {
 	log.closeFile()
 }
@@ -168,9 +167,7 @@ func (log *ZinxLoggerCore) formatHeader(t time.Time, file string, line int, leve
 	}
 }
 
-/*
-输出日志文件,原方法
-*/
+// OutPut 输出日志文件,原方法
 func (log *ZinxLoggerCore) OutPut(level int, s string) error {
 
 	now := time.Now() // 得到当前时间
@@ -182,7 +179,7 @@ func (log *ZinxLoggerCore) OutPut(level int, s string) error {
 	if log.flag&(BitShortFile|BitLongFile) != 0 {
 		log.mu.Unlock()
 		var ok bool
-		//得到当前调用者的文件名称和执行到的代码行数
+		// 得到当前调用者的文件名称和执行到的代码行数
 		_, file, line, ok = runtime.Caller(log.calldDepth)
 		if !ok {
 			file = "unknown-file"
@@ -191,21 +188,28 @@ func (log *ZinxLoggerCore) OutPut(level int, s string) error {
 		log.mu.Lock()
 	}
 
-	//清零buf
+	// 清零buf
 	log.buf.Reset()
-	//写日志头
+	// 写日志头
 	log.formatHeader(now, file, line, level)
-	//写日志内容
+	// 写日志内容
 	log.buf.WriteString(s)
-	//补充回车
+	// 补充回车
 	if len(s) > 0 && s[len(s)-1] != '\n' {
 		log.buf.WriteByte('\n')
 	}
 
 	log.updateOutputFile()
 
-	//将填充好的buf 写到IO输出上
-	_, err := log.out.Write(log.buf.Bytes())
+	var err error
+	if log.file == nil {
+		// 日志文件设置为空，则用控制台输出
+		_, _ = os.Stdout.Write(log.buf.Bytes())
+	} else {
+		// 将填充好的buf 写到IO输出上
+		_, err = log.out.Write(log.buf.Bytes())
+	}
+
 	return err
 }
 
@@ -217,7 +221,7 @@ func (log *ZinxLoggerCore) verifyLogIsolation(logLevel int) bool {
 	}
 }
 
-// ====> Debug <====
+// Debugf ===============>
 func (log *ZinxLoggerCore) Debugf(format string, v ...interface{}) {
 	if log.verifyLogIsolation(LogDebug) {
 		return
@@ -232,7 +236,7 @@ func (log *ZinxLoggerCore) Debug(v ...interface{}) {
 	_ = log.OutPut(LogDebug, fmt.Sprintln(v...))
 }
 
-// ====> Info <====
+// Infof ===============>
 func (log *ZinxLoggerCore) Infof(format string, v ...interface{}) {
 	if log.verifyLogIsolation(LogInfo) {
 		return
@@ -247,7 +251,7 @@ func (log *ZinxLoggerCore) Info(v ...interface{}) {
 	_ = log.OutPut(LogInfo, fmt.Sprintln(v...))
 }
 
-// ====> Warn <====
+// Warnf ===============>
 func (log *ZinxLoggerCore) Warnf(format string, v ...interface{}) {
 	if log.verifyLogIsolation(LogWarn) {
 		return
@@ -262,7 +266,7 @@ func (log *ZinxLoggerCore) Warn(v ...interface{}) {
 	_ = log.OutPut(LogWarn, fmt.Sprintln(v...))
 }
 
-// ====> Error <====
+// Errorf ===============>
 func (log *ZinxLoggerCore) Errorf(format string, v ...interface{}) {
 	if log.verifyLogIsolation(LogError) {
 		return
@@ -277,7 +281,7 @@ func (log *ZinxLoggerCore) Error(v ...interface{}) {
 	_ = log.OutPut(LogError, fmt.Sprintln(v...))
 }
 
-// ====> Fatal 需要终止程序 <====
+// Fatalf ===============>需要终止程序
 func (log *ZinxLoggerCore) Fatalf(format string, v ...interface{}) {
 	if log.verifyLogIsolation(LogFatal) {
 		return
@@ -294,7 +298,7 @@ func (log *ZinxLoggerCore) Fatal(v ...interface{}) {
 	os.Exit(1)
 }
 
-// ====> Panic  <====
+// Panicf ===============>
 func (log *ZinxLoggerCore) Panicf(format string, v ...interface{}) {
 	if log.verifyLogIsolation(LogPanic) {
 		return
@@ -313,7 +317,7 @@ func (log *ZinxLoggerCore) Panic(v ...interface{}) {
 	panic(s)
 }
 
-// ====> Stack  <====
+// Stack ===============>
 func (log *ZinxLoggerCore) Stack(v ...interface{}) {
 	s := fmt.Sprint(v...)
 	s += "\n"
@@ -324,35 +328,35 @@ func (log *ZinxLoggerCore) Stack(v ...interface{}) {
 	_ = log.OutPut(LogError, s)
 }
 
-// 获取当前日志bitmap标记
+// Flags 获取当前日志bitmap标记
 func (log *ZinxLoggerCore) Flags() int {
 	log.mu.Lock()
 	defer log.mu.Unlock()
 	return log.flag
 }
 
-// 重新设置日志Flags bitMap 标记位
+// ResetFlags 重新设置日志Flags bitMap 标记位
 func (log *ZinxLoggerCore) ResetFlags(flag int) {
 	log.mu.Lock()
 	defer log.mu.Unlock()
 	log.flag = flag
 }
 
-// 添加flag标记
+// AddFlag 添加flag标记
 func (log *ZinxLoggerCore) AddFlag(flag int) {
 	log.mu.Lock()
 	defer log.mu.Unlock()
 	log.flag |= flag
 }
 
-// 设置日志的 用户自定义前缀字符串
+// SetPrefix 设置日志的 用户自定义前缀字符串
 func (log *ZinxLoggerCore) SetPrefix(prefix string) {
 	log.mu.Lock()
 	defer log.mu.Unlock()
 	log.prefix = prefix
 }
 
-// 设置日志文件输出
+// SetLogFile 设置日志文件输出
 func (log *ZinxLoggerCore) SetLogFile(fileDir string, fileName string) {
 	log.fileDir = fileDir
 	log.fileName = fileName
