@@ -106,8 +106,8 @@ func genExampleCrtAndKeyFile(crtFileName, KeyFileName string) (err error) {
 func main() {
 	// 生成测试用的证书和密钥文件！！仅测试时生成证书和密钥文件！！实际使用请自定义该函数或者用openssl自行生成
 	// openssl生成证书和私钥方法参考 https://blog.csdn.net/qq_44637753/article/details/124152315
-	certFile := "examples/zinx_tls/cert.pem"
-	keyFile := "examples/zinx_tls/key.pem"
+	certFile := "cert.pem"
+	keyFile := "key.pem"
 	err := genExampleCrtAndKeyFile(certFile, keyFile)
 	if err != nil {
 		panic(err)
