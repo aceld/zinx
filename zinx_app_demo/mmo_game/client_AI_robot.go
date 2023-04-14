@@ -7,8 +7,6 @@ import (
 	"io"
 	"math/rand"
 	"net"
-	"runtime"
-	"sync"
 	"time"
 
 	"github.com/aceld/zinx/zinx_app_demo/mmo_game/pb"
@@ -159,7 +157,7 @@ func (this *TcpClient) AIRobotAction() {
 */
 func (this *TcpClient) DoMsg(msg *Message) {
 	//处理消息
-	//fmt.Println(fmt.Sprintf("msg ID :%d, data len: %d", msg.MsgID, msg.Len))
+	fmt.Println(fmt.Sprintf("msg ID :%d, data len: %d", msg.MsgID, msg.Len))
 	if msg.MsgID == 1 {
 		//服务器回执给客户端 分配ID
 
@@ -245,6 +243,7 @@ func NewTcpClient(ip string, port int) *TcpClient {
 	addrStr := fmt.Sprintf("%s:%d", ip, port)
 	conn, err := net.Dial("tcp", addrStr)
 	if err != nil {
+		fmt.Println("net.Dial err: ", err)
 		panic(err)
 	}
 
@@ -257,41 +256,50 @@ func NewTcpClient(ip string, port int) *TcpClient {
 		V:        0,
 		isOnline: make(chan bool),
 	}
+
+	fmt.Println(fmt.Sprintf("conn: %+v. Connected to server...", conn))
+
 	return client
 }
 
 func main() {
 	// 开启一个waitgroup，同时运行3个goroutine
 
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	var wg sync.WaitGroup
-	wg.Add(3)
+	/*
+		runtime.GOMAXPROCS(runtime.NumCPU())
+		var wg sync.WaitGroup
+		wg.Add(3)
 
-	go func() {
-		defer wg.Done()
-		for i := 0; i < 10; i++ {
-			client := NewTcpClient("127.0.0.1", 8999)
-			client.Start()
-		}
-	}()
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 10; i++ {
+				client := NewTcpClient("127.0.0.1", 8999)
+				client.Start()
+			}
+		}()
 
-	go func() {
-		defer wg.Done()
-		for i := 0; i < 10; i++ {
-			client := NewTcpClient("127.0.0.1", 8999)
-			client.Start()
-		}
-	}()
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 10; i++ {
+				client := NewTcpClient("127.0.0.1", 8999)
+				client.Start()
+			}
+		}()
 
-	go func() {
-		defer wg.Done()
-		for i := 0; i < 10; i++ {
-			client := NewTcpClient("127.0.0.1", 8999)
-			client.Start()
-		}
-	}()
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 10; i++ {
+				client := NewTcpClient("127.0.0.1", 8999)
+				client.Start()
+			}
+		}()
 
-	fmt.Println("AI robot start")
-	wg.Wait()
+		fmt.Println("AI robot start")
+		wg.Wait()
+	*/
+	client := NewTcpClient("127.0.0.1", 8999)
+	client.Start()
+
 	fmt.Println("AI robot exit")
+	select {}
 }

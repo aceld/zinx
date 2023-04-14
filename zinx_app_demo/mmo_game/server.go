@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/aceld/zinx/zdecoder"
 
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zinx_app_demo/mmo_game/api"
@@ -11,6 +12,7 @@ import (
 
 //当客户端建立连接的时候的hook函数
 func OnConnecionAdd(conn ziface.IConnection) {
+	fmt.Println("=====> OnConnecionAdd is Called ...")
 	//创建一个玩家
 	player := core.NewPlayer(conn)
 
@@ -37,12 +39,12 @@ func OnConnectionLost(conn ziface.IConnection) {
 	//获取当前连接的PID属性
 	pID, _ := conn.GetProperty("pID")
 	var playerID int32
-	if pID != nil{
+	if pID != nil {
 		playerID = pID.(int32)
 	}
 
 	//根据pID获取对应的玩家对象
-		player := core.WorldMgrObj.GetPlayerByPID(playerID)
+	player := core.WorldMgrObj.GetPlayerByPID(playerID)
 
 	//触发玩家下线业务
 	if player != nil {
@@ -64,6 +66,9 @@ func main() {
 	//注册路由
 	s.AddRouter(2, &api.WorldChatApi{})
 	s.AddRouter(3, &api.MoveApi{})
+
+	//添加LTV数据格式Decoder
+	s.SetDecoder(zdecoder.NewLTV_Little_Decoder())
 
 	//启动服务
 	s.Serve()

@@ -24,7 +24,7 @@ func main() {
 	s.SetOnConnStart(DoConnectionBegin)
 	s.SetOnConnStop(DoConnectionLost)
 
-	//s.AddRouter(0x00000001, &router.TLVBusinessRouter{}) //TLV协议对应业务功能
+	s.AddRouter(0x00000001, &router.TLVBusinessRouter{}) //TLV协议对应业务功能
 	//处理HTLVCRC协议数据
 	s.SetDecoder(zdecoder.NewHTLVCRCDecoder())
 	s.AddRouter(0x10, &router.HtlvCrcBusinessRouter{}) //TLV协议对应业务功能，因为client.go中模拟数据funcode字段为0x10
