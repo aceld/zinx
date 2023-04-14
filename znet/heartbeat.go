@@ -24,7 +24,7 @@ type HeartbeatChecker struct {
 }
 
 /*
-	收到remote心跳消息的默认回调路由业务
+收到remote心跳消息的默认回调路由业务
 */
 type HeatBeatDefaultRouter struct {
 	BaseRouter
@@ -95,6 +95,10 @@ func (h *HeartbeatChecker) start() {
 	for {
 		select {
 		case <-ticker.C:
+			if !h.conn.IsAlive() {
+				h.onRemoteNotAlive(h.conn)
+				return
+			}
 			h.check()
 		case <-h.quitChan:
 			ticker.Stop()
