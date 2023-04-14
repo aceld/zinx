@@ -28,23 +28,19 @@ func main() {
 		//发封包message消息
 		dp := zpack.NewDataPack()
 		msg, _ := dp.Pack(zpack.NewMsgPackage(100, []byte("ZinxPing")))
-		fmt.Println("msg len:", len(msg), ", msg:", msg)
 		_, err := conn.Write(msg)
 		if err != nil {
 			fmt.Println("write error err ", err)
 			return
 		}
 
-		time.Sleep(10 * time.Second)
-
 		//先读出流中的head部分
 		headData := make([]byte, dp.GetHeadLen())
-		n, err := io.ReadFull(conn, headData) //ReadFull 会把msg填充满为止
+		_, err = io.ReadFull(conn, headData) //ReadFull 会把msg填充满为止
 		if err != nil {
 			fmt.Println("read head error")
 			break
 		}
-		fmt.Println("headData len:", n, ", headData:", headData)
 		//将headData字节流 拆包到msg中
 		msgHead, err := dp.Unpack(headData)
 		if err != nil {
