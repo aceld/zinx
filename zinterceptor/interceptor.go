@@ -6,10 +6,9 @@
 
 package zinterceptor
 
-import (
-	"github.com/aceld/zinx/ziface"
-)
+// 暂时不用
 
+/*
 // Interceptor 基于LengthField规则的拦截器
 type Interceptor struct {
 	frameDecoder ziface.IFrameDecoder
@@ -64,3 +63,4 @@ func (l *Interceptor) Intercept(chain ziface.IChain) ziface.IcResp {
 END:
 	return chain.Proceed(chain.Request())
 }
+*/

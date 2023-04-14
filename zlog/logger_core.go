@@ -22,6 +22,7 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
@@ -389,8 +390,14 @@ func (log *ZinxLoggerCore) updateOutputFile() {
 	// 建立日志目录
 	_ = mkdirLog(log.fileDir)
 
-	// 定义日志文件名称 = 日志文件名 . 日期后缀
-	newDailyFile := log.fileDir + "/" + log.fileName + "." + time.Now().Format("20060102")
+	// 定义日志文件名称 = 日志文件名 . 日期后缀 . log
+	// 适配的配置文件名称：
+	// 1."zinx.log"
+	// 2."zinx"
+	// 3."zinx.zinx.zinx.log"
+	realFileNameSlice := strings.Split(log.fileName, ".log")
+	realFileName := realFileNameSlice[0]
+	newDailyFile := log.fileDir + "/" + realFileName + "." + time.Now().Format("20060102") + ".log"
 
 	if log.checkFileExist(newDailyFile) {
 		//文件存在，打开

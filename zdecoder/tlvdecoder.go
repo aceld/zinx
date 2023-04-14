@@ -22,9 +22,7 @@ package zdecoder
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/hex"
 	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/zlog"
 	"math"
 )
 
@@ -37,11 +35,10 @@ type TLVDecoder struct {
 }
 
 func NewTLVDecoder() ziface.IDecoder {
-
 	return &TLVDecoder{}
 }
 
-func (this *TLVDecoder) GetLengthField() *ziface.LengthField {
+func (tlv *TLVDecoder) GetLengthField() *ziface.LengthField {
 	// +---------------+---------------+---------------+
 	// |    Tag        |     Length    |     Value     |
 	// | uint32(4byte) | uint32(4byte) |     n byte    |
@@ -66,50 +63,48 @@ func (this *TLVDecoder) GetLengthField() *ziface.LengthField {
 	}
 }
 
-func (this *TLVDecoder) Intercept(chain ziface.IChain) ziface.IcResp {
-	request := chain.Request()
+func (tlv *TLVDecoder) decode(data []byte) *TLVDecoder {
+	tlvData := TLVDecoder{}
+	//获取T
+	tlvData.Tag = binary.BigEndian.Uint32(data[0:4])
+	//获取L
+	tlvData.Length = binary.BigEndian.Uint32(data[4:8])
+	//确定V的长度
+	tlvData.Value = make([]byte, tlvData.Length)
 
-	if request == nil {
-		//进入下一个责任链任务
-		return chain.Proceed(chain.Request())
+	//5.获取V
+	binary.Read(bytes.NewBuffer(data[8:8+tlvData.Length]), binary.BigEndian, tlvData.Value)
+
+	//zlog.Ins().DebugF("TLV-DecodeData size:%d data:%+v\n", unsafe.Sizeof(data), tlvData)
+	return &tlvData
+}
+
+func (tlv *TLVDecoder) Intercept(chain ziface.IChain) ziface.IcResp {
+
+	//1. 获取zinx的IMessage
+	iMessage := chain.GetIMessage()
+	if iMessage == nil {
+		//进入责任链下一层
+		return chain.ProceedWithIMessage(iMessage, nil)
 	}
 
-	switch request.(type) {
-	case ziface.IRequest:
-		//得到zinx的IRequest报文
-		iRequest := request.(ziface.IRequest)
-		iMessage := iRequest.GetMessage()
+	//2. 获取数据
+	data := iMessage.GetData()
+	//zlog.Ins().DebugF("TLV-RawData size:%d data:%s\n", len(data), hex.EncodeToString(data))
 
-		if iMessage == nil {
-			break
-		}
-
-		data := iMessage.GetData()
-		zlog.Ins().DebugF("TLV-RawData size:%d data:%s\n", len(data), hex.EncodeToString(data))
-
-		datasize := len(data)
-		_data := TLVDecoder{}
-
-		//如果读取的数据超过包头字节, 则解析包头数据
-		if datasize >= TLV_HEADER_SIZE {
-			//获取T
-			_data.Tag = binary.BigEndian.Uint32(data[0:4])
-			//获取L
-			_data.Length = binary.BigEndian.Uint32(data[4:8])
-			//确定V的长度
-			_data.Value = make([]byte, _data.Length)
-
-			//获取V
-			binary.Read(bytes.NewBuffer(data[8:8+_data.Length]), binary.BigEndian, _data.Value)
-
-			iMessage.SetMsgID(_data.Tag)
-			iMessage.SetData(_data.Value)
-			iMessage.SetDataLen(_data.Length)
-
-			iRequest.SetResponse(_data)
-			//zlog.Ins().DebugF("TLV-DecodeData size:%d data:%+v\n", unsafe.Sizeof(data), _data)
-		}
+	//3. 读取的数据不超过包头，直接进入下一层
+	if len(data) < TLV_HEADER_SIZE {
+		return chain.ProceedWithIMessage(iMessage, nil)
 	}
 
-	return chain.Proceed(chain.Request())
+	//4. TLV解码
+	tlvData := tlv.decode(data)
+
+	//5. 将解码后的数据重新设置到IMessage中, Zinx的Router需要MsgID来寻址
+	iMessage.SetMsgID(tlvData.Tag)
+	iMessage.SetData(tlvData.Value)
+	iMessage.SetDataLen(tlvData.Length)
+
+	//6. 将解码后的数据进入下一层
+	return chain.ProceedWithIMessage(iMessage, *tlvData)
 }

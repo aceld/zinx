@@ -19,6 +19,8 @@ type IInterceptor interface {
 
 // 责任链
 type IChain interface {
-	Request() IcReq       //获取当前责任链中的请求数据(当前拦截器)
-	Proceed(IcReq) IcResp //进入并执行下一个拦截器，且将请求数据传递给下一个拦截器
+	Request() IcReq        //获取当前责任链中的请求数据(当前拦截器)
+	GetIMessage() IMessage //从Chain中获取IMessage
+	Proceed(IcReq) IcResp  //进入并执行下一个拦截器，且将请求数据传递给下一个拦截器
+	ProceedWithIMessage(IMessage, IcReq) IcResp
 }
