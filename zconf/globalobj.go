@@ -47,6 +47,7 @@ type Config struct {
 	MaxMsgChanLen    uint32 //SendBuffMsg发送消息的缓冲最大长度
 	IOReadBuffSize   uint32 //每次IO最大的读取长度
 	Mode             string // tcp. tcp监听 websocket . websocket 监听 为空时同时开启
+	RouterMode       int    //路由模式 1为旧版本路由，2为启用新版本的路由 默认使用旧版本
 
 	/*
 		logger
@@ -181,6 +182,7 @@ func init() {
 		CertFile:          "",
 		PrivateKeyFile:    "",
 		Mode:              "tcp",
+		RouterMode:        1,
 	}
 	//NOTE: 从配置文件中加载一些用户配置的参数
 	GlobalObject.Reload()

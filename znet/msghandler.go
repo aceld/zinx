@@ -15,12 +15,14 @@ type MsgHandle struct {
 	WorkerPoolSize uint32                    // 业务工作Worker池的数量
 	TaskQueue      []chan ziface.IRequest    // Worker负责取任务的消息队列
 	builder        *chainBuilder             // 责任链构造器
+	RouterSlices   *RouterSlices
 }
 
 // NewMsgHandle 创建MsgHandle
 func NewMsgHandle() *MsgHandle {
 	handle := &MsgHandle{
 		Apis:           make(map[uint32]ziface.IRouter),
+		RouterSlices:   NewRouterSlices(),
 		WorkerPoolSize: zconf.GlobalObject.WorkerPoolSize,
 		// 一个worker对应一个queue
 		TaskQueue: make([]chan ziface.IRequest, zconf.GlobalObject.WorkerPoolSize),
@@ -43,7 +45,11 @@ func (mh *MsgHandle) Intercept(chain ziface.IChain) ziface.IcResp {
 				mh.SendMsgToTaskQueue(iRequest)
 			} else {
 				// 从绑定好的消息和对应的处理方法中执行对应的Handle方法
-				go mh.doMsgHandler(iRequest)
+				if zconf.GlobalObject.RouterMode == 1 {
+					go mh.doMsgHandler(iRequest)
+				} else if zconf.GlobalObject.RouterMode == 2 {
+					go mh.doMsgHandlerSlices(iRequest)
+				}
 			}
 		}
 	}
@@ -105,6 +111,36 @@ func (mh *MsgHandle) AddRouter(msgID uint32, router ziface.IRouter) {
 	zlog.Ins().InfoF("Add Router msgID = %d", msgID)
 }
 
+// 切片路由添加
+func (mh *MsgHandle) AddRouterSlices(msgId uint32, handler ...ziface.RouterHandler) ziface.IRouterSlices {
+	mh.RouterSlices.AddHandler(msgId, handler...)
+	return mh.RouterSlices
+}
+
+// 路由分组
+func (mh *MsgHandle) Group(start, end uint32, Handlers ...ziface.RouterHandler) ziface.IGroupRouterSlices {
+	return NewGroup(start, end, mh.RouterSlices, Handlers...)
+}
+func (mh *MsgHandle) Use(Handlers ...ziface.RouterHandler) ziface.IRouterSlices {
+	mh.RouterSlices.Use(Handlers...)
+	return mh.RouterSlices
+}
+
+func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest) {
+	defer func() {
+		if err := recover(); err != nil {
+			zlog.Ins().ErrorF("doMsgHandler panic: %v", err)
+		}
+	}()
+	handlers, ok := mh.RouterSlices.GetHandlers(request.GetMsgID())
+	if !ok {
+		zlog.Ins().ErrorF("api msgID = %d is not FOUND!", request.GetMsgID())
+		return
+	}
+	request.BindRouterSlices(handlers)
+	request.RouterSlicesNext()
+}
+
 // StartOneWorker 启动一个Worker工作流程
 func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest) {
 	zlog.Ins().InfoF("Worker ID = %d is started.", workerID)
@@ -113,7 +149,11 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 		select {
 		// 有消息则取出队列的Request，并执行绑定的业务方法
 		case request := <-taskQueue:
-			mh.doMsgHandler(request)
+			if zconf.GlobalObject.RouterMode == 1 {
+				mh.doMsgHandler(request)
+			} else if zconf.GlobalObject.RouterMode == 2 {
+				mh.doMsgHandlerSlices(request)
+			}
 		}
 	}
 }

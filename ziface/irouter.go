@@ -1,11 +1,12 @@
 // Package ziface 主要提供zinx全部抽象层接口定义.
 // 包括:
-//		IServer 服务mod接口
-//		IRouter 路由mod接口
-//		IConnection 连接mod层接口
-//      IMessage 消息mod接口
-//		IDataPack 消息拆解接口
-//      IMsgHandler 消息处理及协程池接口
+//
+//			IServer 服务mod接口
+//			IRouter 路由mod接口
+//			IConnection 连接mod层接口
+//	     IMessage 消息mod接口
+//			IDataPack 消息拆解接口
+//	     IMsgHandler 消息处理及协程池接口
 //
 // 当前文件描述:
 // @Title  irouter.go
@@ -14,11 +15,33 @@
 package ziface
 
 /*
-	路由接口， 这里面路由是 使用框架者给该链接自定的 处理业务方法
-	路由里的IRequest 则包含用该链接的链接信息和该链接的请求数据信息
+路由接口， 这里面路由是 使用框架者给该链接自定的 处理业务方法
+路由里的IRequest 则包含用该链接的链接信息和该链接的请求数据信息
 */
 type IRouter interface {
 	PreHandle(request IRequest)  //在处理conn业务之前的钩子方法
 	Handle(request IRequest)     //处理conn业务的方法
 	PostHandle(request IRequest) //处理conn业务之后的钩子方法
+}
+
+// 方法切片集合式路路由
+// 不同于旧版 新版本仅保存路由方法集合，具体执行交给每个请求的 IRequest
+type RouterHandler func(request IRequest)
+type IRouterSlices interface {
+	//添加全局组件
+	Use(Handlers ...RouterHandler)
+	//添加路由
+	AddHandler(msgId uint32, handlers ...RouterHandler)
+
+	//路由组管理
+	Group(start, end uint32, Handlers ...RouterHandler) IGroupRouterSlices
+	//获取处理方法集合
+	GetHandlers(MsgId uint32) ([]RouterHandler, bool)
+}
+
+type IGroupRouterSlices interface {
+	//添加全局组件
+	Use(Handlers ...RouterHandler)
+	//添加组路由组件
+	AddHandler(MsgId uint32, Handlers ...RouterHandler)
 }
