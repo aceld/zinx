@@ -23,7 +23,7 @@ func A5(request ziface.IRequest) {
 }
 
 func TestRouterAdd(t *testing.T) {
-	router := NewRouter()
+	router := NewRouterSlices()
 	router.Use(A3)
 	router.AddHandler(1, A1, A2)
 
