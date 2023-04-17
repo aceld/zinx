@@ -5,9 +5,11 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/aceld/zinx/logo"
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/zlog"
+	"github.com/aceld/zinx/zmetrics"
 	"github.com/gorilla/websocket"
 	"net"
 	"net/http"
@@ -18,19 +20,6 @@ import (
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zpack"
 )
-
-var zinxLogo = `                                        
-              ██                        
-              ▀▀                        
- ████████   ████     ██▄████▄  ▀██  ██▀ 
-     ▄█▀      ██     ██▀   ██    ████   
-   ▄█▀        ██     ██    ██    ▄██▄   
- ▄██▄▄▄▄▄  ▄▄▄██▄▄▄  ██    ██   ▄█▀▀█▄  
- ▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀  ▀▀    ▀▀  ▀▀▀  ▀▀▀ 
-                                        `
-var topLine = `┌──────────────────────────────────────────────────────┐`
-var borderLine = `│`
-var bottomLine = `└──────────────────────────────────────────────────────┘`
 
 // Server 接口实现，定义一个Server服务类
 type Server struct {
@@ -71,7 +60,7 @@ type Server struct {
 
 // NewServer 创建一个服务器句柄
 func NewServer(opts ...Option) ziface.IServer {
-	printLogo()
+	logo.PrintLogo()
 
 	s := &Server{
 		Name:       zconf.GlobalObject.Name,
@@ -114,7 +103,7 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 	zconf.GlobalObject.Show()
 
 	//打印logo
-	printLogo()
+	logo.PrintLogo()
 
 	s := &Server{
 		Name:       config.Name,
@@ -156,12 +145,11 @@ func (s *Server) StartConn(conn ziface.IConnection) {
 
 	//3.4 启动当前链接的处理业务
 	conn.Start()
-
 }
 
 func (s *Server) ListenTcpConn() {
 	//1 获取一个TCP的Addr
-	addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
+	addr, err := net.ResolveTCPAddr(s.IPVersion, s.Address(zconf.ServerModeTcp))
 	if err != nil {
 		zlog.Ins().ErrorF("[START] resolve tcp addr err: %v\n", err)
 		return
@@ -180,7 +168,7 @@ func (s *Server) ListenTcpConn() {
 		tlsConfig.Certificates = []tls.Certificate{crt}
 		tlsConfig.Time = time.Now
 		tlsConfig.Rand = rand.Reader
-		listener, err = tls.Listen(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port), tlsConfig)
+		listener, err = tls.Listen(s.IPVersion, s.Address(zconf.ServerModeTcp), tlsConfig)
 		if err != nil {
 			panic(err)
 		}
@@ -266,11 +254,12 @@ func (s *Server) ListenWebsocketConn() {
 		}
 		// 5. 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 		wsConn := newWebsocketConn(s, conn, cID)
+
 		go s.StartConn(wsConn)
 		cID++
 	})
 
-	err := http.ListenAndServe(fmt.Sprintf("%s:%d", s.IP, s.WsPort), nil)
+	err := http.ListenAndServe(s.Address(zconf.ServerModeWebsocket), nil)
 	if err != nil {
 		panic(err)
 	}
@@ -285,19 +274,28 @@ func (s *Server) Start() {
 	if s.decoder != nil {
 		s.msgHandler.AddInterceptor(s.decoder)
 	}
-	//0 启动worker工作池机制
+	// 启动worker工作池机制
 	s.msgHandler.StartWorkerPool()
 
 	//开启一个go去做服务端Listener业务
 	switch zconf.GlobalObject.Mode {
-	case "tcp":
+	case zconf.ServerModeTcp:
 		go s.ListenTcpConn()
-	case "websocket":
+	case zconf.ServerModeWebsocket:
 		go s.ListenWebsocketConn()
 	default:
 		go s.ListenTcpConn()
 		go s.ListenWebsocketConn()
+	}
 
+	// Prometheus Metrics 指标统计指标初始化
+	zmetrics.InitZinxMetrics()
+
+	// 启动Metrics Prometheus服务
+	if zconf.GlobalObject.PrometheusMetricsEnable == true && zconf.GlobalObject.PrometheusServer == true {
+		if zmetrics.RunMetricsService(zconf.GlobalObject) != nil {
+			zlog.Ins().ErrorF("RunMetricsService err")
+		}
 	}
 }
 
@@ -433,21 +431,23 @@ func (s *Server) AddInterceptor(interceptor ziface.IInterceptor) {
 	s.msgHandler.AddInterceptor(interceptor)
 }
 
-func printLogo() {
-	fmt.Println(zinxLogo)
-	fmt.Println(topLine)
-	fmt.Println(fmt.Sprintf("%s [Github] https://github.com/aceld                    %s", borderLine, borderLine))
-	fmt.Println(fmt.Sprintf("%s [tutorial] https://www.yuque.com/aceld/npyr8s/bgftov %s", borderLine, borderLine))
-	fmt.Println(fmt.Sprintf("%s [document] https://www.yuque.com/aceld/tsgooa        %s", borderLine, borderLine))
-	fmt.Println(bottomLine)
-	fmt.Printf("[Zinx] Version: %s, MaxConn: %d, MaxPacketSize: %d\n",
-		zconf.GlobalObject.Version,
-		zconf.GlobalObject.MaxConn,
-		zconf.GlobalObject.MaxPacketSize)
-}
-
 func (s *Server) SetWebsocketAuth(f func(r *http.Request) error) {
 	s.websocketAuth = f
+}
+
+func (s *Server) Address(mode string) string {
+	switch mode {
+	case zconf.ServerModeTcp:
+		return fmt.Sprintf("%s:%d", s.IP, s.Port)
+	case zconf.ServerModeWebsocket:
+		return fmt.Sprintf("%s:%d", s.IP, s.WsPort)
+	default:
+		return fmt.Sprintf("%s:%d", s.IP, s.Port)
+	}
+}
+
+func (s *Server) ServerName() string {
+	return s.Name
 }
 
 func init() {

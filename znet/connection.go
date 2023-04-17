@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"github.com/aceld/zinx/zmetrics"
 	"net"
 	"sync"
 	"time"
@@ -58,6 +59,11 @@ type Connection struct {
 	frameDecoder ziface.IFrameDecoder
 	// 心跳检测器
 	hc ziface.IHeartbeatChecker
+
+	//所属Server的监听IP:Port
+	serverAddr string
+	//所属Server的名称
+	serverName string
 }
 
 // newServerConn :for Server, 创建一个Server服务端特性的连接的方法
@@ -70,6 +76,8 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 		isClosed:    false,
 		msgBuffChan: nil,
 		property:    nil,
+		serverAddr:  server.Address(zconf.ServerModeTcp),
+		serverName:  server.ServerName(),
 	}
 
 	lengthField := server.GetLengthField()
@@ -88,6 +96,9 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 
 	// 将新创建的Conn添加到链接管理中
 	server.GetConnMgr().Add(c)
+
+	// 统计ws服务链接数量指标
+	zmetrics.Metrics().IncConn(c.serverAddr, c.serverName)
 
 	return c
 }
@@ -442,6 +453,9 @@ func (c *Connection) finalizer() {
 	}
 	// 设置标志位
 	c.isClosed = true
+
+	//将Metrics的指标删除conn数量
+	zmetrics.Metrics().DecConn(c.serverAddr, c.serverName)
 
 	zlog.Ins().InfoF("Conn Stop()...ConnID = %d", c.connID)
 }

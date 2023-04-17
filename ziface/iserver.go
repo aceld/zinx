@@ -43,4 +43,6 @@ type IServer interface {
 	SetDecoder(IDecoder)
 	AddInterceptor(IInterceptor)
 	SetWebsocketAuth(func(r *http.Request) error) // 添加websocket认证方法
+	Address(string) string                        // 获取服务器地址
+	ServerName() string                           // 获取服务器名称
 }

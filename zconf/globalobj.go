@@ -23,9 +23,14 @@ import (
 	"time"
 )
 
+const (
+	ServerModeTcp       = "tcp"
+	ServerModeWebsocket = "websocket"
+)
+
 /*
-存储一切有关Zinx框架的全局参数，供其他模块使用
-一些参数也可以通过 用户根据 zinx.json来配置
+	存储一切有关Zinx框架的全局参数，供其他模块使用
+	一些参数也可以通过 用户根据 zinx.json来配置
 */
 type Config struct {
 	/*
@@ -67,6 +72,12 @@ type Config struct {
 	CertFile       string // 证书文件名称 默认""
 	PrivateKeyFile string // 私钥文件名称 默认"" --如果没有设置证书和私钥文件，则不启用TLS加密
 
+	/*
+	   Prometheus Metrics
+	*/
+	PrometheusMetricsEnable bool   // 是否开启Prometheus Metrics 指标统计, 默认为false关闭
+	PrometheusServer        bool   // 是否需要zinx单独启动一个Prometheus Metrics 服务, 默认为false关闭
+	PrometheusListen        string // Prometheus Metrics 服务IP和端口, 默认为 0.0.0.0:20004
 }
 
 /*
@@ -143,7 +154,7 @@ func (g *Config) InitLogConfig() {
 }
 
 /*
-提供init方法，默认加载
+	提供init方法，默认加载
 */
 func init() {
 	pwd, err := os.Getwd()
@@ -164,24 +175,27 @@ func init() {
 
 	//初始化GlobalObject变量，设置一些默认值
 	GlobalObject = &Config{
-		Name:              "ZinxServerApp",
-		Version:           "V1.0",
-		TCPPort:           8999,
-		WsPort:            9000,
-		Host:              "0.0.0.0",
-		MaxConn:           12000,
-		MaxPacketSize:     4096,
-		WorkerPoolSize:    10,
-		MaxWorkerTaskLen:  1024,
-		MaxMsgChanLen:     1024,
-		LogDir:            pwd + "/log",
-		LogFile:           "zinx.log",
-		LogIsolationLevel: 0,
-		HeartbeatMax:      10, //默认心跳检测最长间隔为10秒
-		IOReadBuffSize:    1024,
-		CertFile:          "",
-		PrivateKeyFile:    "",
-		Mode:              "tcp",
+		Name:                    "ZinxServerApp",
+		Version:                 "V1.0",
+		TCPPort:                 8999,
+		WsPort:                  9000,
+		Host:                    "0.0.0.0",
+		MaxConn:                 12000,
+		MaxPacketSize:           4096,
+		WorkerPoolSize:          10,
+		MaxWorkerTaskLen:        1024,
+		MaxMsgChanLen:           1024,
+		LogDir:                  pwd + "/log",
+		LogFile:                 "", //默认日志文件为空，打印到stderr
+		LogIsolationLevel:       0,
+		HeartbeatMax:            10, //默认心跳检测最长间隔为10秒
+		IOReadBuffSize:          1024,
+		CertFile:                "",
+		PrivateKeyFile:          "",
+		Mode:                    ServerModeTcp,
+		PrometheusMetricsEnable: false,
+		PrometheusServer:        false,
+		PrometheusListen:        "0.0.0.0:20004",
 		RouterMode:        1,
 	}
 	//NOTE: 从配置文件中加载一些用户配置的参数
