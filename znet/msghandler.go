@@ -3,6 +3,8 @@ package znet
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/aceld/zinx/zmetrics"
+	"strconv"
 
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
@@ -114,6 +116,8 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 		// 有消息则取出队列的Request，并执行绑定的业务方法
 		case request := <-taskQueue:
 			mh.doMsgHandler(request)
+			// Metrics统计，每次处理完一个请求，当前WorkId处理的任务数量+1
+			zmetrics.Metrics().IncTask(strconv.Itoa(workerID))
 		}
 	}
 }

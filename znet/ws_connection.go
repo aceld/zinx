@@ -8,6 +8,7 @@ import (
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zinterceptor"
 	"github.com/aceld/zinx/zlog"
+	"github.com/aceld/zinx/zmetrics"
 	"github.com/aceld/zinx/zpack"
 	"github.com/gorilla/websocket"
 	"net"
@@ -53,6 +54,11 @@ type WsConnection struct {
 	frameDecoder ziface.IFrameDecoder
 	//心跳检测器
 	hc ziface.IHeartbeatChecker
+
+	//所属Server的监听IP:Port
+	serverAddr string
+	//所属Server的名称
+	serverName string
 }
 
 // newServerConn :for Server, 创建一个Server服务端特性的连接的方法
@@ -65,6 +71,8 @@ func newWebsocketConn(server ziface.IServer, conn *websocket.Conn, connID uint64
 		isClosed:    false,
 		msgBuffChan: nil,
 		property:    nil,
+		serverAddr:  server.Address(zconf.ServerModeWebsocket),
+		serverName:  server.ServerName(),
 	}
 
 	lengthField := server.GetLengthField()
@@ -83,6 +91,9 @@ func newWebsocketConn(server ziface.IServer, conn *websocket.Conn, connID uint64
 
 	//将新创建的Conn添加到链接管理中
 	server.GetConnMgr().Add(c)
+
+	// 统计ws服务链接数量指标
+	zmetrics.Metrics().IncConn(c.serverAddr, c.serverName)
 
 	return c
 }
@@ -126,8 +137,6 @@ func (c *WsConnection) StartWriter() {
 					break
 				}
 
-				//写对端成功, 更新链接活动时间
-				//c.updateActivity()
 			} else {
 				zlog.Ins().ErrorF("msgBuffChan is Closed")
 				break
@@ -267,9 +276,6 @@ func (c *WsConnection) Send(data []byte) error {
 		return err
 	}
 
-	//写对端成功, 更新链接活动时间
-	//c.updateActivity()
-
 	return nil
 }
 
@@ -326,9 +332,6 @@ func (c *WsConnection) SendMsg(msgID uint32, data []byte) error {
 		zlog.Ins().ErrorF("SendMsg err msg ID = %d, data = %+v, err = %+v", msgID, string(msg), err)
 		return err
 	}
-
-	//写对端成功, 更新链接活动时间
-	//c.updateActivity()
 
 	return nil
 }
@@ -435,6 +438,9 @@ func (c *WsConnection) finalizer() {
 	}
 	//设置标志位
 	c.isClosed = true
+
+	//将Metrics的指标删除conn数量
+	zmetrics.Metrics().DecConn(c.serverAddr, c.serverName)
 
 	zlog.Ins().InfoF("Conn Stop()...ConnID = %d", c.connID)
 }

@@ -75,4 +75,17 @@ func UserConfToGlobal(config *Config) {
 	if config.WsPort != 0 {
 		GlobalObject.WsPort = config.WsPort
 	}
+
+	// Prometheus Metrics
+	if config.PrometheusMetricsEnable != false {
+		GlobalObject.PrometheusMetricsEnable = config.PrometheusMetricsEnable
+	}
+
+	if config.PrometheusServer != false {
+		GlobalObject.PrometheusServer = config.PrometheusServer
+	}
+
+	if config.PrometheusListen != "" {
+		GlobalObject.PrometheusListen = config.PrometheusListen
+	}
 }
