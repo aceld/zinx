@@ -11,11 +11,12 @@ var _metricsOnce sync.Once
 
 type zinxMetrics struct {
 	// 链接总数
-	connTotal *prometheus.GaugeVec
+	connTotal *prometheus.GaugeVec //[address, name]:ConnTotal
 	// 处理的任务总数
-	taskTotal *prometheus.GaugeVec //workerID:TaskTotal
+	taskTotal *prometheus.GaugeVec //[address, name, workerID]:TaskTotal
+	// 路由Router调度的Handler次数
+	routerScheduleTotal *prometheus.GaugeVec //[address, name, workerID, MsgID]:RouterScheduleTotal
 
-	// TODO 路由Router调度的Handler次数
 	// TODO 路由Router调度的Handler耗时
 	// TODO 拦截器处理数据的次数
 	// TODO 拦截器处理数据的耗时
@@ -45,8 +46,14 @@ func (m *zinxMetrics) DecConn(serverAddress, serverName string) {
 }
 
 // Zinx的任务数量累加
-func (m *zinxMetrics) IncTask(workerID string) {
+func (m *zinxMetrics) IncTask(address, name, workerID string) {
 	if zconf.GlobalObject.PrometheusMetricsEnable {
-		m.taskTotal.WithLabelValues(workerID).Inc()
+		m.taskTotal.WithLabelValues(address, name, workerID).Inc()
+	}
+}
+
+func (m *zinxMetrics) IncRouterSchedule(address, name, workerID, msgID string) {
+	if zconf.GlobalObject.PrometheusMetricsEnable {
+		m.routerScheduleTotal.WithLabelValues(address, name, workerID, msgID).Inc()
 	}
 }

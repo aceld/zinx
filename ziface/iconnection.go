@@ -26,6 +26,7 @@ type IConnection interface {
 	Stop()                    //停止连接，结束当前连接状态
 	Context() context.Context //返回ctx，用于用户自定义的go程获取连接退出状态
 
+	GetName() string            //获取当前连接名称
 	GetConnection() net.Conn    //从当前连接获取原始的socket
 	GetWsConn() *websocket.Conn // 从当前连接中获取原始的websocket连接
 	// Deprecated: use GetConnection instead
@@ -33,6 +34,8 @@ type IConnection interface {
 	GetConnID() uint64          //获取当前连接ID
 	RemoteAddr() net.Addr       //获取链接远程地址信息
 	LocalAddr() net.Addr        //获取链接本地地址信息
+	LocalAddrString() string    //获取链接本地地址信息
+	RemoteAddrString() string   //获取链接远程地址信息
 
 	Send(data []byte) error
 	SendToQueue(data []byte) error

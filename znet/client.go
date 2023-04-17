@@ -14,6 +14,8 @@ import (
 )
 
 type Client struct {
+	//客户端的名称
+	Name string
 	//目标链接服务器的IP
 	Ip string
 	//目标链接服务器的端口
@@ -38,10 +40,8 @@ type Client struct {
 	hc ziface.IHeartbeatChecker
 	// 使用TLS
 	useTLS bool
-
 	// websocket
 	dialer *websocket.Dialer
-
 	// errChan
 	ErrChan chan error
 }
@@ -49,10 +49,11 @@ type Client struct {
 func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 
 	c := &Client{
+		Name: "ZinxClientTcp", //默认名称，可以使用WithNameClient的Option修改
 		Ip:   ip,
 		Port: port,
 
-		msgHandler: NewMsgHandle(),
+		msgHandler: newMsgHandle(),
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack), //默认使用zinx的TLV封包方式
 		decoder:    zdecoder.NewTLVDecoder(),                     //默认使用zinx的TLV解码器
 		version:    "tcp",
@@ -70,10 +71,11 @@ func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 func NewWsClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 
 	c := &Client{
+		Name: "ZinxClientWs", //默认名称，可以使用WithNameClient的Option修改
 		Ip:   ip,
 		Port: port,
 
-		msgHandler: NewMsgHandle(),
+		msgHandler: newMsgHandle(),
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack), //默认使用zinx的TLV封包方式
 		decoder:    zdecoder.NewTLVDecoder(),                     //默认使用zinx的TLV解码器
 		version:    "websocket",
@@ -275,4 +277,12 @@ func (c *Client) GetLengthField() *ziface.LengthField {
 
 func (c *Client) GetErrChan() chan error {
 	return c.ErrChan
+}
+
+func (c *Client) SetName(name string) {
+	c.Name = name
+}
+
+func (c *Client) GetName() string {
+	return c.Name
 }

@@ -21,3 +21,10 @@ func WithPacketClient(pack ziface.IDataPack) ClientOption {
 		c.SetPacket(pack)
 	}
 }
+
+// 设置Client的Name
+func WithNameClient(name string) ClientOption {
+	return func(c ziface.IClient) {
+		c.SetName(name)
+	}
+}

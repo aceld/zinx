@@ -66,8 +66,8 @@ func NewServer(opts ...Option) ziface.IServer {
 		IP:         zconf.GlobalObject.Host,
 		Port:       zconf.GlobalObject.TCPPort,
 		WsPort:     zconf.GlobalObject.WsPort,
-		msgHandler: NewMsgHandle(),
-		ConnMgr:    NewConnManager(),
+		msgHandler: newMsgHandle(),
+		ConnMgr:    newConnManager(),
 		exitChan:   nil,
 		//默认使用zinx的TLV封包方式
 		packet:  zpack.Factory().NewPack(ziface.ZinxDataPack),
@@ -107,8 +107,8 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 		IPVersion:  "tcp4",
 		IP:         config.Host,
 		Port:       config.TCPPort,
-		msgHandler: NewMsgHandle(),
-		ConnMgr:    NewConnManager(),
+		msgHandler: newMsgHandle(),
+		ConnMgr:    newConnManager(),
 		exitChan:   nil,
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack),
 		decoder:    zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
@@ -145,7 +145,7 @@ func (s *Server) StartConn(conn ziface.IConnection) {
 
 func (s *Server) ListenTcpConn() {
 	//1 获取一个TCP的Addr
-	addr, err := net.ResolveTCPAddr(s.IPVersion, s.Address(zconf.ServerModeTcp))
+	addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 	if err != nil {
 		zlog.Ins().ErrorF("[START] resolve tcp addr err: %v\n", err)
 		return
@@ -164,7 +164,7 @@ func (s *Server) ListenTcpConn() {
 		tlsConfig.Certificates = []tls.Certificate{crt}
 		tlsConfig.Time = time.Now
 		tlsConfig.Rand = rand.Reader
-		listener, err = tls.Listen(s.IPVersion, s.Address(zconf.ServerModeTcp), tlsConfig)
+		listener, err = tls.Listen(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port), tlsConfig)
 		if err != nil {
 			panic(err)
 		}
@@ -255,7 +255,7 @@ func (s *Server) ListenWebsocketConn() {
 		cID++
 	})
 
-	err := http.ListenAndServe(s.Address(zconf.ServerModeWebsocket), nil)
+	err := http.ListenAndServe(fmt.Sprintf("%s:%d", s.IP, s.WsPort), nil)
 	if err != nil {
 		panic(err)
 	}
@@ -409,17 +409,6 @@ func (s *Server) AddInterceptor(interceptor ziface.IInterceptor) {
 
 func (s *Server) SetWebsocketAuth(f func(r *http.Request) error) {
 	s.websocketAuth = f
-}
-
-func (s *Server) Address(mode string) string {
-	switch mode {
-	case zconf.ServerModeTcp:
-		return fmt.Sprintf("%s:%d", s.IP, s.Port)
-	case zconf.ServerModeWebsocket:
-		return fmt.Sprintf("%s:%d", s.IP, s.WsPort)
-	default:
-		return fmt.Sprintf("%s:%d", s.IP, s.Port)
-	}
 }
 
 func (s *Server) ServerName() string {

@@ -59,15 +59,15 @@ type Connection struct {
 	frameDecoder ziface.IFrameDecoder
 	// 心跳检测器
 	hc ziface.IHeartbeatChecker
-
-	//所属Server的监听IP:Port
-	serverAddr string
-	//所属Server的名称
-	serverName string
+	//链接名称，默认与创建链接的Server/Client的Name一致
+	name string
+	//当前链接的本地地址
+	localAddr string
+	//当前链接的远程地址
+	remoteAddr string
 }
 
 // newServerConn :for Server, 创建一个Server服务端特性的连接的方法
-// Note: 名字由 NewConnection 更变
 func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.IConnection {
 	// 初始化Conn属性
 	c := &Connection{
@@ -76,8 +76,9 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 		isClosed:    false,
 		msgBuffChan: nil,
 		property:    nil,
-		serverAddr:  server.Address(zconf.ServerModeTcp),
-		serverName:  server.ServerName(),
+		name:        server.ServerName(),
+		localAddr:   conn.LocalAddr().String(),
+		remoteAddr:  conn.RemoteAddr().String(),
 	}
 
 	lengthField := server.GetLengthField()
@@ -98,7 +99,7 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 	server.GetConnMgr().Add(c)
 
 	// 统计ws服务链接数量指标
-	zmetrics.Metrics().IncConn(c.serverAddr, c.serverName)
+	zmetrics.Metrics().IncConn(c.localAddr, c.name)
 
 	return c
 }
@@ -111,6 +112,9 @@ func newClientConn(client ziface.IClient, conn net.Conn) ziface.IConnection {
 		isClosed:    false,
 		msgBuffChan: nil,
 		property:    nil,
+		name:        client.GetName(),
+		localAddr:   conn.LocalAddr().String(),
+		remoteAddr:  conn.RemoteAddr().String(),
 	}
 
 	lengthField := client.GetLengthField()
@@ -142,8 +146,6 @@ func (c *Connection) StartWriter() {
 					break
 				}
 
-				// 写对端成功, 更新链接活动时间
-				// c.updateActivity()
 			} else {
 				zlog.Ins().ErrorF("msgBuffChan is Closed")
 				break
@@ -455,7 +457,7 @@ func (c *Connection) finalizer() {
 	c.isClosed = true
 
 	//将Metrics的指标删除conn数量
-	zmetrics.Metrics().DecConn(c.serverAddr, c.serverName)
+	zmetrics.Metrics().DecConn(c.localAddr, c.name)
 
 	zlog.Ins().InfoF("Conn Stop()...ConnID = %d", c.connID)
 }
@@ -490,4 +492,16 @@ func (c *Connection) updateActivity() {
 
 func (c *Connection) SetHeartBeat(checker ziface.IHeartbeatChecker) {
 	c.hc = checker
+}
+
+func (c *Connection) LocalAddrString() string {
+	return c.localAddr
+}
+
+func (c *Connection) RemoteAddrString() string {
+	return c.remoteAddr
+}
+
+func (c *Connection) GetName() string {
+	return c.name
 }
