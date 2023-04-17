@@ -128,7 +128,6 @@ func (r *Request) RouterSlicesNext() {
 		r.handlers[r.index](r)
 		r.index++
 	}
-	r.index = -1
 }
 
 func (r *Request) RouterAbort() {
