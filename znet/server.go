@@ -36,7 +36,7 @@ type Server struct {
 	//当前Server的消息管理模块，用来绑定MsgID和对应的处理方法
 	msgHandler ziface.IMsgHandle
 	//路由模式
-	routerMode int
+	RouterSlicesMode bool
 	//当前Server的链接管理器
 	ConnMgr ziface.IConnManager
 	//该Server的连接创建时Hook函数
@@ -63,15 +63,15 @@ func NewServer(opts ...Option) ziface.IServer {
 	logo.PrintLogo()
 
 	s := &Server{
-		Name:       zconf.GlobalObject.Name,
-		IPVersion:  "tcp",
-		IP:         zconf.GlobalObject.Host,
-		Port:       zconf.GlobalObject.TCPPort,
-		WsPort:     zconf.GlobalObject.WsPort,
-		msgHandler: NewMsgHandle(),
-		routerMode: zconf.GlobalObject.RouterMode,
-		ConnMgr:    NewConnManager(),
-		exitChan:   nil,
+		Name:             zconf.GlobalObject.Name,
+		IPVersion:        "tcp",
+		IP:               zconf.GlobalObject.Host,
+		Port:             zconf.GlobalObject.TCPPort,
+		WsPort:           zconf.GlobalObject.WsPort,
+		msgHandler:       NewMsgHandle(),
+		RouterSlicesMode: zconf.GlobalObject.RouterSlicesMode,
+		ConnMgr:          NewConnManager(),
+		exitChan:         nil,
 		//默认使用zinx的TLV封包方式
 		packet:  zpack.Factory().NewPack(ziface.ZinxDataPack),
 		decoder: zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
@@ -106,16 +106,16 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 	logo.PrintLogo()
 
 	s := &Server{
-		Name:       config.Name,
-		IPVersion:  "tcp4",
-		IP:         config.Host,
-		Port:       config.TCPPort,
-		msgHandler: NewMsgHandle(),
-		ConnMgr:    NewConnManager(),
-		routerMode: config.RouterMode,
-		exitChan:   nil,
-		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack),
-		decoder:    zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
+		Name:             config.Name,
+		IPVersion:        "tcp4",
+		IP:               config.Host,
+		Port:             config.TCPPort,
+		msgHandler:       NewMsgHandle(),
+		ConnMgr:          NewConnManager(),
+		RouterSlicesMode: config.RouterSlicesMode,
+		exitChan:         nil,
+		packet:           zpack.Factory().NewPack(ziface.ZinxDataPack),
+		decoder:          zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
 		upgrader: &websocket.Upgrader{
 			ReadBufferSize: int(zconf.GlobalObject.IOReadBuffSize),
 			CheckOrigin: func(r *http.Request) bool {
@@ -322,25 +322,28 @@ func (s *Server) Serve() {
 
 // AddRouter 路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
 func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
+	if s.RouterSlicesMode {
+		panic("Server RouterSlicesMode is true ")
+	}
 	s.msgHandler.AddRouter(msgID, router)
 }
 func (s *Server) AddRouterSlices(msgID uint32, router ...ziface.RouterHandler) ziface.IRouterSlices {
-	if s.routerMode == 1 {
-		panic("Server RouterMode not is 2")
+	if !s.RouterSlicesMode {
+		panic("Server RouterSlicesMode is false ")
 	}
 	return s.msgHandler.AddRouterSlices(msgID, router...)
 }
 
 func (s *Server) Group(start, end uint32, Handlers ...ziface.RouterHandler) ziface.IGroupRouterSlices {
-	if s.routerMode == 1 {
-		panic("Server RouterMode not is 2")
+	if !s.RouterSlicesMode {
+		panic("Server RouterSlicesMode is false")
 	}
 	return s.msgHandler.Group(start, end, Handlers...)
 }
 
 func (s *Server) Use(Handlers ...ziface.RouterHandler) ziface.IRouterSlices {
-	if s.routerMode == 1 {
-		panic("Server RouterMode not is 2")
+	if !s.RouterSlicesMode {
+		panic("Server RouterSlicesMode is false")
 	}
 	return s.msgHandler.Use(Handlers...)
 }

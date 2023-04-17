@@ -38,14 +38,10 @@ func main() {
 
 	//旧版本路由方法
 	//{
-	//	server := znet.NewUserConfServer(&zconf.Config{RouterMode: 1, TCPPort: 8999, Host: "127.0.0.1"})
+	//	server := znet.NewUserConfServer(&zconf.Config{TCPPort: 8999, Host: "127.0.0.1"})
 	//
 	//	//即使不手动调路由模式也可以,默认是1（旧版本）
 	//	//server := znet.NewServer()
-	//
-	//	//错误使用
-	//	//路由模式不对，panic : Server RouterMode not is 2
-	//	//server.AddRouterSlices(1, Test1)
 	//
 	//	//旧版正常执行
 	//	r := &router{}
@@ -55,7 +51,7 @@ func main() {
 
 	//新版本使用方法以及说明
 	{
-		server := znet.NewUserConfServer(&zconf.Config{RouterMode: 2, TCPPort: 8999, Host: "127.0.0.1"})
+		server := znet.NewUserConfServer(&zconf.Config{RouterSlicesMode: true, TCPPort: 8999, Host: "127.0.0.1"})
 		//分组
 		group := server.Group(3, 10, Test1)
 

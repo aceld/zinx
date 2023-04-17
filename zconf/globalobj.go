@@ -29,8 +29,8 @@ const (
 )
 
 /*
-	存储一切有关Zinx框架的全局参数，供其他模块使用
-	一些参数也可以通过 用户根据 zinx.json来配置
+存储一切有关Zinx框架的全局参数，供其他模块使用
+一些参数也可以通过 用户根据 zinx.json来配置
 */
 type Config struct {
 	/*
@@ -52,7 +52,7 @@ type Config struct {
 	MaxMsgChanLen    uint32 //SendBuffMsg发送消息的缓冲最大长度
 	IOReadBuffSize   uint32 //每次IO最大的读取长度
 	Mode             string // tcp. tcp监听 websocket . websocket 监听 为空时同时开启
-	RouterMode       int    //路由模式 1为旧版本路由，2为启用新版本的路由 默认使用旧版本
+	RouterSlicesMode bool   //路由模式 false为旧版本路由，true为启用新版本的路由 默认使用旧版本
 
 	/*
 		logger
@@ -154,7 +154,7 @@ func (g *Config) InitLogConfig() {
 }
 
 /*
-	提供init方法，默认加载
+提供init方法，默认加载
 */
 func init() {
 	pwd, err := os.Getwd()
@@ -196,7 +196,7 @@ func init() {
 		PrometheusMetricsEnable: false,
 		PrometheusServer:        false,
 		PrometheusListen:        "0.0.0.0:20004",
-		RouterMode:        1,
+		RouterSlicesMode:        false,
 	}
 	//NOTE: 从配置文件中加载一些用户配置的参数
 	GlobalObject.Reload()

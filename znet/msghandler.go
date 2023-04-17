@@ -47,10 +47,10 @@ func (mh *MsgHandle) Intercept(chain ziface.IChain) ziface.IcResp {
 				mh.SendMsgToTaskQueue(iRequest)
 			} else {
 				// 从绑定好的消息和对应的处理方法中执行对应的Handle方法
-				if zconf.GlobalObject.RouterMode == 1 {
-					go mh.doMsgHandler(iRequest)
-				} else if zconf.GlobalObject.RouterMode == 2 {
-					go mh.doMsgHandlerSlices(iRequest)
+				if !zconf.GlobalObject.RouterSlicesMode {
+					mh.doMsgHandler(iRequest)
+				} else if zconf.GlobalObject.RouterSlicesMode {
+					mh.doMsgHandlerSlices(iRequest)
 				}
 			}
 		}
@@ -84,7 +84,6 @@ func (mh *MsgHandle) doMsgHandler(request ziface.IRequest) {
 			zlog.Ins().ErrorF("doMsgHandler panic: %v", err)
 		}
 	}()
-
 	handler, ok := mh.Apis[request.GetMsgID()]
 	if !ok {
 		zlog.Ins().ErrorF("api msgID = %d is not FOUND!", request.GetMsgID())
@@ -151,12 +150,11 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 		select {
 		// 有消息则取出队列的Request，并执行绑定的业务方法
 		case request := <-taskQueue:
-			mh.doMsgHandler(request)
 			// Metrics统计，每次处理完一个请求，当前WorkId处理的任务数量+1
 			zmetrics.Metrics().IncTask(strconv.Itoa(workerID))
-			if zconf.GlobalObject.RouterMode == 1 {
+			if !zconf.GlobalObject.RouterSlicesMode {
 				mh.doMsgHandler(request)
-			} else if zconf.GlobalObject.RouterMode == 2 {
+			} else if zconf.GlobalObject.RouterSlicesMode {
 				mh.doMsgHandlerSlices(request)
 			}
 		}

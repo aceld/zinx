@@ -88,7 +88,7 @@ func UserConfToGlobal(config *Config) {
 	if config.PrometheusListen != "" {
 		GlobalObject.PrometheusListen = config.PrometheusListen
 	}
-	if config.RouterMode != 1 {
-		GlobalObject.RouterMode = config.RouterMode
+	if config.RouterSlicesMode {
+		GlobalObject.RouterSlicesMode = config.RouterSlicesMode
 	}
 }

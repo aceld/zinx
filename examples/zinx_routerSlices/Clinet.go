@@ -15,7 +15,7 @@ func main() {
 
 	//发封包message消息
 	dp := zpack.NewDataPack()
-	msg, _ := dp.Pack(zpack.NewMsgPackage(3, []byte("ZinxPing")))
+	msg, _ := dp.Pack(zpack.NewMsgPackage(1, []byte("ZinxPing")))
 	_, err = conn.Write(msg)
 	if err != nil {
 		fmt.Println("write error err ", err)
