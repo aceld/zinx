@@ -42,7 +42,7 @@ func InitZinxMetrics() {
 				Name: GANGEVEC_ZINX_CONNECTION_TOTAL_NAME,
 				Help: GANGEVEC_ZINX_CONNECTION_TOTAL_HELP,
 			},
-			[]string{LABEL_SERVER_ADDRESS, LABEL_SERVER_NAME},
+			[]string{LABEL_ADDRESS, LABEL_NAME},
 		)
 
 		Metrics().taskTotal = prometheus.NewGaugeVec(
@@ -50,12 +50,21 @@ func InitZinxMetrics() {
 				Name: GANGEVEC_ZINX_TASK_TOTAL_NAME,
 				Help: GANGEVEC_ZINX_TASK_TOTAL_HELP,
 			},
-			[]string{LABEL_WORKER_ID},
+			[]string{LABEL_ADDRESS, LABEL_NAME, LABEL_WORKER_ID},
+		)
+
+		Metrics().routerScheduleTotal = prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Name: GANGEVEC_ZINX_ROUTER_SCHEDULE_TOTAL_NAME,
+				Help: GANGEVEC_ZINX_ROUTER_SCHEDULE_TOTAL_HELP,
+			},
+			[]string{LABEL_ADDRESS, LABEL_NAME, LABEL_WORKER_ID, LABEL_MSG_ID},
 		)
 
 		//Register
 		prometheus.MustRegister(Metrics().connTotal)
 		prometheus.MustRegister(Metrics().taskTotal)
+		prometheus.MustRegister(Metrics().routerScheduleTotal)
 	})
 
 }

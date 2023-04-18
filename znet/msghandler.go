@@ -11,6 +11,12 @@ import (
 	"github.com/aceld/zinx/zlog"
 )
 
+const (
+	//如果不启动Worker协程池，则会给MsgHandler分配一个虚拟的WorkerID，这个workerID为0, 便于指标统计
+	//启动了Worker协程池后，每个worker的ID为0,1,2,3...
+	WorkerIDWithoutWorkerPool int = 0
+)
+
 // MsgHandle 对消息的处理回调模块
 type MsgHandle struct {
 	Apis           map[uint32]ziface.IRouter // 存放每个MsgID 所对应的处理方法的map属性
@@ -21,7 +27,8 @@ type MsgHandle struct {
 }
 
 // NewMsgHandle 创建MsgHandle
-func NewMsgHandle() *MsgHandle {
+// zinxRole: IServer/IClient
+func newMsgHandle() *MsgHandle {
 	handle := &MsgHandle{
 		Apis:           make(map[uint32]ziface.IRouter),
 		RouterSlices:   NewRouterSlices(),
@@ -46,15 +53,17 @@ func (mh *MsgHandle) Intercept(chain ziface.IChain) ziface.IcResp {
 				// 已经启动工作池机制，将消息交给Worker处理
 				mh.SendMsgToTaskQueue(iRequest)
 			} else {
+        
 				// 从绑定好的消息和对应的处理方法中执行对应的Handle方法
 				if !zconf.GlobalObject.RouterSlicesMode {
-					mh.doMsgHandler(iRequest)
+					go mh.doMsgHandler(iRequest, WorkerIDWithoutWorkerPool)
 				} else if zconf.GlobalObject.RouterSlicesMode {
-					mh.doMsgHandlerSlices(iRequest)
+					go mh.doMsgHandlerSlices(iRequest)
 				}
 			}
 		}
 	}
+  
 	return chain.Proceed(chain.Request())
 }
 
@@ -78,13 +87,17 @@ func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
 }
 
 // DoMsgHandler 马上以非阻塞方式处理消息
-func (mh *MsgHandle) doMsgHandler(request ziface.IRequest) {
+func (mh *MsgHandle) doMsgHandler(request ziface.IRequest, workerID int) {
 	defer func() {
 		if err := recover(); err != nil {
 			zlog.Ins().ErrorF("doMsgHandler panic: %v", err)
 		}
 	}()
-	handler, ok := mh.Apis[request.GetMsgID()]
+
+
+	msgId := request.GetMsgID()
+	handler, ok := mh.Apis[msgId]
+  
 	if !ok {
 		zlog.Ins().ErrorF("api msgID = %d is not FOUND!", request.GetMsgID())
 		return
@@ -94,6 +107,10 @@ func (mh *MsgHandle) doMsgHandler(request ziface.IRequest) {
 	request.BindRouter(handler)
 	// 执行对应处理方法
 	request.Call()
+
+	//统计MsgID被调度的路由次数
+	conn := request.GetConnection()
+	zmetrics.Metrics().IncRouterSchedule(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerID), strconv.Itoa(int(msgId)))
 }
 
 func (mh *MsgHandle) Execute(request ziface.IRequest) {
@@ -150,13 +167,16 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 		select {
 		// 有消息则取出队列的Request，并执行绑定的业务方法
 		case request := <-taskQueue:
-			// Metrics统计，每次处理完一个请求，当前WorkId处理的任务数量+1
-			zmetrics.Metrics().IncTask(strconv.Itoa(workerID))
+
 			if !zconf.GlobalObject.RouterSlicesMode {
-				mh.doMsgHandler(request)
+				mh.doMsgHandler(request, workerID)
 			} else if zconf.GlobalObject.RouterSlicesMode {
 				mh.doMsgHandlerSlices(request)
 			}
+
+			// Metrics统计，每次处理完一个请求，当前WorkId处理的任务数量+1
+			conn := request.GetConnection()
+			zmetrics.Metrics().IncTask(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerID))
 		}
 	}
 }

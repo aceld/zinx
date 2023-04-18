@@ -54,11 +54,12 @@ type WsConnection struct {
 	frameDecoder ziface.IFrameDecoder
 	//心跳检测器
 	hc ziface.IHeartbeatChecker
-
-	//所属Server的监听IP:Port
-	serverAddr string
-	//所属Server的名称
-	serverName string
+	//链接名称，默认与创建链接的Server/Client的Name一致
+	name string
+	//当前链接的本地地址
+	localAddr string
+	//当前链接的远程地址
+	remoteAddr string
 }
 
 // newServerConn :for Server, 创建一个Server服务端特性的连接的方法
@@ -71,8 +72,9 @@ func newWebsocketConn(server ziface.IServer, conn *websocket.Conn, connID uint64
 		isClosed:    false,
 		msgBuffChan: nil,
 		property:    nil,
-		serverAddr:  server.Address(zconf.ServerModeWebsocket),
-		serverName:  server.ServerName(),
+		name:        server.ServerName(),
+		localAddr:   conn.LocalAddr().String(),
+		remoteAddr:  conn.RemoteAddr().String(),
 	}
 
 	lengthField := server.GetLengthField()
@@ -93,7 +95,7 @@ func newWebsocketConn(server ziface.IServer, conn *websocket.Conn, connID uint64
 	server.GetConnMgr().Add(c)
 
 	// 统计ws服务链接数量指标
-	zmetrics.Metrics().IncConn(c.serverAddr, c.serverName)
+	zmetrics.Metrics().IncConn(c.localAddr, c.name)
 
 	return c
 }
@@ -106,6 +108,9 @@ func newWsClientConn(client ziface.IClient, conn *websocket.Conn) ziface.IConnec
 		isClosed:    false,
 		msgBuffChan: nil,
 		property:    nil,
+		name:        client.GetName(),
+		localAddr:   conn.LocalAddr().String(),
+		remoteAddr:  conn.RemoteAddr().String(),
 	}
 
 	lengthField := client.GetLengthField()
@@ -440,7 +445,7 @@ func (c *WsConnection) finalizer() {
 	c.isClosed = true
 
 	//将Metrics的指标删除conn数量
-	zmetrics.Metrics().DecConn(c.serverAddr, c.serverName)
+	zmetrics.Metrics().DecConn(c.localAddr, c.name)
 
 	zlog.Ins().InfoF("Conn Stop()...ConnID = %d", c.connID)
 }
@@ -475,4 +480,16 @@ func (c *WsConnection) updateActivity() {
 
 func (c *WsConnection) SetHeartBeat(checker ziface.IHeartbeatChecker) {
 	c.hc = checker
+}
+
+func (c *WsConnection) LocalAddrString() string {
+	return c.localAddr
+}
+
+func (c *WsConnection) RemoteAddrString() string {
+	return c.remoteAddr
+}
+
+func (c *WsConnection) GetName() string {
+	return c.name
 }

@@ -35,4 +35,6 @@ type IClient interface {
 	SetDecoder(IDecoder)
 	AddInterceptor(IInterceptor)
 	GetErrChan() chan error // 获取客户端错误管道
+	SetName(string)
+	GetName() string
 }

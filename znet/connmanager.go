@@ -17,8 +17,8 @@ type ConnManager struct {
 	connLock            sync.RWMutex
 }
 
-//NewConnManager 创建一个链接管理
-func NewConnManager() *ConnManager {
+// newConnManager 创建一个链接管理
+func newConnManager() *ConnManager {
 	return &ConnManager{
 		connections:         make(map[uint64]ziface.IConnection),
 		connectionsReadOnly: make(map[uint64]ziface.IConnection),
