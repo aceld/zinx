@@ -53,17 +53,17 @@ func (mh *MsgHandle) Intercept(chain ziface.IChain) ziface.IcResp {
 				// 已经启动工作池机制，将消息交给Worker处理
 				mh.SendMsgToTaskQueue(iRequest)
 			} else {
-        
+
 				// 从绑定好的消息和对应的处理方法中执行对应的Handle方法
 				if !zconf.GlobalObject.RouterSlicesMode {
 					go mh.doMsgHandler(iRequest, WorkerIDWithoutWorkerPool)
 				} else if zconf.GlobalObject.RouterSlicesMode {
-					go mh.doMsgHandlerSlices(iRequest)
+					go mh.doMsgHandlerSlices(iRequest, WorkerIDWithoutWorkerPool)
 				}
 			}
 		}
 	}
-  
+
 	return chain.Proceed(chain.Request())
 }
 
@@ -94,10 +94,9 @@ func (mh *MsgHandle) doMsgHandler(request ziface.IRequest, workerID int) {
 		}
 	}()
 
-
 	msgId := request.GetMsgID()
 	handler, ok := mh.Apis[msgId]
-  
+
 	if !ok {
 		zlog.Ins().ErrorF("api msgID = %d is not FOUND!", request.GetMsgID())
 		return
@@ -144,19 +143,24 @@ func (mh *MsgHandle) Use(Handlers ...ziface.RouterHandler) ziface.IRouterSlices 
 	return mh.RouterSlices
 }
 
-func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest) {
+func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest, workerID int) {
 	defer func() {
 		if err := recover(); err != nil {
 			zlog.Ins().ErrorF("doMsgHandler panic: %v", err)
 		}
 	}()
-	handlers, ok := mh.RouterSlices.GetHandlers(request.GetMsgID())
+	msgId := request.GetMsgID()
+	handlers, ok := mh.RouterSlices.GetHandlers(msgId)
 	if !ok {
 		zlog.Ins().ErrorF("api msgID = %d is not FOUND!", request.GetMsgID())
 		return
 	}
 	request.BindRouterSlices(handlers)
 	request.RouterSlicesNext()
+
+	//统计MsgID被调度的路由次数
+	conn := request.GetConnection()
+	zmetrics.Metrics().IncRouterSchedule(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerID), strconv.Itoa(int(msgId)))
 }
 
 // StartOneWorker 启动一个Worker工作流程
@@ -171,7 +175,7 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 			if !zconf.GlobalObject.RouterSlicesMode {
 				mh.doMsgHandler(request, workerID)
 			} else if zconf.GlobalObject.RouterSlicesMode {
-				mh.doMsgHandlerSlices(request)
+				mh.doMsgHandlerSlices(request, workerID)
 			}
 
 			// Metrics统计，每次处理完一个请求，当前WorkId处理的任务数量+1
