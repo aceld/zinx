@@ -15,6 +15,7 @@ const (
 
 // Request 请求
 type Request struct {
+	ziface.BaseRequest
 	conn     ziface.IConnection     //已经和客户端建立好的 链接
 	msg      ziface.IMessage        //客户端请求的数据
 	router   ziface.IRouter         //请求处理的函数
