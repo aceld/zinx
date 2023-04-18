@@ -13,51 +13,9 @@ const (
 	HANDLE_OVER
 )
 
-type BaseRequest struct {
-}
-
-func (br *BaseRequest) GetConnection() ziface.IConnection       { return nil }
-func (br *BaseRequest) GetData() []byte                         { return nil }
-func (br *BaseRequest) GetMsgID() uint32                        { return 0 }
-func (br *BaseRequest) GetMessage() ziface.IMessage             { return nil }
-func (br *BaseRequest) GetResponse() ziface.IcResp              { return nil }
-func (br *BaseRequest) SetResponse(resp ziface.IcResp)          {}
-func (br *BaseRequest) BindRouter(router ziface.IRouter)        {}
-func (br *BaseRequest) Call()                                   {}
-func (br *BaseRequest) Abort()                                  {}
-func (br *BaseRequest) Goto(ziface.HandleStep)                  {}
-func (br *BaseRequest) BindRouterSlices([]ziface.RouterHandler) {}
-func (br *BaseRequest) RouterSlicesNext()                       {}
-func (br *BaseRequest) RouterAbort()                            {}
-
-// RequestFunc 函数调用
-type RequestFunc struct {
-	BaseRequest
-	conn     ziface.IConnection //已经和客户端建立好的 链接
-	callFunc func()
-}
-
-// GetConnection 获取请求连接信息
-func (rf *RequestFunc) GetConnection() ziface.IConnection {
-	return rf.conn
-}
-
-func (rf *RequestFunc) CallFunc() {
-	if rf.callFunc != nil {
-		rf.callFunc()
-	}
-}
-
-func NewFuncRequest(conn ziface.IConnection, callFunc func()) ziface.IRequest {
-	req := new(RequestFunc)
-	req.conn = conn
-	req.callFunc = callFunc
-	return req
-}
-
 // Request 请求
 type Request struct {
-	BaseRequest
+	ziface.BaseRequest
 	conn     ziface.IConnection     //已经和客户端建立好的 链接
 	msg      ziface.IMessage        //客户端请求的数据
 	router   ziface.IRouter         //请求处理的函数
