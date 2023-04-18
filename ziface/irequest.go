@@ -16,14 +16,7 @@ package ziface
 
 type HandleStep int
 
-// IBaseRequest 请求接口
-type IBaseRequest interface {
-	GetConnection() IConnection //获取请求连接信息
-}
-
-// IFuncRequest 独立函数请求接口
 type IFuncRequest interface {
-	IBaseRequest
 	CallFunc()
 }
 
@@ -32,7 +25,7 @@ IRequest 接口：
 实际上是把客户端请求的链接信息 和 请求的数据 包装到了 Request里
 */
 type IRequest interface {
-	IBaseRequest
+	GetConnection() IConnection //获取请求连接信息
 
 	GetData() []byte  //获取请求消息的数据
 	GetMsgID() uint32 //获取请求的消息ID

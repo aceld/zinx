@@ -66,7 +66,7 @@ func (aor *AsyncOpResult) doComplete() {
 		// **** 防止跨线程调用问题 ****
 		// 扔到所属业务线程里去执行
 		request := znet.NewFuncRequest(aor.conn, aor.completeFunc)
-		aor.conn.GetMsgHandler().SendFuncToTaskQueue(request)
+		aor.conn.GetMsgHandler().SendMsgToTaskQueue(request)
 	}
 }
 

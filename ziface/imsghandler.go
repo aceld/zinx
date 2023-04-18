@@ -24,9 +24,8 @@ type IMsgHandle interface {
 	Group(start, end uint32, Handlers ...RouterHandler) IGroupRouterSlices
 	Use(Handlers ...RouterHandler) IRouterSlices
 
-	StartWorkerPool()                         // 启动worker工作池
-	SendMsgToTaskQueue(request IRequest)      // 将消息交给TaskQueue,由worker进行处理
-	SendFuncToTaskQueue(request IFuncRequest) // 将函数交给TaskQueue,由worker进行处理
+	StartWorkerPool()                    // 启动worker工作池
+	SendMsgToTaskQueue(request IRequest) // 将消息交给TaskQueue,由worker进行处理
 
 	Execute(request IRequest)                // 执行责任链上的拦截器方法
 	AddInterceptor(interceptor IInterceptor) // 注册责任链任务入口，每个拦截器处理完后，数据都会传递至下一个拦截器，使得消息可以层层处理层层传递，顺序取决于注册顺序
