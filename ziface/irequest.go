@@ -36,4 +36,11 @@ type IRequest interface {
 	Abort()                    //终止处理函数的运行 但调用此方法的函数会执行完毕
 	//慎用，会导致循环调用
 	Goto(HandleStep) //指定接下来的Handle去执行哪个Handler函数
+
+	//新路由操作
+	BindRouterSlices([]RouterHandler)
+	//执行下一个函数
+	RouterSlicesNext()
+	//终结路由函数的执行
+	RouterAbort()
 }

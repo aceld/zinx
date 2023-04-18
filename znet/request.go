@@ -15,13 +15,15 @@ const (
 
 // Request 请求
 type Request struct {
-	conn     ziface.IConnection //已经和客户端建立好的 链接
-	msg      ziface.IMessage    //客户端请求的数据
-	router   ziface.IRouter     //请求处理的函数
-	steps    ziface.HandleStep  //用来控制路由函数执行
-	stepLock *sync.RWMutex      //并发互斥
-	needNext bool               //是否需要执行下一个路由函数
-	icResp   ziface.IcResp      //拦截器返回数据
+	conn     ziface.IConnection     //已经和客户端建立好的 链接
+	msg      ziface.IMessage        //客户端请求的数据
+	router   ziface.IRouter         //请求处理的函数
+	steps    ziface.HandleStep      //用来控制路由函数执行
+	stepLock *sync.RWMutex          //并发互斥
+	needNext bool                   //是否需要执行下一个路由函数
+	icResp   ziface.IcResp          //拦截器返回数据
+	handlers []ziface.RouterHandler //路由函数切片
+	index    int8                   //路由函数切片索引
 }
 
 func (r *Request) GetResponse() ziface.IcResp {
@@ -111,4 +113,23 @@ func (r *Request) Abort() {
 	r.stepLock.Lock()
 	r.steps = HANDLE_OVER
 	r.stepLock.Unlock()
+}
+
+// 新版本路由操作
+
+func (r *Request) BindRouterSlices(handlers []ziface.RouterHandler) {
+	r.handlers = handlers
+	r.index = -1
+}
+
+func (r *Request) RouterSlicesNext() {
+	r.index++
+	for r.index < int8(len(r.handlers)) {
+		r.handlers[r.index](r)
+		r.index++
+	}
+}
+
+func (r *Request) RouterAbort() {
+	r.index = int8(len(r.handlers))
 }

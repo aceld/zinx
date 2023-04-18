@@ -35,6 +35,8 @@ type Server struct {
 	WsPort int
 	//当前Server的消息管理模块，用来绑定MsgID和对应的处理方法
 	msgHandler ziface.IMsgHandle
+	//路由模式
+	RouterSlicesMode bool
 	//当前Server的链接管理器
 	ConnMgr ziface.IConnManager
 	//该Server的连接创建时Hook函数
@@ -67,6 +69,7 @@ func NewServer(opts ...Option) ziface.IServer {
 		Port:       zconf.GlobalObject.TCPPort,
 		WsPort:     zconf.GlobalObject.WsPort,
 		msgHandler: newMsgHandle(),
+    RouterSlicesMode: zconf.GlobalObject.RouterSlicesMode,
 		ConnMgr:    newConnManager(),
 		exitChan:   nil,
 		//默认使用zinx的TLV封包方式
@@ -103,11 +106,13 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 	logo.PrintLogo()
 
 	s := &Server{
+
 		Name:       config.Name,
 		IPVersion:  "tcp4",
 		IP:         config.Host,
 		Port:       config.TCPPort,
 		msgHandler: newMsgHandle(),
+    RouterSlicesMode: config.RouterSlicesMode,
 		ConnMgr:    newConnManager(),
 		exitChan:   nil,
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack),
@@ -318,7 +323,30 @@ func (s *Server) Serve() {
 
 // AddRouter 路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
 func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
+	if s.RouterSlicesMode {
+		panic("Server RouterSlicesMode is true ")
+	}
 	s.msgHandler.AddRouter(msgID, router)
+}
+func (s *Server) AddRouterSlices(msgID uint32, router ...ziface.RouterHandler) ziface.IRouterSlices {
+	if !s.RouterSlicesMode {
+		panic("Server RouterSlicesMode is false ")
+	}
+	return s.msgHandler.AddRouterSlices(msgID, router...)
+}
+
+func (s *Server) Group(start, end uint32, Handlers ...ziface.RouterHandler) ziface.IGroupRouterSlices {
+	if !s.RouterSlicesMode {
+		panic("Server RouterSlicesMode is false")
+	}
+	return s.msgHandler.Group(start, end, Handlers...)
+}
+
+func (s *Server) Use(Handlers ...ziface.RouterHandler) ziface.IRouterSlices {
+	if !s.RouterSlicesMode {
+		panic("Server RouterSlicesMode is false")
+	}
+	return s.msgHandler.Use(Handlers...)
 }
 
 // GetConnMgr 得到链接管理
