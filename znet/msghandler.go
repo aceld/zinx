@@ -59,7 +59,7 @@ func (mh *MsgHandle) Intercept(chain ziface.IChain) ziface.IcResp {
 				if !zconf.GlobalObject.RouterSlicesMode {
 					go mh.doMsgHandler(iRequest, WorkerIDWithoutWorkerPool)
 				} else if zconf.GlobalObject.RouterSlicesMode {
-					go mh.doMsgHandlerSlices(iRequest)
+					go mh.doMsgHandlerSlices(iRequest, WorkerIDWithoutWorkerPool)
 				}
 			}
 		}
@@ -148,19 +148,24 @@ func (mh *MsgHandle) Use(Handlers ...ziface.RouterHandler) ziface.IRouterSlices 
 	return mh.RouterSlices
 }
 
-func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest) {
+func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest, workerID int) {
 	defer func() {
 		if err := recover(); err != nil {
 			zlog.Ins().ErrorF("doMsgHandler panic: %v", err)
 		}
 	}()
-	handlers, ok := mh.RouterSlices.GetHandlers(request.GetMsgID())
+	msgId := request.GetMsgID()
+	handlers, ok := mh.RouterSlices.GetHandlers(msgId)
 	if !ok {
 		zlog.Ins().ErrorF("api msgID = %d is not FOUND!", request.GetMsgID())
 		return
 	}
 	request.BindRouterSlices(handlers)
 	request.RouterSlicesNext()
+
+	//统计MsgID被调度的路由次数
+	conn := request.GetConnection()
+	zmetrics.Metrics().IncRouterSchedule(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerID), strconv.Itoa(int(msgId)))
 }
 
 // StartOneWorker 启动一个Worker工作流程
@@ -171,6 +176,7 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 		select {
 		// 有消息则取出队列的Request，并执行绑定的业务方法
 		case request := <-taskQueue:
+
 
 			switch req := request.(type) {
 
@@ -183,14 +189,13 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 				if !zconf.GlobalObject.RouterSlicesMode {
 					mh.doMsgHandler(req, workerID)
 				} else if zconf.GlobalObject.RouterSlicesMode {
-					mh.doMsgHandlerSlices(req)
+					mh.doMsgHandlerSlices(req, workerID)
 				}
 				// Metrics统计，每次处理完一个请求，当前WorkId处理的任务数量+1
 				conn := request.GetConnection()
 				zmetrics.Metrics().IncTask(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerID))
-
+        
 			}
-
 		}
 	}
 }
