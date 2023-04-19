@@ -16,6 +16,11 @@ package ziface
 
 type HandleStep int
 
+// IFuncRequest 函数消息接口
+type IFuncRequest interface {
+	CallFunc()
+}
+
 /*
 IRequest 接口：
 实际上是把客户端请求的链接信息 和 请求的数据 包装到了 Request里
@@ -44,3 +49,20 @@ type IRequest interface {
 	//终结路由函数的执行
 	RouterAbort()
 }
+
+type BaseRequest struct {
+}
+
+func (br *BaseRequest) GetConnection() IConnection       { return nil }
+func (br *BaseRequest) GetData() []byte                  { return nil }
+func (br *BaseRequest) GetMsgID() uint32                 { return 0 }
+func (br *BaseRequest) GetMessage() IMessage             { return nil }
+func (br *BaseRequest) GetResponse() IcResp              { return nil }
+func (br *BaseRequest) SetResponse(resp IcResp)          {}
+func (br *BaseRequest) BindRouter(router IRouter)        {}
+func (br *BaseRequest) Call()                            {}
+func (br *BaseRequest) Abort()                           {}
+func (br *BaseRequest) Goto(HandleStep)                  {}
+func (br *BaseRequest) BindRouterSlices([]RouterHandler) {}
+func (br *BaseRequest) RouterSlicesNext()                {}
+func (br *BaseRequest) RouterAbort()                     {}

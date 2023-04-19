@@ -3,8 +3,9 @@ package znet
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/aceld/zinx/zmetrics"
 	"strconv"
+
+	"github.com/aceld/zinx/zmetrics"
 
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
@@ -73,13 +74,17 @@ func (mh *MsgHandle) AddInterceptor(interceptor ziface.IInterceptor) {
 	}
 }
 
-// SendMsgToTaskQueue 将消息交给TaskQueue,由worker进行处理
-func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
+func (mh *MsgHandle) GetTaskQueueWorkerId(request ziface.IRequest) uint64 {
 	// 根据ConnID来分配当前的连接应该由哪个worker负责处理
 	// 轮询的平均分配法则
-
 	// 得到需要处理此条连接的workerID
 	workerID := request.GetConnection().GetConnID() % uint64(mh.WorkerPoolSize)
+	return workerID
+}
+
+// SendMsgToTaskQueue 将消息交给TaskQueue,由worker进行处理
+func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
+	workerID := mh.GetTaskQueueWorkerId(request)
 	// zlog.Ins().DebugF("Add ConnID=%d request msgID=%d to workerID=%d", request.GetConnection().GetConnID(), request.GetMsgID(), workerID)
 	// 将请求消息发送给任务队列
 	mh.TaskQueue[workerID] <- request
@@ -166,21 +171,31 @@ func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest, workerID int) {
 // StartOneWorker 启动一个Worker工作流程
 func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest) {
 	zlog.Ins().InfoF("Worker ID = %d is started.", workerID)
-	// 不断的等待队列中的消息
+	// 不断地等待队列中的消息
 	for {
 		select {
 		// 有消息则取出队列的Request，并执行绑定的业务方法
 		case request := <-taskQueue:
 
-			if !zconf.GlobalObject.RouterSlicesMode {
-				mh.doMsgHandler(request, workerID)
-			} else if zconf.GlobalObject.RouterSlicesMode {
-				mh.doMsgHandlerSlices(request, workerID)
-			}
 
-			// Metrics统计，每次处理完一个请求，当前WorkId处理的任务数量+1
-			conn := request.GetConnection()
-			zmetrics.Metrics().IncTask(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerID))
+			switch req := request.(type) {
+
+			case ziface.IFuncRequest: // 内部函数调用request
+
+				req.CallFunc()
+
+			case ziface.IRequest: // 客户端消息request
+
+				if !zconf.GlobalObject.RouterSlicesMode {
+					mh.doMsgHandler(req, workerID)
+				} else if zconf.GlobalObject.RouterSlicesMode {
+					mh.doMsgHandlerSlices(req, workerID)
+				}
+				// Metrics统计，每次处理完一个请求，当前WorkId处理的任务数量+1
+				conn := request.GetConnection()
+				zmetrics.Metrics().IncTask(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerID))
+        
+			}
 		}
 	}
 }

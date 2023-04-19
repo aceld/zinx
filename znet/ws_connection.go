@@ -4,6 +4,10 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"net"
+	"sync"
+	"time"
+
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zinterceptor"
@@ -11,9 +15,6 @@ import (
 	"github.com/aceld/zinx/zmetrics"
 	"github.com/aceld/zinx/zpack"
 	"github.com/gorilla/websocket"
-	"net"
-	"sync"
-	"time"
 )
 
 // WsConnection Websocket连接模块
@@ -492,4 +493,8 @@ func (c *WsConnection) RemoteAddrString() string {
 
 func (c *WsConnection) GetName() string {
 	return c.name
+}
+
+func (c *WsConnection) GetMsgHandler() ziface.IMsgHandle {
+	return c.msgHandler
 }

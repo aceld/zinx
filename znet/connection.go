@@ -7,10 +7,11 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
-	"github.com/aceld/zinx/zmetrics"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/aceld/zinx/zmetrics"
 
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zinterceptor"
@@ -504,4 +505,8 @@ func (c *Connection) RemoteAddrString() string {
 
 func (c *Connection) GetName() string {
 	return c.name
+}
+
+func (c *Connection) GetMsgHandler() ziface.IMsgHandle {
+	return c.msgHandler
 }
