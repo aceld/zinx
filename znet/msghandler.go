@@ -91,6 +91,13 @@ func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
 	zlog.Ins().DebugF("SendMsgToTaskQueue-->%s", hex.EncodeToString(request.GetData()))
 }
 
+func (mh *MsgHandle) IncRouterScheduleCnt(request ziface.IRequest, workerId int, msgId uint32) {
+
+	conn := request.GetConnection()
+	zmetrics.Metrics().IncRouterSchedule(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerId), strconv.Itoa(int(msgId)))
+
+}
+
 // DoMsgHandler 马上以非阻塞方式处理消息
 func (mh *MsgHandle) doMsgHandler(request ziface.IRequest, workerID int) {
 	defer func() {
@@ -113,8 +120,7 @@ func (mh *MsgHandle) doMsgHandler(request ziface.IRequest, workerID int) {
 	request.Call()
 
 	//统计MsgID被调度的路由次数
-	conn := request.GetConnection()
-	zmetrics.Metrics().IncRouterSchedule(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerID), strconv.Itoa(int(msgId)))
+	mh.IncRouterScheduleCnt(request, workerID, msgId)
 }
 
 func (mh *MsgHandle) Execute(request ziface.IRequest) {
@@ -164,8 +170,7 @@ func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest, workerID int) {
 	request.RouterSlicesNext()
 
 	//统计MsgID被调度的路由次数
-	conn := request.GetConnection()
-	zmetrics.Metrics().IncRouterSchedule(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerID), strconv.Itoa(int(msgId)))
+	mh.IncRouterScheduleCnt(request, workerID, msgId)
 }
 
 // StartOneWorker 启动一个Worker工作流程
@@ -176,7 +181,6 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 		select {
 		// 有消息则取出队列的Request，并执行绑定的业务方法
 		case request := <-taskQueue:
-
 
 			switch req := request.(type) {
 
@@ -194,7 +198,7 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 				// Metrics统计，每次处理完一个请求，当前WorkId处理的任务数量+1
 				conn := request.GetConnection()
 				zmetrics.Metrics().IncTask(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerID))
-        
+
 			}
 		}
 	}
