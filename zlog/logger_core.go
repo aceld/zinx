@@ -204,7 +204,7 @@ func (log *ZinxLoggerCore) OutPut(level int, s string) error {
 	var err error
 	if log.file == nil {
 		// 日志文件设置为空，则用控制台输出
-		_, _ = os.Stdout.Write(log.buf.Bytes())
+		_, _ = os.Stderr.Write(log.buf.Bytes())
 	} else {
 		// 将填充好的buf 写到IO输出上
 		_, err = log.out.Write(log.buf.Bytes())
