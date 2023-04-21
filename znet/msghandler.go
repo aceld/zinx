@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/aceld/zinx/zmetrics"
 
@@ -61,6 +62,7 @@ func (mh *MsgHandle) Intercept(chain ziface.IChain) ziface.IcResp {
 				} else if zconf.GlobalObject.RouterSlicesMode {
 					go mh.doMsgHandlerSlices(iRequest, WorkerIDWithoutWorkerPool)
 				}
+
 			}
 		}
 	}
@@ -91,20 +93,29 @@ func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
 	zlog.Ins().DebugF("SendMsgToTaskQueue-->%s", hex.EncodeToString(request.GetData()))
 }
 
-func (mh *MsgHandle) IncRouterScheduleCnt(request ziface.IRequest, workerId int, msgId uint32) {
+func (mh *MsgHandle) StatisticsMetrics(request ziface.IRequest, workerId int, msgId uint32, timeNow time.Time) {
 
 	conn := request.GetConnection()
+
+	//统计MsgID被调度的路由次数
 	zmetrics.Metrics().IncRouterSchedule(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerId), strconv.Itoa(int(msgId)))
 
+	//统计Router和MsgID业务调度的耗时
+	zmetrics.Metrics().ObserveRouterScheduleDuration(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerId), strconv.Itoa(int(msgId)), time.Since(timeNow))
 }
 
-// DoMsgHandler 马上以非阻塞方式处理消息
+// DoMsgHandler 立即以非阻塞方式处理消息
 func (mh *MsgHandle) doMsgHandler(request ziface.IRequest, workerID int) {
 	defer func() {
 		if err := recover(); err != nil {
 			zlog.Ins().ErrorF("doMsgHandler panic: %v", err)
 		}
 	}()
+
+	var timeNow time.Time
+	if zmetrics.Metrics().IsEnable() {
+		timeNow = time.Now()
+	}
 
 	msgId := request.GetMsgID()
 	handler, ok := mh.Apis[msgId]
@@ -119,8 +130,8 @@ func (mh *MsgHandle) doMsgHandler(request ziface.IRequest, workerID int) {
 	// 执行对应处理方法
 	request.Call()
 
-	//统计MsgID被调度的路由次数
-	mh.IncRouterScheduleCnt(request, workerID, msgId)
+	//统计Router调度指标数据
+	mh.StatisticsMetrics(request, workerID, msgId, timeNow)
 }
 
 func (mh *MsgHandle) Execute(request ziface.IRequest) {
@@ -160,17 +171,24 @@ func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest, workerID int) {
 			zlog.Ins().ErrorF("doMsgHandler panic: %v", err)
 		}
 	}()
+
+	var timeNow time.Time
+	if zmetrics.Metrics().IsEnable() {
+		timeNow = time.Now()
+	}
+
 	msgId := request.GetMsgID()
 	handlers, ok := mh.RouterSlices.GetHandlers(msgId)
 	if !ok {
 		zlog.Ins().ErrorF("api msgID = %d is not FOUND!", request.GetMsgID())
 		return
 	}
+
 	request.BindRouterSlices(handlers)
 	request.RouterSlicesNext()
 
 	//统计MsgID被调度的路由次数
-	mh.IncRouterScheduleCnt(request, workerID, msgId)
+	mh.StatisticsMetrics(request, workerID, msgId, timeNow)
 }
 
 // StartOneWorker 启动一个Worker工作流程
@@ -195,10 +213,10 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 				} else if zconf.GlobalObject.RouterSlicesMode {
 					mh.doMsgHandlerSlices(req, workerID)
 				}
+
 				// Metrics统计，每次处理完一个请求，当前WorkId处理的任务数量+1
 				conn := request.GetConnection()
 				zmetrics.Metrics().IncTask(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerID))
-
 			}
 		}
 	}

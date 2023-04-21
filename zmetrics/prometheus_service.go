@@ -61,10 +61,20 @@ func InitZinxMetrics() {
 			[]string{LABEL_ADDRESS, LABEL_NAME, LABEL_WORKER_ID, LABEL_MSG_ID},
 		)
 
+		Metrics().routerScheduleDuration = prometheus.NewHistogramVec(
+			prometheus.HistogramOpts{
+				Name:    HISTOGRAM_ZINX_ROUTER_SCHEDULE_DURATION_NAME,
+				Help:    HISTOGRAM_ZINX_ROUTER_SCHEDULE_DURATION_HELP,
+				Buckets: []float64{0.005, 0.01, 0.03, 0.08, 0.1, 0.5, 1.0, 5.0, 10, 100, 1000, 5000, 30000}, //单位ms,最大半分钟
+			},
+			[]string{LABEL_ADDRESS, LABEL_NAME, LABEL_WORKER_ID, LABEL_MSG_ID},
+		)
+
 		//Register
 		prometheus.MustRegister(Metrics().connTotal)
 		prometheus.MustRegister(Metrics().taskTotal)
 		prometheus.MustRegister(Metrics().routerScheduleTotal)
+		prometheus.MustRegister(Metrics().routerScheduleDuration)
 	})
 
 }

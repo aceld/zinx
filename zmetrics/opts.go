@@ -9,6 +9,9 @@ const (
 
 	GANGEVEC_ZINX_ROUTER_SCHEDULE_TOTAL_NAME string = "zinx_router_schedule_total"
 	GANGEVEC_ZINX_ROUTER_SCHEDULE_TOTAL_HELP string = "Zinx Router Schedule Total Group By (Address, Name, WorkerID, MsgID) (zinx 路由调度的Handler总数,根据(Address, Name, WorkerID, MsgID)分组)"
+
+	HISTOGRAM_ZINX_ROUTER_SCHEDULE_DURATION_NAME string = "zinx_router_schedule_duration"
+	HISTOGRAM_ZINX_ROUTER_SCHEDULE_DURATION_HELP string = "Zinx Router Schedule Duration Group By (Address, Name, WorkerID, MsgID) (zinx 路由调度的Handler耗时,根据(Address, Name, WorkerID, MsgID)分组)"
 )
 
 const (
