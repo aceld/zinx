@@ -167,8 +167,8 @@ func NewDefaultRouterSlicesServer(opts ...Option) ziface.IServer {
 	return s
 }
 
-// NewUserRouterSlicesServer 创建一个用户配置的自带一个Recover处理器的服务器句柄
-func NewUserRouterSlicesServer(config *zconf.Config, opts ...Option) ziface.IServer {
+// NewUserRouterSlicesServer 创建一个用户配置的自带一个Recover处理器的服务器句柄，如果用户不希望Use这个方法，那么应该使用NewUserConfServer
+func NewUserConfDefaultRouterSlicesServer(config *zconf.Config, opts ...Option) ziface.IServer {
 
 	if !config.RouterSlicesMode {
 		panic("RouterSlicesMode is false")
