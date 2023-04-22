@@ -1,6 +1,7 @@
 package znet
 
 import (
+	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
 	"sync"
 )
@@ -111,9 +112,13 @@ func (r *Request) Call() {
 }
 
 func (r *Request) Abort() {
-	r.stepLock.Lock()
-	r.steps = HANDLE_OVER
-	r.stepLock.Unlock()
+	if zconf.GlobalObject.RouterSlicesMode {
+		r.index = int8(len(r.handlers))
+	} else {
+		r.stepLock.Lock()
+		r.steps = HANDLE_OVER
+		r.stepLock.Unlock()
+	}
 }
 
 // 新版本路由操作
@@ -129,8 +134,4 @@ func (r *Request) RouterSlicesNext() {
 		r.handlers[r.index](r)
 		r.index++
 	}
-}
-
-func (r *Request) RouterAbort() {
-	r.index = int8(len(r.handlers))
 }

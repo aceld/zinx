@@ -30,8 +30,15 @@ type router struct {
 	znet.BaseRouter
 }
 
+func (r *router) PreHandle(req ziface.IRequest) {
+	fmt.Println(" hello router1")
+}
 func (r *router) Handle(req ziface.IRequest) {
-	fmt.Println(" hello router")
+	req.Abort()
+	fmt.Println(" hello router2")
+}
+func (r *router) PostHandle(req ziface.IRequest) {
+	fmt.Println(" hello router3")
 }
 
 func main() {

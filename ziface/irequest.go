@@ -22,8 +22,8 @@ type IFuncRequest interface {
 }
 
 /*
-	IRequest 接口：
-	实际上是把客户端请求的链接信息 和 请求的数据 包装到了 Request里
+IRequest 接口：
+实际上是把客户端请求的链接信息 和 请求的数据 包装到了 Request里
 */
 type IRequest interface {
 	GetConnection() IConnection //获取请求连接信息
@@ -46,8 +46,6 @@ type IRequest interface {
 	BindRouterSlices([]RouterHandler)
 	//执行下一个函数
 	RouterSlicesNext()
-	//终结路由函数的执行
-	RouterAbort()
 }
 
 type BaseRequest struct {
@@ -65,4 +63,3 @@ func (br *BaseRequest) Abort()                           {}
 func (br *BaseRequest) Goto(HandleStep)                  {}
 func (br *BaseRequest) BindRouterSlices([]RouterHandler) {}
 func (br *BaseRequest) RouterSlicesNext()                {}
-func (br *BaseRequest) RouterAbort()                     {}
