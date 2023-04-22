@@ -1,6 +1,7 @@
 package znet
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
@@ -17,13 +18,11 @@ import (
 func RouterRecovery(request ziface.IRequest) {
 	defer func() {
 		if err := recover(); err != nil {
-			funcname, filename, lineNo := getInfo(3)
-			panicInfo := fmt.Sprintf("MsgId:%d  funcname:%s filename:%s LineNo:%d", request.GetMsgID(), funcname, filename, lineNo)
-
+			panicInfo := getInfo(3)
 			//记录错误
-			zlog.Ins().ErrorF("Handler panic: info:%s: err:%v  ", panicInfo, err)
+			zlog.Ins().ErrorF("MsgId:%d Handler panic: info:%s err:%v", request.GetMsgID(), panicInfo, err)
 
-			//fmt.Printf("Handler panic: info: %s  err: %v ", panicInfo, err)
+			//fmt.Printf("MsgId:%d Handler panic: info:%s err:%v", request.GetMsgID(), panicInfo, err)
 
 			//应该回传一个错误的
 			//request.GetConnection().SendMsg()
@@ -41,15 +40,20 @@ func RouterTime(request ziface.IRequest) {
 	fmt.Println(duration.String())
 }
 
-func getInfo(ship int) (funcname, filename string, lineNo int) {
-	pc, file, lineNo, ok := runtime.Caller(ship)
-	if !ok {
-		zlog.Ins().ErrorF("runtime.caller() err")
-		return
+func getInfo(ship int) (infoStr string) {
+
+	panicInfo := new(bytes.Buffer)
+	//也可以不指定终点层数即i := ship;; i++ 通过if！ok 结束循环，但是会一直追到最底层报错信息
+	for i := ship; i <= 5; i++ {
+		pc, file, lineNo, ok := runtime.Caller(i)
+		if !ok {
+			break
+		}
+		funcname := runtime.FuncForPC(pc).Name()
+		filename := path.Base(file)
+		funcname = strings.Split(funcname, ".")[1]
+		fmt.Fprintf(panicInfo, "funcname:%s filename:%s LineNo:%d\n", funcname, filename, lineNo)
 	}
-	funcname = runtime.FuncForPC(pc).Name()
-	filename = path.Base(file)
-	funcname = strings.Split(funcname, ".")[1]
-	return funcname, filename, lineNo
+	return panicInfo.String()
 
 }

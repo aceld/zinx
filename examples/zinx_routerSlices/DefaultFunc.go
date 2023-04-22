@@ -12,7 +12,8 @@ func DefaultTest1(request ziface.IRequest) {
 }
 func DefaultTest2(request ziface.IRequest) {
 	time.Sleep(1)
-	panic("test")
+	arr := make([]int, 1)
+	fmt.Println(arr[1])
 }
 
 func main() {
