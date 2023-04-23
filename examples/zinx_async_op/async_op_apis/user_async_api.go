@@ -1,7 +1,6 @@
 package async_op_apis
 
 import (
-	"fmt"
 	"github.com/aceld/zinx/examples/zinx_async_op/db_model"
 	"github.com/aceld/zinx/zasync_op"
 	"github.com/aceld/zinx/ziface"
@@ -22,10 +21,12 @@ func AsyncUserSaveData(request ziface.IRequest) *zasync_op.AsyncOpResult {
 			asyncResult.SetReturnedObj(user)
 
 			// 测试主动异常
-			a := 0
-			b := 1
-			c := b / a
-			fmt.Println(c)
+			/*
+				a := 0
+				b := 1
+				c := b / a
+				fmt.Println(c)
+			*/
 		},
 	)
 
