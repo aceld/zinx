@@ -19,6 +19,14 @@ func AsyncUserSaveData(request ziface.IRequest) *zasync_op.AsyncOpResult {
 
 			// 设置异步返回结果
 			asyncResult.SetReturnedObj(user)
+
+			// 测试主动异常
+			/*
+				a := 0
+				b := 1
+				c := b / a
+				fmt.Println(c)
+			*/
 		},
 	)
 

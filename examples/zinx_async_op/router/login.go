@@ -54,6 +54,14 @@ func (hr *LoginRouter) Handle(request ziface.IRequest) {
 			return
 		}
 		zlog.Debug("OnComplete OUT===>333")
+
+		// 测试主动异常
+		/*
+			a := 0
+			b := 1
+			c := b / a
+			fmt.Println(c)
+		*/
 	})
 
 	// 测试：

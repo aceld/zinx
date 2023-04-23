@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync/atomic"
 	"time"
 
 	"github.com/aceld/zinx/ziface"
@@ -56,6 +57,8 @@ type Server struct {
 	upgrader *websocket.Upgrader
 	// websocket 连接认证
 	websocketAuth func(r *http.Request) error
+	// connection id
+	cID uint64
 }
 
 // NewServer 创建一个服务器句柄
@@ -106,11 +109,11 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 	logo.PrintLogo()
 
 	s := &Server{
-
 		Name:             config.Name,
 		IPVersion:        "tcp4",
 		IP:               config.Host,
 		Port:             config.TCPPort,
+		WsPort:           config.WsPort,
 		msgHandler:       newMsgHandle(),
 		RouterSlicesMode: config.RouterSlicesMode,
 		ConnMgr:          newConnManager(),
@@ -212,7 +215,6 @@ func NewUserConfDefaultRouterSlicesServer(config *zconf.Config, opts ...Option) 
 
 // ============== 实现 ziface.IServer 里的全部接口方法 ========
 func (s *Server) StartConn(conn ziface.IConnection) {
-
 	// HeartBeat 心跳检测
 	if s.hc != nil {
 		//从Server端克隆一个心跳检测器
@@ -258,7 +260,6 @@ func (s *Server) ListenTcpConn() {
 		}
 	}
 
-	var cID uint64
 	//3 启动server网络连接业务
 	go func() {
 		for {
@@ -283,10 +284,12 @@ func (s *Server) ListenTcpConn() {
 
 			AcceptDelay.Reset()
 			//3.4 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
-			dealConn := newServerConn(s, conn, cID)
+
+			newCid := atomic.AddUint64(&s.cID, 1)
+			dealConn := newServerConn(s, conn, newCid)
 
 			go s.StartConn(dealConn)
-			cID++
+
 		}
 	}()
 	select {
@@ -299,7 +302,6 @@ func (s *Server) ListenTcpConn() {
 }
 
 func (s *Server) ListenWebsocketConn() {
-	var cID uint64
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		//1. 设置服务器最大连接控制,如果超过最大连接，则等待
@@ -332,10 +334,10 @@ func (s *Server) ListenWebsocketConn() {
 			return
 		}
 		// 5. 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
-		wsConn := newWebsocketConn(s, conn, cID)
-
+		newCid := atomic.AddUint64(&s.cID, 1)
+		wsConn := newWebsocketConn(s, conn, newCid)
 		go s.StartConn(wsConn)
-		cID++
+
 	})
 
 	err := http.ListenAndServe(fmt.Sprintf("%s:%d", s.IP, s.WsPort), nil)

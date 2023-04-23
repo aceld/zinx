@@ -23,6 +23,12 @@ func (aw *AsyncWorker) process(asyncOp func()) {
 	}
 
 	aw.taskQ <- func() {
+		defer func() {
+			if err := recover(); err != nil {
+				zlog.Ins().ErrorF("async process panic: %v", err)
+			}
+		}()
+
 		// 执行异步操作
 		asyncOp()
 

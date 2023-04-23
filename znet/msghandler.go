@@ -104,6 +104,18 @@ func (mh *MsgHandle) StatisticsMetrics(request ziface.IRequest, workerId int, ms
 	zmetrics.Metrics().ObserveRouterScheduleDuration(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerId), strconv.Itoa(int(msgId)), time.Since(timeNow))
 }
 
+// doFuncHandler 执行函数式请求
+func (mh *MsgHandle) doFuncHandler(request ziface.IFuncRequest, workerId int) {
+	defer func() {
+		if err := recover(); err != nil {
+			zlog.Ins().ErrorF("doFuncRequest panic: %v", err)
+		}
+	}()
+
+	// 执行函数式请求
+	request.CallFunc()
+}
+
 // DoMsgHandler 立即以非阻塞方式处理消息
 func (mh *MsgHandle) doMsgHandler(request ziface.IRequest, workerID int) {
 	defer func() {
@@ -204,7 +216,7 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 
 			case ziface.IFuncRequest: // 内部函数调用request
 
-				req.CallFunc()
+				mh.doFuncHandler(req, workerID)
 
 			case ziface.IRequest: // 客户端消息request
 
