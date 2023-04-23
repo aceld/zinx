@@ -187,11 +187,11 @@ func NewUserConfDefaultRouterSlicesServer(config *zconf.Config, opts ...Option) 
 	logo.PrintLogo()
 
 	s := &Server{
-
 		Name:             config.Name,
 		IPVersion:        "tcp4",
 		IP:               config.Host,
 		Port:             config.TCPPort,
+		WsPort:           config.WsPort,
 		msgHandler:       newMsgHandle(),
 		RouterSlicesMode: config.RouterSlicesMode,
 		ConnMgr:          newConnManager(),
