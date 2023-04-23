@@ -18,7 +18,7 @@ func Auth1(request ziface.IRequest) {
 func Auth2(request ziface.IRequest) {
 	//验证业务 默认固定不放行
 	//RouterAbort 终结执行函数，再这个处理器结束后不会在执行后面的处理器
-	request.RouterAbort()
+	request.Abort()
 	fmt.Println("我是验证处理器2，我一定不通过")
 	fmt.Println("业务到此终止不会执行后面的")
 }

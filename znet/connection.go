@@ -354,7 +354,7 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 	return nil
 }
 
-// SendBuffMsg  发生BuffMsg
+// SendBuffMsg  发送BuffMsg
 func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 	c.msgLock.RLock()
 	defer c.msgLock.RUnlock()

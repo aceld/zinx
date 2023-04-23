@@ -135,6 +135,84 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 	return s
 }
 
+// NewDefaultRouterSlicesServer 创建一个默认自带一个Recover处理器的服务器句柄
+func NewDefaultRouterSlicesServer(opts ...Option) ziface.IServer {
+	logo.PrintLogo()
+	zconf.GlobalObject.RouterSlicesMode = true
+	s := &Server{
+		Name:             zconf.GlobalObject.Name,
+		IPVersion:        "tcp",
+		IP:               zconf.GlobalObject.Host,
+		Port:             zconf.GlobalObject.TCPPort,
+		WsPort:           zconf.GlobalObject.WsPort,
+		msgHandler:       newMsgHandle(),
+		RouterSlicesMode: zconf.GlobalObject.RouterSlicesMode,
+		ConnMgr:          newConnManager(),
+		exitChan:         nil,
+		//默认使用zinx的TLV封包方式
+		packet:  zpack.Factory().NewPack(ziface.ZinxDataPack),
+		decoder: zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
+		upgrader: &websocket.Upgrader{
+			ReadBufferSize: int(zconf.GlobalObject.IOReadBuffSize),
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		},
+	}
+
+	for _, opt := range opts {
+		opt(s)
+	}
+	s.Use(RouterRecovery)
+	//提示当前配置信息
+	zconf.GlobalObject.Show()
+
+	return s
+}
+
+// NewUserRouterSlicesServer 创建一个用户配置的自带一个Recover处理器的服务器句柄，如果用户不希望Use这个方法，那么应该使用NewUserConfServer
+func NewUserConfDefaultRouterSlicesServer(config *zconf.Config, opts ...Option) ziface.IServer {
+
+	if !config.RouterSlicesMode {
+		panic("RouterSlicesMode is false")
+	}
+
+	//刷新用户配置到全局配置变量
+	zconf.UserConfToGlobal(config)
+
+	//提示当前配置信息
+	zconf.GlobalObject.Show()
+
+	//打印logo
+	logo.PrintLogo()
+
+	s := &Server{
+		Name:             config.Name,
+		IPVersion:        "tcp4",
+		IP:               config.Host,
+		Port:             config.TCPPort,
+		WsPort:           config.WsPort,
+		msgHandler:       newMsgHandle(),
+		RouterSlicesMode: config.RouterSlicesMode,
+		ConnMgr:          newConnManager(),
+		exitChan:         nil,
+		packet:           zpack.Factory().NewPack(ziface.ZinxDataPack),
+		decoder:          zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
+		upgrader: &websocket.Upgrader{
+			ReadBufferSize: int(zconf.GlobalObject.IOReadBuffSize),
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		},
+	}
+	//更替打包方式
+	for _, opt := range opts {
+		opt(s)
+	}
+	s.Use(RouterRecovery)
+	return s
+}
+
 // ============== 实现 ziface.IServer 里的全部接口方法 ========
 func (s *Server) StartConn(conn ziface.IConnection) {
 	// HeartBeat 心跳检测
