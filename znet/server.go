@@ -58,7 +58,7 @@ type Server struct {
 	// websocket 连接认证
 	websocketAuth func(r *http.Request) error
 	// connection id
-	cID atomic.Uint64
+	cID uint64
 }
 
 // NewServer 创建一个服务器句柄
@@ -206,8 +206,9 @@ func (s *Server) ListenTcpConn() {
 
 			AcceptDelay.Reset()
 			//3.4 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
-			s.cID.Add(1)
-			dealConn := newServerConn(s, conn, s.cID.Load())
+
+			newCid := atomic.AddUint64(&s.cID, 1)
+			dealConn := newServerConn(s, conn, newCid)
 
 			go s.StartConn(dealConn)
 
@@ -255,8 +256,8 @@ func (s *Server) ListenWebsocketConn() {
 			return
 		}
 		// 5. 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
-		s.cID.Add(1)
-		wsConn := newWebsocketConn(s, conn, s.cID.Load())
+		newCid := atomic.AddUint64(&s.cID, 1)
+		wsConn := newWebsocketConn(s, conn, newCid)
 		go s.StartConn(wsConn)
 
 	})
