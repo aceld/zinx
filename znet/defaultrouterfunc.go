@@ -11,6 +11,13 @@ import (
 	"time"
 )
 
+const (
+	//开始追踪堆栈信息的层数
+	StackBegin = 3
+	//追踪到最后的层数
+	StackEnd = 5
+)
+
 //用来存放一些RouterSlicesMode下的路由可用的默认中间件
 
 // RouterRecovery 如果使用NewDefaultRouterSlicesServer方法初始化的获得的server将自带这个函数
@@ -18,7 +25,7 @@ import (
 func RouterRecovery(request ziface.IRequest) {
 	defer func() {
 		if err := recover(); err != nil {
-			panicInfo := getInfo(3)
+			panicInfo := getInfo(StackBegin)
 			//记录错误
 			zlog.Ins().ErrorF("MsgId:%d Handler panic: info:%s err:%v", request.GetMsgID(), panicInfo, err)
 
@@ -44,7 +51,7 @@ func getInfo(ship int) (infoStr string) {
 
 	panicInfo := new(bytes.Buffer)
 	//也可以不指定终点层数即i := ship;; i++ 通过if！ok 结束循环，但是会一直追到最底层报错信息
-	for i := ship; i <= 5; i++ {
+	for i := ship; i <= StackEnd; i++ {
 		pc, file, lineNo, ok := runtime.Caller(i)
 		if !ok {
 			break
