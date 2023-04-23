@@ -4,6 +4,7 @@ import (
 	"github.com/aceld/zinx/zconf"
 	"github.com/prometheus/client_golang/prometheus"
 	"sync"
+	"time"
 )
 
 var _metrics *zinxMetrics
@@ -16,11 +17,8 @@ type zinxMetrics struct {
 	taskTotal *prometheus.GaugeVec //[address, name, workerID]:TaskTotal
 	// 路由Router调度的Handler次数
 	routerScheduleTotal *prometheus.GaugeVec //[address, name, workerID, MsgID]:RouterScheduleTotal
-
-	// TODO 路由Router调度的Handler耗时
-	// TODO 拦截器处理数据的次数
-	// TODO 拦截器处理数据的耗时
-	// TODO Handler调度错误
+	// 路由Router调度的Handler耗时
+	routerScheduleDuration *prometheus.HistogramVec //[address, name, workerID, MsgID]:RouterScheduleDuration
 }
 
 // Metrics 获取单例
@@ -29,6 +27,10 @@ func Metrics() *zinxMetrics {
 		_metrics = new(zinxMetrics)
 	})
 	return _metrics
+}
+
+func (m *zinxMetrics) IsEnable() bool {
+	return zconf.GlobalObject.PrometheusMetricsEnable
 }
 
 // Zinx的链接数量累加
@@ -55,5 +57,17 @@ func (m *zinxMetrics) IncTask(address, name, workerID string) {
 func (m *zinxMetrics) IncRouterSchedule(address, name, workerID, msgID string) {
 	if zconf.GlobalObject.PrometheusMetricsEnable {
 		m.routerScheduleTotal.WithLabelValues(address, name, workerID, msgID).Inc()
+	}
+}
+
+func (m *zinxMetrics) ObserveRouterScheduleDuration(address, name, workerID, msgID string, duration time.Duration) {
+	if zconf.GlobalObject.PrometheusMetricsEnable {
+		m.routerScheduleDuration.With(
+			prometheus.Labels{
+				LABEL_ADDRESS:   address,
+				LABEL_NAME:      name,
+				LABEL_WORKER_ID: workerID,
+				LABEL_MSG_ID:    msgID,
+			}).Observe(duration.Seconds() * 1000)
 	}
 }
