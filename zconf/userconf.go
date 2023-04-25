@@ -2,7 +2,10 @@ package zconf
 
 import "github.com/aceld/zinx/zlog"
 
-// 注意如果使用UserConf应该调用方法同步至 GlobalConfObject 因为其他参数是调用的此结构体参数
+// UserConfToGlobal, Note that if UserConf is used,
+// the method should be called to synchronize with GlobalConfObject
+// because other parameters are called from this structure parameter.
+// (注意如果使用UserConf应该调用方法同步至 GlobalConfObject 因为其他参数是调用的此结构体参数)
 func UserConfToGlobal(config *Config) {
 
 	// Server
@@ -40,13 +43,15 @@ func UserConfToGlobal(config *Config) {
 	}
 
 	// logger
-	//默认就是False config没有初始化即使用默认配置
+	// By default, it is False. If the config is not initialized, the default configuration will be used.
+	// (默认是False, config没有初始化即使用默认配置)
 	GlobalObject.LogIsolationLevel = config.LogIsolationLevel
 	if GlobalObject.LogIsolationLevel > zlog.LogDebug {
 		zlog.SetLogLevel(GlobalObject.LogIsolationLevel)
 	}
 
-	//不同于上方必填项 日志目前如果没配置应该使用默认配置
+	// Different from the required fields mentioned above, the logging module should use the default configuration if it is not configured.
+	// (不同于上方必填项 日志目前如果没配置应该使用默认配置)
 	if config.LogDir != "" {
 		GlobalObject.LogDir = config.LogDir
 	}

@@ -1,12 +1,7 @@
-// Package zutils 提供zinx相关工具类函数
-// 包括:
-//
-//	全局配置
-//	配置文件加载
-//
-// 当前文件描述:
 // @Title  globalobj.go
 // @Description  相关配置文件定义及加载方式
+// defines a configuration structure named "Config" along with its methods.
+// The package is named "zconf", and the file is named "globalobj.go".
 // @Author  Aceld - Thu Mar 11 10:32:29 CST 2019
 package zconf
 
@@ -29,63 +24,87 @@ const (
 )
 
 /*
-存储一切有关Zinx框架的全局参数，供其他模块使用
-一些参数也可以通过 用户根据 zinx.json来配置
+   Store all global parameters related to the Zinx framework for use by other modules.
+   Some parameters can also be configured by the user based on the zinx.json file.
+	(存储一切有关Zinx框架的全局参数，供其他模块使用
+	一些参数也可以通过 用户根据 zinx.json来配置)
 */
 type Config struct {
 	/*
 		Server
 	*/
-	Host    string //当前服务器主机IP
-	TCPPort int    //当前服务器主机监听端口号
-	WsPort  int    // 当前服务器主机websocket监听端口
-	Name    string //当前服务器名称
+	Host    string //The IP address of the current server. (当前服务器主机IP)
+	TCPPort int    //The port number on which the server listens for TCP connections.(当前服务器主机监听端口号)
+	WsPort  int    //The port number on which the server listens for WebSocket connections.(当前服务器主机websocket监听端口)
+	Name    string //The name of the current server.(当前服务器名称)
 
 	/*
 		Zinx
 	*/
-	Version          string //当前Zinx版本号
-	MaxPacketSize    uint32 //读写数据包的最大值
-	MaxConn          int    //当前服务器主机允许的最大链接个数
-	WorkerPoolSize   uint32 //业务工作Worker池的数量
-	MaxWorkerTaskLen uint32 //业务工作Worker对应负责的任务队列最大任务存储数量
-	MaxMsgChanLen    uint32 //SendBuffMsg发送消息的缓冲最大长度
-	IOReadBuffSize   uint32 //每次IO最大的读取长度
-	Mode             string // tcp. tcp监听 websocket . websocket 监听 为空时同时开启
-	RouterSlicesMode bool   //路由模式 false为旧版本路由，true为启用新版本的路由 默认使用旧版本
+	Version          string //The version of the Zinx framework.(当前Zinx版本号)
+	MaxPacketSize    uint32 //The maximum size of the packets that can be sent or received.(读写数据包的最大值)
+	MaxConn          int    //The maximum number of connections that the server can handle.(当前服务器主机允许的最大链接个数)
+	WorkerPoolSize   uint32 //The number of worker pools in the business logic.(业务工作Worker池的数量)
+	MaxWorkerTaskLen uint32 //The maximum number of tasks that a worker pool can handle.(业务工作Worker对应负责的任务队列最大任务存储数量)
+	MaxMsgChanLen    uint32 //The maximum length of the send buffer message queue.(SendBuffMsg发送消息的缓冲最大长度)
+	IOReadBuffSize   uint32 //The maximum size of the read buffer for each IO operation.(每次IO最大的读取长度)
+
+	//The server mode, which can be "tcp" or "websocket". If it is empty, both modes are enabled.
+	//"tcp":tcp监听, "websocket":websocket 监听 为空时同时开启
+	Mode string
+
+	// A boolean value that indicates whether the new or old version of the router is used. The default value is false.
+	//路由模式 false为旧版本路由，true为启用新版本的路由 默认使用旧版本
+	RouterSlicesMode bool
 
 	/*
 		logger
 	*/
-	LogDir            string //日志所在文件夹 默认"./log"
-	LogFile           string //日志文件名称   默认""  --如果没有设置日志文件，打印信息将打印至stderr
-	LogIsolationLevel int    //日志隔离级别  -- 0：全开 1：关debug 2：关debug/info 3：关debug/info/warn ...
+	LogDir string //The directory where log files are stored. The default value is "./log".(日志所在文件夹 默认"./log")
+
+	// The name of the log file. If it is empty, the log information will be printed to stderr.
+	// (日志文件名称   默认""  --如果没有设置日志文件，打印信息将打印至stderr)
+	LogFile string
+
+	// The level of log isolation. The values can be 0 (all open), 1 (debug off), 2 (debug/info off), 3 (debug/info/warn off), and so on.
+	//日志隔离级别  -- 0：全开 1：关debug 2：关debug/info 3：关debug/info/warn ...
+	LogIsolationLevel int
 
 	/*
 		Keepalive
 	*/
-	HeartbeatMax int //最长心跳检测间隔时间(单位：秒),超过改时间间隔，则认为超时，从配置文件读取
+	// The maximum interval for heartbeat detection in seconds.
+	// 最长心跳检测间隔时间(单位：秒),超过改时间间隔，则认为超时，从配置文件读取
+	HeartbeatMax int
 
 	/*
 		TLS
 	*/
-	CertFile       string // 证书文件名称 默认""
-	PrivateKeyFile string // 私钥文件名称 默认"" --如果没有设置证书和私钥文件，则不启用TLS加密
+	CertFile       string // The name of the certificate file. If it is empty, TLS encryption is not enabled.(证书文件名称 默认"")
+	PrivateKeyFile string // The name of the private key file. If it is empty, TLS encryption is not enabled.(私钥文件名称 默认"" --如果没有设置证书和私钥文件，则不启用TLS加密)
 
 	/*
 	   Prometheus Metrics
 	*/
-	PrometheusMetricsEnable bool   // 是否开启Prometheus Metrics 指标统计, 默认为false关闭
-	PrometheusServer        bool   // 是否需要zinx单独启动一个Prometheus Metrics 服务, 默认为false关闭
-	PrometheusListen        string // Prometheus Metrics 服务IP和端口, 默认为 0.0.0.0:20004
+	// A boolean value that indicates whether Prometheus Metrics is enabled. The default value is false.
+	// (是否开启Prometheus Metrics 指标统计, 默认为false关闭)
+	PrometheusMetricsEnable bool
+
+	// A boolean value that indicates whether a separate Prometheus Metrics server is required. The default value is false.
+	// (是否需要zinx单独启动一个Prometheus Metrics 服务, 默认为false关闭)
+	PrometheusServer bool
+
+	// The IP address and port number of the Prometheus Metrics server. The default value is "0.0.0.0:20004".
+	// (Prometheus Metrics 服务IP和端口, 默认为 0.0.0.0:20004)
+	PrometheusListen string
 }
 
 /*
-定义一个全局的对象
+	Define a global object.(定义一个全局的对象)
 */
 var GlobalObject *Config
 
-// PathExists 判断一个文件是否存在
+// PathExists Check if a file exists.(判断一个文件是否存在)
 func PathExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -98,11 +117,17 @@ func PathExists(path string) (bool, error) {
 }
 
 // Reload 读取用户的配置文件
+// This method is used to reload the configuration file.
+// It reads the configuration file specified in the command-line arguments,
+// and updates the fields of the "Config" structure accordingly.
+// If the configuration file does not exist, it prints an error message to the log and returns.
 func (g *Config) Reload() {
 	confFilePath := args.Args.ConfigFile
 	if confFileExists, _ := PathExists(confFilePath); confFileExists != true {
 
-		// 配置文件不存在也需要用默认参数初始化日志模块配置
+		// The configuration file may not exist,
+		// in which case the default parameters should be used to initialize the logging module configuration.
+		// (配置文件不存在也需要用默认参数初始化日志模块配置)
 		g.InitLogConfig()
 
 		zlog.Ins().ErrorF("Config File %s is not exist!!", confFilePath)
@@ -113,20 +138,17 @@ func (g *Config) Reload() {
 	if err != nil {
 		panic(err)
 	}
-	//将json数据解析到struct中
+
 	err = json.Unmarshal(data, g)
 	if err != nil {
 		panic(err)
 	}
 
-	//Logger 初始化配置
 	g.InitLogConfig()
-
 }
 
-// 提示详细
+// Show Zinx Config Info
 func (g *Config) Show() {
-	//提示当前配置信息
 	objVal := reflect.ValueOf(g).Elem()
 	objType := reflect.TypeOf(*g)
 
@@ -154,7 +176,7 @@ func (g *Config) InitLogConfig() {
 }
 
 /*
-提供init方法，默认加载
+	init, set default value
 */
 func init() {
 	pwd, err := os.Getwd()
@@ -162,18 +184,18 @@ func init() {
 		pwd = "."
 	}
 
-	// 初始化配置模块flag
-	args.InitConfigFlag(pwd+"/conf/zinx.json", "配置文件，如果没有设置，则默认为<exeDir>/conf/zinx.json")
-	// 初始化日志模块flag TODO
+	args.InitConfigFlag(pwd+"/conf/zinx.json", "The configuration file defaults to <exeDir>/conf/zinx.json if it is not set.")
 
-	// 解析
-	testing.Init() //防止 go test 出现"flag provided but not defined: -test.paniconexit0"等错误
+	// Note: Prevent errors like "flag provided but not defined: -test.paniconexit0" from occurring in go test.
+	// (防止 go test 出现"flag provided but not defined: -test.paniconexit0"等错误)
+	testing.Init()
 	uflag.Parse()
 
-	// 解析之后的操作
+	// after parsing
 	args.FlagHandle()
 
-	//初始化GlobalObject变量，设置一些默认值
+	// Initialize the GlobalObject variable and set some default values.
+	// (初始化GlobalObject变量，设置一些默认值)
 	GlobalObject = &Config{
 		Name:                    "ZinxServerApp",
 		Version:                 "V1.0",
@@ -186,9 +208,9 @@ func init() {
 		MaxWorkerTaskLen:        1024,
 		MaxMsgChanLen:           1024,
 		LogDir:                  pwd + "/log",
-		LogFile:                 "", //默认日志文件为空，打印到stderr
+		LogFile:                 "", //if set "", print to Stderr(默认日志文件为空，打印到stderr)
 		LogIsolationLevel:       0,
-		HeartbeatMax:            10, //默认心跳检测最长间隔为10秒
+		HeartbeatMax:            10, //The default maximum interval for heartbeat detection is 10 seconds. (默认心跳检测最长间隔为10秒)
 		IOReadBuffSize:          1024,
 		CertFile:                "",
 		PrivateKeyFile:          "",
@@ -198,6 +220,8 @@ func init() {
 		PrometheusListen:        "0.0.0.0:20004",
 		RouterSlicesMode:        false,
 	}
-	//NOTE: 从配置文件中加载一些用户配置的参数
+
+	// Note: Load some user-configured parameters from the configuration file.
+	// (从配置文件中加载一些用户配置的参数)
 	GlobalObject.Reload()
 }

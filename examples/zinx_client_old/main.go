@@ -31,7 +31,7 @@ func main() {
 		}
 
 		headData := make([]byte, dp.GetHeadLen())
-		_, err = io.ReadFull(conn, headData) //ReadFull 会把msg填充满为止
+		_, err = io.ReadFull(conn, headData)
 		if err != nil {
 			fmt.Println("read head error")
 			break
