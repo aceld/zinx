@@ -21,7 +21,6 @@ func (this *TLVBusinessRouter) Handle(request ziface.IRequest) {
 		return
 	}
 
-	//得到解码后数据
 	tlvData := resp.(zdecoder.TLVDecoder)
 	zlog.Ins().DebugF("do msgid=0x00000001 data business %+v\n", tlvData)
 }

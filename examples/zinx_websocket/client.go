@@ -49,20 +49,19 @@ func wait() {
 }
 
 func main() {
-	//创建一个Client句柄，使用Zinx的API
-
+	// Create a Client.
 	client := znet.NewWsClient("127.0.0.1", 9000)
 
-	//添加首次建立链接时的业务
+	// Add business logic for when the connection is first established.(添加首次建立链接时的业务)
 	client.SetOnConnStart(DoClientConnectedBegin)
-	//注册收到服务器消息业务路由
+	// Register business routing for receiving messages from the server.(注册收到服务器消息业务路由)
 	client.AddRouter(2, &c_router.PingRouter{})
 	client.AddRouter(3, &c_router.HelloRouter{})
-	//启动客户端client
+	// Start the client.
 	client.Start()
 	select {
 	case err := <-client.GetErrChan():
-		// 处理客户端返回的错误
+		// Handle the errors returned by the client.(处理客户端返回的错误)
 		zlog.Ins().ErrorF("client err:%v", err)
 	}
 
@@ -71,7 +70,7 @@ func main() {
 	signal.Notify(c, os.Interrupt, os.Kill)
 	sig := <-c
 	fmt.Println("===exit===", sig)
-	// 清理客户端
+	// Clean up the client.(清理客户端)
 	client.Stop()
 	time.Sleep(time.Second * 2)
 }

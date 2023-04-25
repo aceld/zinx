@@ -14,7 +14,6 @@ type TestRouter struct {
 
 // PreHandle -
 func (t *TestRouter) PreHandle(req ziface.IRequest) {
-	//使用场景模拟  完整路由计时
 	start := time.Now()
 
 	fmt.Println("--> Call PreHandle")
@@ -22,7 +21,7 @@ func (t *TestRouter) PreHandle(req ziface.IRequest) {
 		fmt.Println(err)
 	}
 	elapsed := time.Since(start)
-	fmt.Println("该路由组执行完成耗时：", elapsed)
+	fmt.Println("elapsed：", elapsed)
 }
 
 // Handle -

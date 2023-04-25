@@ -25,7 +25,6 @@ type PingRouter struct {
 func (this *PingRouter) Handle(request ziface.IRequest) {
 
 	zlog.Debug("Call PingRouter Handle")
-	//先读取客户端的数据，再回写ping...ping...ping
 	zlog.Debug("recv from client : msgId=", request.GetMsgID(), ", data=", string(request.GetData()))
 
 	err := request.GetConnection().SendBuffMsg(2, []byte("Pong with TLS"))
@@ -34,24 +33,28 @@ func (this *PingRouter) Handle(request ziface.IRequest) {
 	}
 }
 
-// genExampleCrtAndKeyFile 仅测试时生成证书和密钥文件！！实际使用请自定义该函数或者用openssl自行生成
-// openssl生成证书和私钥方法参考 https://blog.csdn.net/qq_44637753/article/details/124152315
+// genExampleCrtAndKeyFile
+// // Generate certificate and key files for testing purposes only! Please customize this function or use openssl to generate them for actual use.
+// (仅测试时生成证书和密钥文件！！实际使用请自定义该函数或者用openssl自行生成)
+// Reference for generating certificate and private key using openssl : https://blog.csdn.net/qq_44637753/article/details/124152315
+// (openssl生成证书和私钥方法参考 https://blog.csdn.net/qq_44637753/article/details/124152315)
 func genExampleCrtAndKeyFile(crtFileName, KeyFileName string) (err error) {
-	// 如果已存在则重新生成
+	// If already exists, regenerate.(如果已存在则重新生成)
 	_ = os.Remove(crtFileName)
 	_ = os.Remove(KeyFileName)
 
 	defer func() {
 		if err != nil {
-			// 如果期间发生错误，删除以及生成的证书和私钥文件
+			// If there is an error during the process, delete the generated certificate and private key files.
+			// (如果期间发生错误，删除以及生成的证书和私钥文件)
 			_ = os.Remove(crtFileName)
 			_ = os.Remove(KeyFileName)
 		}
 	}()
-	// 生成私钥
+	// Generating a private key.(生成私钥)
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
-	// 创建证书模板
+	// Creating a certificate template.(创建证书模板)
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
@@ -65,20 +68,20 @@ func genExampleCrtAndKeyFile(crtFileName, KeyFileName string) (err error) {
 		},
 
 		NotBefore: time.Now(),
-		NotAfter:  time.Now().Add(24 * time.Hour * 365 * 10), // 证书十年之内有效
+		NotAfter:  time.Now().Add(24 * time.Hour * 365 * 10), // The certificate is valid for ten years. (证书十年之内有效)
 
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
 	}
 
-	// 创建证书
+	// Generating a certificate.(生成证书)
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
 	if err != nil {
 		return err
 	}
 
-	// 序列化证书文件
+	// serialize the certificate file.(序列化证书文件)
 	pemCert := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 	if pemCert == nil {
 		return err
@@ -87,7 +90,7 @@ func genExampleCrtAndKeyFile(crtFileName, KeyFileName string) (err error) {
 		return err
 	}
 
-	// 生成私钥文件
+	// Generating private key file(生成私钥文件)
 	privateBytes, err := x509.MarshalPKCS8PrivateKey(privateKey)
 	if err != nil {
 		return err
@@ -104,6 +107,8 @@ func genExampleCrtAndKeyFile(crtFileName, KeyFileName string) (err error) {
 }
 
 func main() {
+	// Generate certificate and key files for testing purposes only!! Please customize this function or use openssl to generate them yourself in actual use.
+	// Refer to this link for how to generate certificates and private keys using openssl: https://blog.csdn.net/qq_44637753/article/details/124152315
 	// 生成测试用的证书和密钥文件！！仅测试时生成证书和密钥文件！！实际使用请自定义该函数或者用openssl自行生成
 	// openssl生成证书和私钥方法参考 https://blog.csdn.net/qq_44637753/article/details/124152315
 	certFile := "cert.pem"
@@ -114,20 +119,20 @@ func main() {
 	}
 	defer func() {
 		// example中的证书和私钥文件仅作测试时使用 测试结束后删除
+		// The certificate and private key files in the example are only used for testing purposes. Please delete them after the test is completed.
 		_ = os.Remove(certFile)
 		_ = os.Remove(keyFile)
 	}()
 
-	//创建一个server，当指定了CertFile和PrivateKeyFile时服务器开启TLS模式
+	// Create a server, and if CertFile and PrivateKeyFile are specified, the server will start in TLS mode.
+	// 创建一个server，当指定了CertFile和PrivateKeyFile时服务器开启TLS模式
 	s := znet.NewUserConfServer(&zconf.Config{
 		TCPPort:        8899,
 		CertFile:       certFile, // 证书文件
 		PrivateKeyFile: keyFile,  // 密钥文件
 	})
 
-	//配置路由
 	s.AddRouter(1, &PingRouter{})
 
-	//开启服务
 	s.Serve()
 }

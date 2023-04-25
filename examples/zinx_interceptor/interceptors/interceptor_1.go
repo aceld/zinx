@@ -5,14 +5,15 @@ import (
 	"github.com/aceld/zinx/zlog"
 )
 
-// 自定义拦截器1
+// Custom Interceptor 1
 
 type MyInterceptor struct{}
 
 func (m *MyInterceptor) Intercept(chain ziface.IChain) ziface.IcResp {
 	request := chain.Request()
-	// 这一层是自定义拦截器处理逻辑，这里只是简单打印输入
+	// This layer is the custom interceptor processing logic, which simply prints the input.
+	// (这一层是自定义拦截器处理逻辑，这里只是简单打印输入)
 	iRequest := request.(ziface.IRequest)
-	zlog.Ins().InfoF("自定义拦截器, 收到消息：%s", iRequest.GetData())
+	zlog.Ins().InfoF("MyInterceptor, Recv：%s", iRequest.GetData())
 	return chain.Proceed(chain.Request())
 }

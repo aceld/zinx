@@ -13,6 +13,7 @@ import (
 	"github.com/aceld/zinx/znet"
 )
 
+// DoConnectionBegin Executed when creating a connection.
 // 创建连接的时候执行
 func DoConnectionBegin(conn ziface.IConnection) {
 	zlog.Ins().InfoF("DoConnecionBegin is Called ...")
@@ -28,8 +29,10 @@ func DoConnectionBegin(conn ziface.IConnection) {
 }
 
 // 连接断开的时候执行
+// DoConnectionLost Executed when the connection is closed.
 func DoConnectionLost(conn ziface.IConnection) {
 	//在连接销毁之前，查询conn的Name，Home属性
+	// Query the Name and Home properties of conn before destroying the connection.
 	if name, err := conn.GetProperty("Name"); err == nil {
 		zlog.Ins().InfoF("Conn Property Name = %v", name)
 	}
@@ -42,17 +45,17 @@ func DoConnectionLost(conn ziface.IConnection) {
 }
 
 func main() {
-	//创建一个server句柄
+	// Create a server
 	s := znet.NewServer()
 
-	//注册链接hook回调函数
+	// Register a hook callback function for the connection
 	s.SetOnConnStart(DoConnectionBegin)
 	s.SetOnConnStop(DoConnectionLost)
 
-	//配置路由
+	// Configure routing.
 	s.AddRouter(100, &s_router.PingRouter{})
 	s.AddRouter(1, &s_router.HelloZinxRouter{})
 
-	//开启服务
+	// Start Service
 	s.Serve()
 }

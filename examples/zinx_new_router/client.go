@@ -13,7 +13,7 @@ import (
 func main() {
 
 	fmt.Println("Client Test ... start")
-	//3秒之后发起测试请求，给服务端开启服务的机会
+	// Send a test request after 3 seconds to give the server a chance to start the service. (3秒之后发起测试请求，给服务端开启服务的机会)
 	time.Sleep(3 * time.Second)
 
 	conn, err := net.Dial("tcp", "127.0.0.1:7777")
@@ -31,7 +31,7 @@ func main() {
 	}
 
 	for {
-		//先读出流中的head部分
+		// Read the "head" section from the stream first. (先读出流中的head部分)
 		headData := make([]byte, dp.GetHeadLen())
 		_, err = io.ReadFull(conn, headData)
 		if err != nil {
@@ -39,7 +39,7 @@ func main() {
 			return
 		}
 
-		// 将headData字节流 拆包到msg中
+		// Unpack the headData byte stream into msg. (将headData字节流 拆包到msg中)
 		msgHead, err := dp.Unpack(headData)
 		if err != nil {
 			fmt.Println("client unpack head err: ", err)
@@ -47,11 +47,11 @@ func main() {
 		}
 
 		if msgHead.GetDataLen() > 0 {
-			//msg 是有data数据的，需要再次读取data数据
+			// Read the "data" section from the stream. (再读出流中的data部分)
 			msg := msgHead.(*zpack.Message)
 			msg.Data = make([]byte, msg.GetDataLen())
 
-			//根据dataLen从io中读取字节流
+			// read from io.Reader into msg.Data (根据dataLen从io中读取字节流)
 			_, err := io.ReadFull(conn, msg.Data)
 			if err != nil {
 				fmt.Println("client unpack data err")

@@ -19,17 +19,18 @@ type LoginRouter struct {
 func (hr *LoginRouter) Handle(request ziface.IRequest) {
 	zlog.Debug("AsyncOpRouter Handle IN ===>111")
 
-	asyncResult := async_op_apis.AsyncUserSaveData(request) // 测试DB异步操作
+	asyncResult := async_op_apis.AsyncUserSaveData(request) // // Test DB asynchronous operation(测试DB异步操作)
 
-	// 测试：执行了一大推业务逻辑... 才设置回调函数
+	// 测试：执行了一大推业务逻辑,才设置回调函数
+	// Test: A lot of business logic is executed before setting the callback function
 	time.Sleep(1 * time.Second)
 
-	// 异步回调
+	// Asynchronous callback (异步回调)
 	asyncResult.OnComplete(func() {
 		zlog.Debug("OnComplete IN===>333")
 		returnedObj := asyncResult.GetReturnedObj()
 		if returnedObj == nil {
-			zlog.Debug("注册回调函数时，还未设置异步结果")
+			zlog.Debug("The asynchronous result has not been set when registering the callback function.")
 			return
 		}
 
@@ -47,7 +48,7 @@ func (hr *LoginRouter) Handle(request ziface.IRequest) {
 			return
 		}
 
-		// 回包客户端
+		// Send response to the client
 		conn := request.GetConnection()
 		if sendErr := conn.SendMsg(1, marshalData); sendErr != nil {
 			zlog.Error("LoginRouter sendErr", sendErr.Error())
@@ -55,7 +56,7 @@ func (hr *LoginRouter) Handle(request ziface.IRequest) {
 		}
 		zlog.Debug("OnComplete OUT===>333")
 
-		// 测试主动异常
+		// Test actively throwing an exception (测试主动异常)
 		/*
 			a := 0
 			b := 1
@@ -64,8 +65,9 @@ func (hr *LoginRouter) Handle(request ziface.IRequest) {
 		*/
 	})
 
-	// 测试：
-	// 原来所属的线程阻塞3秒，回调函数因为是回到原来所属的线程里执行的，所以一定在3秒后执行
+	// Test: The original thread is blocked for 3 seconds, and the callback function is executed in the original thread,
+	//       so it will be executed after 3 seconds
+	// 测试：原来所属的线程阻塞3秒，回调函数因为是回到原来所属的线程里执行的，所以一定在3秒后执行.
 	time.Sleep(time.Second * 3)
 
 	zlog.Debug("AsyncOpRouter Handle OUT ===>111")

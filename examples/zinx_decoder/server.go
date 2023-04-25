@@ -17,18 +17,26 @@ func DoConnectionLost(conn ziface.IConnection) {
 }
 
 func main() {
-	//创建一个server句柄
 	s := znet.NewServer()
 
-	//注册链接hook回调函数
 	s.SetOnConnStart(DoConnectionBegin)
 	s.SetOnConnStop(DoConnectionLost)
 
-	s.AddRouter(0x00000001, &router.TLVBusinessRouter{}) //TLV协议对应业务功能
-	//处理HTLVCRC协议数据
+	// TLV protocol corresponding to business function
+	// TLV协议对应业务功能
+	s.AddRouter(0x00000001, &router.TLVBusinessRouter{})
+
+	// Process HTLVCRC protocol data
+	// 处理HTLVCRC协议数据
 	s.SetDecoder(zdecoder.NewHTLVCRCDecoder())
-	s.AddRouter(0x10, &router.HtlvCrcBusinessRouter{}) //TLV协议对应业务功能，因为client.go中模拟数据funcode字段为0x10
-	s.AddRouter(0x13, &router.HtlvCrcBusinessRouter{}) //TLV协议对应业务功能，因为client.go中模拟数据funcode字段为0x13
+
+	// TLV protocol corresponding to business function, because the funcode field in client.go is 0x10
+	// TLV协议对应业务功能，因为client.go中模拟数据funcode字段为0x10
+	s.AddRouter(0x10, &router.HtlvCrcBusinessRouter{})
+
+	// TLV protocol corresponding to business function, because the funcode field in client.go is 0x13
+	// TLV协议对应业务功能，因为client.go中模拟数据funcode字段为0x13
+	s.AddRouter(0x13, &router.HtlvCrcBusinessRouter{})
 
 	//开启服务
 	s.Serve()

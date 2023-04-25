@@ -32,7 +32,7 @@ func wait() {
 }
 
 func main() {
-	// 创建一个TLS客户端
+	// Create a TLS client.
 	c := znet.NewTLSClient("127.0.0.1", 8899)
 
 	c.SetOnConnStart(func(connection ziface.IConnection) {
@@ -51,7 +51,6 @@ func main() {
 
 	})
 
-	// 添加路由
 	c.AddRouter(2, &PongRouter{})
 
 	c.Start()
