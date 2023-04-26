@@ -104,7 +104,7 @@ func (hcd *HtlvCrcDecoder) decode(data []byte) *HtlvCrcDecoder {
 
 	// CRC
 	if !CheckCRC(data[:datasize-2], htlvData.Crc) {
-		zlog.Ins().DebugF("crc校验失败 %s %s\n", hex.EncodeToString(data), hex.EncodeToString(htlvData.Crc))
+		zlog.Ins().DebugF("crc check error %s %s\n", hex.EncodeToString(data), hex.EncodeToString(htlvData.Crc))
 		return nil
 	}
 
@@ -118,7 +118,7 @@ func (hcd *HtlvCrcDecoder) Intercept(chain ziface.IChain) ziface.IcResp {
 	//1. Get the IMessage of zinx
 	iMessage := chain.GetIMessage()
 	if iMessage == nil {
-		//进入责任链下一层
+		// Go to the next layer in the chain of responsibility
 		return chain.ProceedWithIMessage(iMessage, nil)
 	}
 
@@ -126,7 +126,8 @@ func (hcd *HtlvCrcDecoder) Intercept(chain ziface.IChain) ziface.IcResp {
 	data := iMessage.GetData()
 	//zlog.Ins().DebugF("HTLVCRC-RawData size:%d data:%s\n", len(data), hex.EncodeToString(data))
 
-	//3. 读取的数据不超过包头，直接进入下一层
+	//3. If the amount of data read is less than the length of the header, proceed to the next layer directly.
+	// (读取的数据不超过包头，直接进入下一层)
 	if len(data) < HEADER_SIZE {
 		return chain.ProceedWithIMessage(iMessage, nil)
 	}
@@ -134,9 +135,11 @@ func (hcd *HtlvCrcDecoder) Intercept(chain ziface.IChain) ziface.IcResp {
 	//4. HTLV+CRC Decode
 	htlvData := hcd.decode(data)
 
-	//5. 将解码后的数据重新设置到IMessage中, Zinx的Router需要MsgID来寻址
+	//5. Set the decoded data back to the IMessage, the Zinx Router needs MsgID for addressing
+	// (将解码后的数据重新设置到IMessage中, Zinx的Router需要MsgID来寻址)
 	iMessage.SetMsgID(uint32(htlvData.Funcode))
 
-	//6. 将解码后的数据进入下一层
+	//6. Pass the decoded data to the next layer.
+	// (将解码后的数据进入下一层)
 	return chain.ProceedWithIMessage(iMessage, *htlvData)
 }
