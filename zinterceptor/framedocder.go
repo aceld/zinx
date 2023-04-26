@@ -556,7 +556,8 @@ func (d *FrameDecoder) Decode(buff []byte) [][]byte {
 			//_len := len(this.in)
 			//fmt.Println(_len)
 			if _size > 0 {
-				d.in = d.in[_size:]
+				skipLen := _size + d.LengthField.InitialBytesToStrip
+				d.in = d.in[skipLen:]
 			}
 		} else {
 			return resp
