@@ -1,16 +1,5 @@
-// Package ziface 主要提供zinx全部抽象层接口定义.
-// 包括:
-//
-//			IServer 服务mod接口
-//			IRouter 路由mod接口
-//			IConnection 连接mod层接口
-//	     IMessage 消息mod接口
-//			IDataPack 消息拆解接口
-//	     IMsgHandler 消息处理及协程池接口
-//
-// 当前文件描述:
 // @Title  iconnection.go
-// @Description  全部连接相关方法声明
+// @Description  Declaration of all connection-related methods
 // @Author  Aceld - Thu Mar 11 10:32:29 CST 2019
 package ziface
 
@@ -21,32 +10,45 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// 定义连接接口
+// // Define connection interface
 type IConnection interface {
-	Start()                   // 启动连接，让当前连接开始工作
-	Stop()                    // 停止连接，结束当前连接状态
-	Context() context.Context // 返回ctx，用于用户自定义的go程获取连接退出状态
+	// Start the connection, make the current connection start working
+	// (启动连接，让当前连接开始工作)
+	Start()
+	// Stop the connection and end the current connection state
+	// (停止连接，结束当前连接状态)
+	Stop()
 
-	GetName() string            // 获取当前连接名称
-	GetConnection() net.Conn    // 从当前连接获取原始的socket
-	GetWsConn() *websocket.Conn // 从当前连接中获取原始的websocket连接
+	// Returns ctx, used by user-defined go routines to obtain connection exit status
+	// (返回ctx，用于用户自定义的go程获取连接退出状态)
+	Context() context.Context
+
+	GetName() string            // Get the current connection name (获取当前连接名称)
+	GetConnection() net.Conn    // Get the original socket from the current connection(从当前连接获取原始的socket)
+	GetWsConn() *websocket.Conn // Get the original websocket connection from the current connection(从当前连接中获取原始的websocket连接)
 	// Deprecated: use GetConnection instead
-	GetTCPConnection() net.Conn // 从当前连接获取原始的socket TCPConn
-	GetConnID() uint64          // 获取当前连接ID
-	GetMsgHandler() IMsgHandle  // 获取消息处理器
-	RemoteAddr() net.Addr       // 获取链接远程地址信息
-	LocalAddr() net.Addr        // 获取链接本地地址信息
-	LocalAddrString() string    // 获取链接本地地址信息
-	RemoteAddrString() string   // 获取链接远程地址信息
+	GetTCPConnection() net.Conn // Get the original socket TCPConn from the current connection (从当前连接获取原始的socket TCPConn)
+	GetConnID() uint64          // Get the current connection ID (获取当前连接ID)
+	GetMsgHandler() IMsgHandle  // Get the message handler (获取消息处理器)
+	RemoteAddr() net.Addr       // Get the remote address information of the connection (获取链接远程地址信息)
+	LocalAddr() net.Addr        // Get the local address information of the connection (获取链接本地地址信息)
+	LocalAddrString() string    // Get the local address information of the connection as a string
+	RemoteAddrString() string   // Get the remote address information of the connection as a string
 
-	Send(data []byte) error
-	SendToQueue(data []byte) error
-	SendMsg(msgID uint32, data []byte) error     // 直接将Message数据发送数据给远程的TCP客户端(无缓冲)
-	SendBuffMsg(msgID uint32, data []byte) error // 直接将Message数据发送给远程的TCP客户端(有缓冲)
+	Send(data []byte) error        // Send data directly to the remote TCP client (without buffering)
+	SendToQueue(data []byte) error // Send data to the message queue to be sent to the remote TCP client later
 
-	SetProperty(key string, value interface{})   // 设置链接属性
-	GetProperty(key string) (interface{}, error) // 获取链接属性
-	RemoveProperty(key string)                   // 移除链接属性
-	IsAlive() bool                               // 判断当前连接是否存活
-	SetHeartBeat(checker IHeartbeatChecker)      // 设置心跳检测器
+	// Send Message data directly to the remote TCP client (without buffering)
+	// 直接将Message数据发送数据给远程的TCP客户端(无缓冲)
+	SendMsg(msgID uint32, data []byte) error
+
+	// Send Message data to the message queue to be sent to the remote TCP client later (with buffering)
+	// 直接将Message数据发送给远程的TCP客户端(有缓冲)
+	SendBuffMsg(msgID uint32, data []byte) error
+
+	SetProperty(key string, value interface{})   // Set connection property
+	GetProperty(key string) (interface{}, error) // Get connection property
+	RemoveProperty(key string)                   // Remove connection property
+	IsAlive() bool                               // Check if the current connection is alive(判断当前连接是否存活)
+	SetHeartBeat(checker IHeartbeatChecker)      // Set the heartbeat detector (设置心跳检测器)
 }
