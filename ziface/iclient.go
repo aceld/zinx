@@ -6,6 +6,7 @@ package ziface
 import "time"
 
 type IClient interface {
+	Restart()
 	Start()
 	Stop()
 	AddRouter(msgID uint32, router IRouter)
