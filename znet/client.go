@@ -14,53 +14,56 @@ import (
 )
 
 type Client struct {
-	//客户端的名称
+	// Client Name 客户端的名称
 	Name string
-	//目标链接服务器的IP
+	// IP of the target server to connect 目标链接服务器的IP
 	Ip string
-	//目标链接服务器的端口
+	// Port of the target server to connect 目标链接服务器的端口
 	Port int
-	// 客户端版本 tcp,websocket
+	// Client version tcp,websocket,客户端版本 tcp,websocket
 	version string
-	//客户端链接
+	// Connection instance 链接实例
 	conn ziface.IConnection
-	//该client的连接创建时Hook函数
+	// Hook function called on connection start 该client的连接创建时Hook函数
 	onConnStart func(conn ziface.IConnection)
-	//该client的连接断开时的Hook函数
+	// Hook function called on connection stop 该client的连接断开时的Hook函数
 	onConnStop func(conn ziface.IConnection)
-	//数据报文封包方式
+	// Data packet packer 数据报文封包方式
 	packet ziface.IDataPack
-	//异步捕获链接关闭状态
+	// Asynchronous channel for capturing connection close status 异步捕获链接关闭状态
 	exitChan chan struct{}
-	//消息管理模块
+	// Message management module 消息管理模块
 	msgHandler ziface.IMsgHandle
+	// Disassembly and assembly decoder for resolving sticky and broken packages
 	//断粘包解码器
 	decoder ziface.IDecoder
-	//心跳检测器
+	// Heartbeat checker 心跳检测器
 	hc ziface.IHeartbeatChecker
-	// 使用TLS
+	// Use TLS 使用TLS
 	useTLS bool
-	// websocket
+	// For websocket connections
 	dialer *websocket.Dialer
-	// errChan
+	// Error channel
 	ErrChan chan error
 }
 
 func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 
 	c := &Client{
-		Name: "ZinxClientTcp", //默认名称，可以使用WithNameClient的Option修改
+		// Default name, can be modified using the WithNameClient Option
+		// (默认名称，可以使用WithNameClient的Option修改)
+		Name: "ZinxClientTcp",
 		Ip:   ip,
 		Port: port,
 
 		msgHandler: newMsgHandle(),
-		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack), //默认使用zinx的TLV封包方式
-		decoder:    zdecoder.NewTLVDecoder(),                     //默认使用zinx的TLV解码器
+		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack), // Default to using Zinx's TLV packet format(默认使用zinx的TLV封包方式)
+		decoder:    zdecoder.NewTLVDecoder(),                     // Default to using Zinx's TLV decoder(默认使用zinx的TLV解码器)
 		version:    "tcp",
 		ErrChan:    make(chan error),
 	}
 
-	//应用Option设置
+	// Apply Option settings (应用Option设置)
 	for _, opt := range opts {
 		opt(c)
 	}
@@ -71,19 +74,21 @@ func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 func NewWsClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 
 	c := &Client{
-		Name: "ZinxClientWs", //默认名称，可以使用WithNameClient的Option修改
+		// Default name, can be modified using the WithNameClient Option
+		// (默认名称，可以使用WithNameClient的Option修改)
+		Name: "ZinxClientWs",
 		Ip:   ip,
 		Port: port,
 
 		msgHandler: newMsgHandle(),
-		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack), //默认使用zinx的TLV封包方式
-		decoder:    zdecoder.NewTLVDecoder(),                     //默认使用zinx的TLV解码器
+		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack), // Default to using Zinx's TLV packet format(默认使用zinx的TLV封包方式)
+		decoder:    zdecoder.NewTLVDecoder(),                     // Default to using Zinx's TLV decoder(默认使用zinx的TLV解码器)
 		version:    "websocket",
 		dialer:     &websocket.Dialer{},
 		ErrChan:    make(chan error),
 	}
 
-	//应用Option设置
+	// Apply Option settings (应用Option设置)
 	for _, opt := range opts {
 		opt(c)
 	}
@@ -100,17 +105,18 @@ func NewTLSClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 	return c
 }
 
-// 启动客户端，发送请求且建立链接
+// Start starts the client, sends requests and establishes a connection.
+// (启动客户端，发送请求且建立链接)
 func (c *Client) Start() {
 
 	c.exitChan = make(chan struct{})
 
-	// 将解码器添加到拦截器
+	// Add the decoder to the interceptor list (将解码器添加到拦截器)
 	if c.decoder != nil {
 		c.msgHandler.AddInterceptor(c.decoder)
 	}
 
-	//客户端将协程池关闭
+	// Set worker pool size to 0 to turn off the worker pool in the client (客户端将协程池关闭)
 	zconf.GlobalObject.WorkerPoolSize = 0
 
 	go func() {
@@ -121,29 +127,31 @@ func (c *Client) Start() {
 			Zone: "", //for ipv6, ignore
 		}
 
-		//创建原始Socket，得到net.Conn
+		// Create a raw socket and get net.Conn (创建原始Socket，得到net.Conn)
 		switch c.version {
 		case "websocket":
 			wsAddr := fmt.Sprintf("ws://%s:%d", c.Ip, c.Port)
 
-			//创建原始Socket，得到net.Conn
+			// Create a raw socket and get net.Conn (创建原始Socket，得到net.Conn)
 			wsConn, _, err := c.dialer.Dial(wsAddr, nil)
 			if err != nil {
-				//创建链接失败
+				// Conection failed
 				zlog.Ins().ErrorF("WsClient connect to server failed, err:%v", err)
 				c.ErrChan <- err
 				return
 			}
-			//创建Connection对象
+			// Create Connection object
 			c.conn = newWsClientConn(c, wsConn)
 
 		default:
 			var conn net.Conn
 			var err error
 			if c.useTLS {
-				// TLS加密
+				// TLS encryption
 				config := &tls.Config{
-					InsecureSkipVerify: true, //这里是跳过证书验证，因为证书签发机构的CA证书是不被认证的
+					// Skip certificate verification here because the CA certificate of the certificate issuer is not authenticated
+					// (这里是跳过证书验证，因为证书签发机构的CA证书是不被认证的)
+					InsecureSkipVerify: true,
 				}
 
 				conn, err = tls.Dial("tcp", fmt.Sprintf("%v:%v", net.ParseIP(c.Ip), c.Port), config)
@@ -155,24 +163,25 @@ func (c *Client) Start() {
 			} else {
 				conn, err = net.DialTCP("tcp", nil, addr)
 				if err != nil {
-					//创建链接失败
+					// Conection failed
 					zlog.Ins().ErrorF("client connect to server failed, err:%v", err)
 					c.ErrChan <- err
 					return
 				}
 			}
-			//创建Connection对象
+			// Create Connection object
 			c.conn = newClientConn(c, conn)
 		}
 
 		zlog.Ins().InfoF("[START] Zinx Client LocalAddr: %s, RemoteAddr: %s\n", c.conn.LocalAddr(), c.conn.RemoteAddr())
-		//HeartBeat心跳检测
+		// HeartBeat detection
 		if c.hc != nil {
-			//创建链接成功，绑定链接与心跳检测器
+			// Bind connection and heartbeat detector after connection is successfully established
+			// (创建链接成功，绑定链接与心跳检测器)
 			c.hc.BindConn(c.conn)
 		}
 
-		//启动链接
+		// Start connection
 		go c.conn.Start()
 
 		select {
@@ -182,32 +191,40 @@ func (c *Client) Start() {
 	}()
 }
 
-// StartHeartBeat 启动心跳检测
-// interval 每次发送心跳的时间间隔
+// StartHeartBeat starts heartbeat detection with a fixed time interval.
+// interval: the time interval between each heartbeat message.
+// (启动心跳检测, interval: 每次发送心跳的时间间隔)
 func (c *Client) StartHeartBeat(interval time.Duration) {
 	checker := NewHeartbeatChecker(interval)
 
-	//添加心跳检测的路由
+	// Add the heartbeat checker's route to the client's message handler.
+	// (添加心跳检测的路由)
 	c.AddRouter(checker.MsgID(), checker.Router())
 
-	//client绑定心跳检测器
+	// Bind the heartbeat checker to the client's connection.
+	// (client绑定心跳检测器)
 	c.hc = checker
 }
 
+// StartHeartBeatWithOption starts heartbeat detection with a custom callback function.
+// interval: the time interval between each heartbeat message.
+// option: a HeartBeatOption struct that contains the custom callback function and message
 // 启动心跳检测(自定义回调)
 func (c *Client) StartHeartBeatWithOption(interval time.Duration, option *ziface.HeartBeatOption) {
+	// Create a new heartbeat checker with the given interval.
 	checker := NewHeartbeatChecker(interval)
 
+	// Set the heartbeat checker's callback function and message ID based on the HeartBeatOption struct.
 	if option != nil {
 		checker.SetHeartbeatMsgFunc(option.MakeMsg)
 		checker.SetOnRemoteNotAlive(option.OnRemoteNotAlive)
 		checker.BindRouter(option.HeadBeatMsgID, option.Router)
 	}
 
-	//添加心跳检测的路由
+	// Add the heartbeat checker's route to the client's message handler.
 	c.AddRouter(checker.MsgID(), checker.Router())
 
-	//client绑定心跳检测器
+	// Bind the heartbeat checker to the client's connection.
 	c.hc = checker
 }
 
@@ -227,32 +244,26 @@ func (c *Client) Conn() ziface.IConnection {
 	return c.conn
 }
 
-// 设置该Client的连接创建时Hook函数
 func (c *Client) SetOnConnStart(hookFunc func(ziface.IConnection)) {
 	c.onConnStart = hookFunc
 }
 
-// 设置该Client的连接断开时的Hook函数
 func (c *Client) SetOnConnStop(hookFunc func(ziface.IConnection)) {
 	c.onConnStop = hookFunc
 }
 
-// GetOnConnStart 得到该Server的连接创建时Hook函数
 func (c *Client) GetOnConnStart() func(ziface.IConnection) {
 	return c.onConnStart
 }
 
-// 得到该Server的连接断开时的Hook函数
 func (c *Client) GetOnConnStop() func(ziface.IConnection) {
 	return c.onConnStop
 }
 
-// 获取Client绑定的数据协议封包方式
 func (c *Client) GetPacket() ziface.IDataPack {
 	return c.packet
 }
 
-// 设置Client绑定的数据协议封包方式
 func (c *Client) SetPacket(packet ziface.IDataPack) {
 	c.packet = packet
 }
