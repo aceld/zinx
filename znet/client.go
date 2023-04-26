@@ -3,14 +3,15 @@ package znet
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
+	"time"
+
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/zpack"
 	"github.com/gorilla/websocket"
-	"net"
-	"time"
 )
 
 type Client struct {
@@ -105,16 +106,11 @@ func NewTLSClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 	return c
 }
 
+
 // Start starts the client, sends requests and establishes a connection.
-// (启动客户端，发送请求且建立链接)
-func (c *Client) Start() {
-
+// (重新启动客户端，发送请求且建立连接)
+func (c *Client) Restart() {
 	c.exitChan = make(chan struct{})
-
-	// Add the decoder to the interceptor list (将解码器添加到拦截器)
-	if c.decoder != nil {
-		c.msgHandler.AddInterceptor(c.decoder)
-	}
 
 	// Set worker pool size to 0 to turn off the worker pool in the client (客户端将协程池关闭)
 	zconf.GlobalObject.WorkerPoolSize = 0
@@ -189,6 +185,18 @@ func (c *Client) Start() {
 			zlog.Ins().InfoF("client exit.")
 		}
 	}()
+}
+
+// Start starts the client, sends requests and establishes a connection.
+// (启动客户端，发送请求且建立链接)
+func (c *Client) Start() {
+
+	// Add the decoder to the interceptor list (将解码器添加到拦截器)
+	if c.decoder != nil {
+		c.msgHandler.AddInterceptor(c.decoder)
+	}
+
+	c.Restart()
 }
 
 // StartHeartBeat starts heartbeat detection with a fixed time interval.
