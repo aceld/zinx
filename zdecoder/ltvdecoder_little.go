@@ -60,6 +60,8 @@ func (ltv *LTV_Little_Decoder) GetLengthField() *ziface.LengthField {
 		LengthFieldLength:   4,
 		LengthAdjustment:    4,
 		InitialBytesToStrip: 0,
+		//注意现在默认是大端，使用小端需要指定编码方式
+		Order: binary.LittleEndian,
 	}
 }
 
