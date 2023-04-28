@@ -13,7 +13,6 @@ func main() {
 		return
 	}
 
-	//发封包message消息
 	dp := zpack.NewDataPack()
 	msg, _ := dp.Pack(zpack.NewMsgPackage(1, []byte("ZinxPing")))
 	_, err = conn.Write(msg)

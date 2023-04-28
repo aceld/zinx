@@ -14,9 +14,6 @@ import (
 	"time"
 )
 
-/*
-	模拟客户端, 不使用client模块方式
-*/
 func main() {
 	conn, err := net.Dial("tcp", "127.0.0.1:8999")
 	if err != nil {
@@ -25,7 +22,6 @@ func main() {
 	}
 
 	for {
-		//发封包message消息
 		dp := zpack.NewDataPack()
 		msg, _ := dp.Pack(zpack.NewMsgPackage(100, []byte("ZinxPing")))
 		_, err := conn.Write(msg)
@@ -34,14 +30,13 @@ func main() {
 			return
 		}
 
-		//先读出流中的head部分
 		headData := make([]byte, dp.GetHeadLen())
-		_, err = io.ReadFull(conn, headData) //ReadFull 会把msg填充满为止
+		_, err = io.ReadFull(conn, headData)
 		if err != nil {
 			fmt.Println("read head error")
 			break
 		}
-		//将headData字节流 拆包到msg中
+
 		msgHead, err := dp.Unpack(headData)
 		if err != nil {
 			fmt.Println("server unpack err:", err)
@@ -49,11 +44,9 @@ func main() {
 		}
 
 		if msgHead.GetDataLen() > 0 {
-			//msg 是有data数据的，需要再次读取data数据
 			msg := msgHead.(*zpack.Message)
 			msg.Data = make([]byte, msg.GetDataLen())
 
-			//根据dataLen从io中读取字节流
 			_, err := io.ReadFull(conn, msg.Data)
 			if err != nil {
 				fmt.Println("server unpack data err:", err)

@@ -44,12 +44,9 @@ func (this *PositionServerRouter) Handle(request ziface.IRequest) {
 }
 
 func main() {
-	//创建一个server句柄
 	s := znet.NewServer()
 
-	//配置路由
 	s.AddRouter(0, &PositionServerRouter{})
 
-	//开启服务
 	s.Serve()
 }

@@ -7,11 +7,13 @@ import (
 	"time"
 )
 
+// User-defined heartbeat message processing method
 // 用户自定义的心跳检测消息处理方法
 func myClientHeartBeatMsg(conn ziface.IConnection) []byte {
 	return []byte("heartbeat, I am Client, I am alive")
 }
 
+// User-defined handling method for remote connection not alive.
 // 用户自定义的远程连接不存活时的处理方法
 func myClientOnRemoteNotAlive(conn ziface.IConnection) {
 	fmt.Println("myClientOnRemoteNotAlive is Called, connID=", conn.GetConnID(), "remoteAddr = ", conn.RemoteAddr())
@@ -25,17 +27,15 @@ type myClientHeartBeatRouter struct {
 }
 
 func (r *myClientHeartBeatRouter) Handle(request ziface.IRequest) {
-	// 业务处理
 	fmt.Println("in myClientHeartBeatRouter Handle, recv from client : msgId=", request.GetMsgID(), ", data=", string(request.GetData()))
 }
 
 func main() {
-	//创建一个Client句柄，使用Zinx的API
 	client := znet.NewClient("127.0.0.1", 8999)
 
 	myHeartBeatMsgID := 88888
 
-	//启动心跳检测
+	// Start heartbeating detection. (启动心跳检测)
 	client.StartHeartBeatWithOption(3*time.Second, &ziface.HeartBeatOption{
 		MakeMsg:          myClientHeartBeatMsg,
 		OnRemoteNotAlive: myClientOnRemoteNotAlive,
@@ -43,7 +43,6 @@ func main() {
 		HeadBeatMsgID:    uint32(myHeartBeatMsgID),
 	})
 
-	//启动客户端client
 	client.Start()
 
 	select {}

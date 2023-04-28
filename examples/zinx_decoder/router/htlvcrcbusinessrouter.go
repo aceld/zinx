@@ -23,7 +23,6 @@ func (this *HtlvCrcBusinessRouter) Handle(request ziface.IRequest) {
 		return
 	}
 
-	//得到解码后的数据
 	tlvData := resp.(zdecoder.HtlvCrcDecoder)
 
 	zlog.Ins().DebugF("do msgid=0x10 data business %+v\n", tlvData)

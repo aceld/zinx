@@ -14,7 +14,6 @@ type TestRouter struct {
 
 // PreHandle -
 func (t *TestRouter) PreHandle(req ziface.IRequest) {
-	//使用场景模拟  完整路由计时
 	start := time.Now()
 
 	fmt.Println("--> Call PreHandle")
@@ -22,24 +21,27 @@ func (t *TestRouter) PreHandle(req ziface.IRequest) {
 		fmt.Println(err)
 	}
 	elapsed := time.Since(start)
-	fmt.Println("该路由组执行完成耗时：", elapsed)
+	fmt.Println("cost time：", elapsed)
 }
 
 // Handle -
 func (t *TestRouter) Handle(req ziface.IRequest) {
 	fmt.Println("--> Call Handle")
 
-	//模拟场景- 出现意料之中的错误 如权限不对或者信息错误 则停止后续函数执行，但是次函数会执行完毕
+	// Simulated scenario - In the event of an expected error such as incorrect permissions or incorrect information,
+	// subsequent function execution will be stopped, but this function will be fully executed.
+	// 模拟场景- 出现意料之中的错误 如权限不对或者信息错误 则停止后续函数执行，但是次函数会执行完毕
 	if err := Err(); err != nil {
 		req.Abort()
-		fmt.Println("权限不足")
+		fmt.Println("Insufficient permission")
 	}
 
-	//模拟场景- 出现某种情况，重复上面的操作
+	// Simulation scenario - In case of a certain situation, repeat the above operation.
+	// 模拟场景- 出现某种情况，重复上面的操作
 	/*
 		if err := Err(); err != nil {
 			req.Goto(znet.PRE_HANDLE)
-			fmt.Println("重复")
+			fmt.Println("repeat")
 		}
 	*/
 
@@ -47,7 +49,7 @@ func (t *TestRouter) Handle(req ziface.IRequest) {
 		fmt.Println(err)
 	}
 
-	time.Sleep(1 * time.Millisecond) //模拟函数计时
+	time.Sleep(1 * time.Millisecond)
 }
 
 // PostHandle -
@@ -59,8 +61,7 @@ func (t *TestRouter) PostHandle(req ziface.IRequest) {
 }
 
 func Err() error {
-	//具体业务操作
-
+	//Specific Business Operation (具体业务操作)
 	return errors.New("Test")
 }
 

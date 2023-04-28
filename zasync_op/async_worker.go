@@ -1,7 +1,7 @@
 /*
-Package zasync_op
-@Author：14March
-@File：async_worker.go
+	Package zasync_op
+	@Author：14March
+	@File：async_worker.go
 */
 package zasync_op
 
@@ -13,12 +13,12 @@ type AsyncWorker struct {
 
 func (aw *AsyncWorker) process(asyncOp func()) {
 	if asyncOp == nil {
-		zlog.Error("异步操作为空")
+		zlog.Error("Async operation is empty.")
 		return
 	}
 
 	if aw.taskQ == nil {
-		zlog.Error("任务队列尚未初始化")
+		zlog.Error("Task queue has not been initialized.")
 		return
 	}
 
@@ -29,15 +29,14 @@ func (aw *AsyncWorker) process(asyncOp func()) {
 			}
 		}()
 
-		// 执行异步操作
+		// Execute async operation.(执行异步操作)
 		asyncOp()
-
 	}
 }
 
 func (aw *AsyncWorker) loopExecTask() {
 	if aw.taskQ == nil {
-		zlog.Error("任务队列尚未初始化")
+		zlog.Error("The task queue has not been initialized.")
 		return
 	}
 

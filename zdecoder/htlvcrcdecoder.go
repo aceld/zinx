@@ -1,3 +1,25 @@
+// HTLV+CRC, H header code, T function code, L data length, V data content
+//+------+-------+-------+--------+--------+
+//| H    | T     | L     | V      | CRC    |
+//| 1Byte| 1Byte | 1Byte | NBytes | 2Bytes |
+//+------+-------+-------+--------+--------+
+
+// HeaderCode FunctionCode DataLength Body                         CRC
+// A2         10           0E         0102030405060708091011121314 050B
+//
+//
+// Explanation:
+// 1. The data length len is 14 (0E), where len only refers to the length of the Body.
+//
+//
+// lengthFieldOffset = 2 (the index of len is 2, starting from 0) The offset of the length field
+// lengthFieldLength = 1 (len is 1 byte) The length of the length field in bytes
+// lengthAdjustment = 2 (len only represents the length of the Body, the program will only read len bytes and end, but there are still 2 bytes of CRC to read, so it's 2)
+// initialBytesToStrip = 0 (this 0 represents the complete protocol content. If you don't want A2, then it's 1) The number of bytes to strip from the decoding frame for the first time
+// maxFrameLength = 255 + 4 (starting code, function code, CRC) (len is 1 byte, so the maximum length is the maximum value of an unsigned byte plus 4 bytes)
+
+// [简体中文]
+//
 // HTLV+CRC，H头码，T功能码，L数据长度，V数据内容
 //+------+-------+---------+--------+--------+
 //| 头码  | 功能码 | 数据长度 | 数据内容 | CRC校验 |
@@ -30,12 +52,12 @@ import (
 const HEADER_SIZE = 5
 
 type HtlvCrcDecoder struct {
-	Head    byte   //头码
-	Funcode byte   //功能码
-	Length  byte   //数据长度
-	Body    []byte //数据内容
+	Head    byte   //HeaderCode(头码)
+	Funcode byte   //FunctionCode(功能码)
+	Length  byte   //DataLength(数据长度)
+	Body    []byte //BodyData(数据内容)
 	Crc     []byte //CRC校验
-	Data    []byte //原始数据内容
+	Data    []byte //// Original data content(原始数据内容)
 }
 
 func NewHTLVCRCDecoder() ziface.IDecoder {
@@ -73,16 +95,16 @@ func (hcd *HtlvCrcDecoder) decode(data []byte) *HtlvCrcDecoder {
 		Data: data,
 	}
 
-	//4. 解析头
+	// Parse the header
 	htlvData.Head = data[0]
 	htlvData.Funcode = data[1]
 	htlvData.Length = data[2]
 	htlvData.Body = data[3 : datasize-2]
 	htlvData.Crc = data[datasize-2 : datasize]
 
-	//5. CRC校验
+	// CRC
 	if !CheckCRC(data[:datasize-2], htlvData.Crc) {
-		zlog.Ins().DebugF("crc校验失败 %s %s\n", hex.EncodeToString(data), hex.EncodeToString(htlvData.Crc))
+		zlog.Ins().DebugF("crc check error %s %s\n", hex.EncodeToString(data), hex.EncodeToString(htlvData.Crc))
 		return nil
 	}
 
@@ -93,28 +115,31 @@ func (hcd *HtlvCrcDecoder) decode(data []byte) *HtlvCrcDecoder {
 }
 
 func (hcd *HtlvCrcDecoder) Intercept(chain ziface.IChain) ziface.IcResp {
-	//1. 获取zinx的IMessage
+	//1. Get the IMessage of zinx
 	iMessage := chain.GetIMessage()
 	if iMessage == nil {
-		//进入责任链下一层
+		// Go to the next layer in the chain of responsibility
 		return chain.ProceedWithIMessage(iMessage, nil)
 	}
 
-	//2. 获取数据
+	//2. Get Data
 	data := iMessage.GetData()
 	//zlog.Ins().DebugF("HTLVCRC-RawData size:%d data:%s\n", len(data), hex.EncodeToString(data))
 
-	//3. 读取的数据不超过包头，直接进入下一层
+	//3. If the amount of data read is less than the length of the header, proceed to the next layer directly.
+	// (读取的数据不超过包头，直接进入下一层)
 	if len(data) < HEADER_SIZE {
 		return chain.ProceedWithIMessage(iMessage, nil)
 	}
 
-	//4. HTLV+CRC 解码
+	//4. HTLV+CRC Decode
 	htlvData := hcd.decode(data)
 
-	//5. 将解码后的数据重新设置到IMessage中, Zinx的Router需要MsgID来寻址
+	//5. Set the decoded data back to the IMessage, the Zinx Router needs MsgID for addressing
+	// (将解码后的数据重新设置到IMessage中, Zinx的Router需要MsgID来寻址)
 	iMessage.SetMsgID(uint32(htlvData.Funcode))
 
-	//6. 将解码后的数据进入下一层
+	//6. Pass the decoded data to the next layer.
+	// (将解码后的数据进入下一层)
 	return chain.ProceedWithIMessage(iMessage, *htlvData)
 }

@@ -7,7 +7,6 @@ English | [简体中文](README-CN.md)
 [![zinx tutorial](https://img.shields.io/badge/ZinxTutorial-YuQue-red.svg)](https://www.yuque.com/aceld/npyr8s/bgftov) 
 [![Original Book of Zinx](https://img.shields.io/badge/OriginalBook-YuQue-black.svg)](https://www.yuque.com/aceld)
 
-
 Zinx is a lightweight concurrent server framework based on Golang.
 
 ##  Document 
@@ -15,9 +14,9 @@ Zinx is a lightweight concurrent server framework based on Golang.
 [《Zinx Documentation》](https://www.yuque.com/aceld/tsgooa/sbvzgczh3hqz8q3l)
 
 
-> **ps**:   
-> Zinx has been developed and used in many enterprises: Service of message transfer, Persistent Connection TCP/IP Server, The middleware of Web Service and so on. 
-> Zinx is positioned for code simplicity, Developers can use Zinx to redevelop a module suitable for their own enterprise scenarios.
+> **Note**: 
+> Zinx has been widely used in many enterprises for development purposes, including message forwarding for backend modules, long-linked game servers, and message handling plugins for web frameworks. 
+> Zinx is positioned as a framework with concise code that allows developers to quickly understand the internal details of the framework and easily customize it based on their own enterprise scenarios.
 
 ---
 ## Source of Zinx
@@ -49,15 +48,16 @@ http://zinx.me
 
 ## I. One word that has been said before
 
-Why are we doing Zinx? There are a lot of frameworks for servers in The Go Programing Language, but very few lightweight enterprise frameworks for games or other persistent connection TCP/IP Server domains.
+Why did we create Zinx? Although there are many Golang application frameworks for servers, there are few lightweight enterprise frameworks applied in the gaming or other long-linked fields.
 
-Zinx is designed so that developers can use the Zinx framework to understand the overall outline of writing a TCP server based on Golang, Let more Gopher can learn and understand this field in a simple way.
+The purpose of designing Zinx is to provide a complete outline of how to write a TCP server based on Golang, so that more Golang enthusiasts can learn and understand this field in a straightforward manner.
 
-The Zinx framework projects are done in parallel with the coding and learning tutorials, bringing all of the progressive and iterative thinking of development into the tutorials, rather than giving everyone a very complete framework to learn at once, leaving many people confused about how to learn.
+The development of the Zinx framework project is synchronized with the creation of learning tutorials, and all the incremental and iterative thinking involved in the development process is incorporated into the tutorials. This approach avoids overwhelming beginners with a complete framework that they may find difficult to grasp all at once.
 
-The tutorial will iterate from release to release, with minor additions to each release, giving a small, curvewise approach to the domain of the server framework.
+The tutorials will be iterated version by version, with each version adding small increments of functionality, allowing a beginner to gradually and comprehensively learn about the field of server frameworks.
 
-Of course, I hope that more people will join Zinx and give us valuable suggestions, so that Zinx can become a real solution server framework for enterprises! Thank you for your attention!
+Of course, we hope that more people will join Zinx and provide us with valuable feedback, enabling Zinx to become a truly enterprise-level server framework. Thank you for your attention!
+
 
 ### Reply from chatGPT(AI)
 ![what-is-zinx](https://user-images.githubusercontent.com/7778936/209745848-acfc14eb-74cd-4513-b386-8bc6e0bcc09f.png)
@@ -159,7 +159,6 @@ $ go run server.go
 └──────────────────────────────────────────────────────┘
 [Zinx] Version: V1.0, MaxConn: 12000, MaxPacketSize: 4096
 ===== Zinx Global Config =====
-TCPServer: <nil>
 Host: 0.0.0.0
 TCPPort: 8999
 Name: ZinxServerApp

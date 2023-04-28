@@ -15,7 +15,7 @@ type PingRouter struct {
 func (this *PingRouter) Handle(request ziface.IRequest) {
 
 	zlog.Ins().DebugF("Call PingRouter Handle")
-	//先读取客户端的数据，再回写ping...ping...ping
+	// Read the data from the client first, then send back "ping...ping...ping".
 	zlog.Ins().DebugF("recv from client : msgId=%d, data=%+v, len=%d", request.GetMsgID(), string(request.GetData()), len(request.GetData()))
 
 	err := request.GetConnection().SendMsg(2, []byte("pong-server"))
