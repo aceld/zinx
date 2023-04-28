@@ -5,18 +5,19 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"github.com/aceld/zinx/logo"
-	"github.com/aceld/zinx/zconf"
-	"github.com/aceld/zinx/zdecoder"
-	"github.com/aceld/zinx/zlog"
-	"github.com/aceld/zinx/zmetrics"
-	"github.com/gorilla/websocket"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"sync/atomic"
 	"time"
+
+	"github.com/aceld/zinx/logo"
+	"github.com/aceld/zinx/zconf"
+	"github.com/aceld/zinx/zdecoder"
+	"github.com/aceld/zinx/zlog"
+	"github.com/aceld/zinx/zmetrics"
+	"github.com/gorilla/websocket"
 
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zpack"
@@ -333,6 +334,7 @@ func (s *Server) ListenWebsocketConn() {
 			AcceptDelay.Delay()
 			return
 		}
+		AcceptDelay.Reset()
 		// 5. 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 		newCid := atomic.AddUint64(&s.cID, 1)
 		wsConn := newWebsocketConn(s, conn, newCid)
