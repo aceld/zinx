@@ -12,16 +12,16 @@ import (
 // run in terminal:
 // go test -v ./znet -run=TestDataPack
 
-//只是负责测试datapack拆包，封包功能
+// This function is responsible for testing the functionality of data packet splitting and packaging.
 func TestDataPack(t *testing.T) {
-	//创建socket TCP Server
+	// Create a TCP server socket.
 	listener, err := net.Listen("tcp", "127.0.0.1:7777")
 	if err != nil {
 		fmt.Println("server listen err:", err)
 		return
 	}
 
-	//创建服务器gotoutine，负责从客户端goroutine读取粘包的数据，然后进行解析
+	// Create a server goroutine, responsible for reading and parsing the data from the client goroutine that may contain sticky packets.
 	go func() {
 		for {
 			conn, err := listener.Accept()
@@ -29,18 +29,18 @@ func TestDataPack(t *testing.T) {
 				fmt.Println("server accept err:", err)
 			}
 
-			//处理客户端请求
+			// Handle client requests
 			go func(conn net.Conn) {
-				//创建封包拆包对象dp
+				// Create a packet splitting and packaging object dp.
 				dp := Factory().NewPack(ziface.ZinxDataPack)
 				for {
-					//1 先读出流中的head部分
+					// 1. Read the head part of the stream first.
 					headData := make([]byte, dp.GetHeadLen())
-					_, err := io.ReadFull(conn, headData) //ReadFull 会把msg填充满为止
+					_, err := io.ReadFull(conn, headData) // ReadFull will fill msg until it's full
 					if err != nil {
 						fmt.Println("read head error")
 					}
-					//将headData字节流 拆包到msg中
+					// Unpack the headData byte stream into msg.
 					msgHead, err := dp.Unpack(headData)
 					if err != nil {
 						fmt.Println("server unpack err:", err)
@@ -48,11 +48,11 @@ func TestDataPack(t *testing.T) {
 					}
 
 					if msgHead.GetDataLen() > 0 {
-						//msg 是有data数据的，需要再次读取data数据
+						// msg has data, read data again.
 						msg := msgHead.(*Message)
 						msg.Data = make([]byte, msg.GetDataLen())
 
-						//根据dataLen从io中读取字节流
+						// Read the byte stream from io based on dataLen.
 						_, err := io.ReadFull(conn, msg.Data)
 						if err != nil {
 							fmt.Println("server unpack data err:", err)
@@ -66,7 +66,7 @@ func TestDataPack(t *testing.T) {
 		}
 	}()
 
-	//客户端goroutine，负责模拟粘包的数据，然后进行发送
+	// Client goroutine, responsible for simulating data containing sticky packets and sending it to the server.
 	go func() {
 		conn, err := net.Dial("tcp", "127.0.0.1:7777")
 		if err != nil {
@@ -74,10 +74,10 @@ func TestDataPack(t *testing.T) {
 			return
 		}
 
-		//创建一个封包对象 dp
+		// Create a packet splitting and packaging object dp.
 		dp := Factory().NewPack(ziface.ZinxDataPack)
 
-		//封装一个msg1包
+		// Package msg1.
 		msg1 := &Message{
 			ID:      0,
 			DataLen: 5,
@@ -90,6 +90,7 @@ func TestDataPack(t *testing.T) {
 			return
 		}
 
+		// Package msg2.
 		msg2 := &Message{
 			ID:      1,
 			DataLen: 7,
@@ -101,14 +102,14 @@ func TestDataPack(t *testing.T) {
 			return
 		}
 
-		//将sendData1，和 sendData2 拼接一起，组成粘包
+		// Concatenate sendData1 and sendData2 to create a sticky packet.
 		sendData1 = append(sendData1, sendData2...)
 
-		//向服务器端写数据
+		// Write data to the server.
 		conn.Write(sendData1)
 	}()
 
-	//客户端阻塞
+	// Block the client.
 	select {
 	case <-time.After(time.Second):
 		return

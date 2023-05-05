@@ -11,37 +11,39 @@ import (
 	"github.com/aceld/zinx/zinterceptor"
 )
 
-// chainBuilder 责任链构造器
+// chainBuilder is a builder for creating a chain of interceptors.
+// (责任链构造器)
 type chainBuilder struct {
 	body       []ziface.IInterceptor
 	head, tail ziface.IInterceptor
 }
 
+// newChainBuilder creates a new instance of chainBuilder.
 func newChainBuilder() *chainBuilder {
 	return &chainBuilder{
 		body: make([]ziface.IInterceptor, 0),
 	}
 }
 
-// Head 将拦截器添加到责任链头部
+// Head adds an interceptor to the head of the chain.
 func (ic *chainBuilder) Head(interceptor ziface.IInterceptor) {
 	ic.head = interceptor
 }
 
-// Tail 将拦截器添加到责任链尾部
+// Tail adds an interceptor to the tail of the chain.
 func (ic *chainBuilder) Tail(interceptor ziface.IInterceptor) {
 	ic.tail = interceptor
 }
 
-// AddInterceptor 顺位添加一个拦截器到责任链中
+// AddInterceptor adds an interceptor to the body of the chain.
 func (ic *chainBuilder) AddInterceptor(interceptor ziface.IInterceptor) {
 	ic.body = append(ic.body, interceptor)
 }
 
-// Execute 依次执行当前责任链上所有拦截器
+// Execute executes all the interceptors in the current chain in order.
 func (ic *chainBuilder) Execute(req ziface.IcReq) ziface.IcResp {
 
-	//将全部拦截器放入Builder中
+	// Put all the interceptors into the builder
 	var interceptors []ziface.IInterceptor
 	if ic.head != nil {
 		interceptors = append(interceptors, ic.head)
@@ -53,9 +55,9 @@ func (ic *chainBuilder) Execute(req ziface.IcReq) ziface.IcResp {
 		interceptors = append(interceptors, ic.tail)
 	}
 
-	//创建一个拦截器责任链，执行每一个拦截器
+	// Create a new interceptor chain and execute each interceptor
 	chain := zinterceptor.NewChain(interceptors, 0, req)
 
-	//进入责任链执行
+	// Execute the chain
 	return chain.Proceed(req)
 }

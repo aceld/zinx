@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	PRE_HANDLE  ziface.HandleStep = iota //PreHandle 预处理
-	HANDLE                               //Handle 处理
-	POST_HANDLE                          //PostHandle 后处理
+	PRE_HANDLE  ziface.HandleStep = iota // PreHandle for pre-processing
+	HANDLE                               // Handle for processing
+	POST_HANDLE                          // PostHandle for post-processing
 
 	HANDLE_OVER
 )
@@ -17,15 +17,15 @@ const (
 // Request 请求
 type Request struct {
 	ziface.BaseRequest
-	conn     ziface.IConnection     //已经和客户端建立好的 链接
-	msg      ziface.IMessage        //客户端请求的数据
-	router   ziface.IRouter         //请求处理的函数
-	steps    ziface.HandleStep      //用来控制路由函数执行
-	stepLock *sync.RWMutex          //并发互斥
-	needNext bool                   //是否需要执行下一个路由函数
-	icResp   ziface.IcResp          //拦截器返回数据
-	handlers []ziface.RouterHandler //路由函数切片
-	index    int8                   //路由函数切片索引
+	conn     ziface.IConnection     // the connection which has been established with the client(已经和客户端建立好的链接)
+	msg      ziface.IMessage        // the request data sent by the client(客户端请求的数据)
+	router   ziface.IRouter         // the router that handles this request(请求处理的函数)
+	steps    ziface.HandleStep      // used to control the execution of router functions(用来控制路由函数执行)
+	stepLock *sync.RWMutex          // concurrency lock(并发互斥)
+	needNext bool                   // whether to execute the next router function(是否需要执行下一个路由函数)
+	icResp   ziface.IcResp          // response data returned by the interceptors (拦截器返回数据)
+	handlers []ziface.RouterHandler // router function slice(路由函数切片)
+	index    int8                   // router function slice index(路由函数切片索引)
 }
 
 func (r *Request) GetResponse() ziface.IcResp {
@@ -47,22 +47,18 @@ func NewRequest(conn ziface.IConnection, msg ziface.IMessage) ziface.IRequest {
 	return req
 }
 
-// GetMessage 获取消息实体
 func (r *Request) GetMessage() ziface.IMessage {
 	return r.msg
 }
 
-// GetConnection 获取请求连接信息
 func (r *Request) GetConnection() ziface.IConnection {
 	return r.conn
 }
 
-// GetData 获取请求消息的数据
 func (r *Request) GetData() []byte {
 	return r.msg.GetData()
 }
 
-// GetMsgID 获取请求的消息的ID
 func (r *Request) GetMsgID() uint32 {
 	return r.msg.GetMsgID()
 }
@@ -121,8 +117,7 @@ func (r *Request) Abort() {
 	}
 }
 
-// 新版本路由操作
-
+// New version
 func (r *Request) BindRouterSlices(handlers []ziface.RouterHandler) {
 	r.handlers = handlers
 	r.index = -1

@@ -42,7 +42,7 @@ func Server() {
 
 func Clinet() {
 	//conf.ConfigInit()
-	//1创建直接链接
+
 	for i := 0; i < 9000; i++ {
 		go func(i int) {
 			conn, err := net.Dial("tcp", "127.0.0.1:9991")
@@ -81,7 +81,7 @@ func ClientJoin() {
 					return
 				}
 				defer conn.Close()
-				//链接调用write方法写入数据
+
 				id := strconv.Itoa(i)
 				dp := zpack.NewDataPack()
 				msg, err := dp.Pack(zpack.NewMsgPackage(1, []byte(id)))
