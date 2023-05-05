@@ -2,14 +2,12 @@ package znet
 
 import "github.com/aceld/zinx/ziface"
 
-// RequestFunc 函数调用
 type RequestFunc struct {
 	ziface.BaseRequest
-	conn     ziface.IConnection //已经和客户端建立好的 链接
+	conn     ziface.IConnection
 	callFunc func()
 }
 
-// GetConnection 获取请求连接信息
 func (rf *RequestFunc) GetConnection() ziface.IConnection {
 	return rf.conn
 }

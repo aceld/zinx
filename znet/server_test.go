@@ -16,11 +16,12 @@ import (
 // go test -v ./znet -run=TestServer
 
 /*
-模拟客户端
+	client
 */
 func ClientTest(i uint32) {
 
 	fmt.Println("Client Test ... start")
+
 	//3秒之后发起测试请求，给服务端开启服务的机会
 	time.Sleep(3 * time.Second)
 
@@ -39,7 +40,6 @@ func ClientTest(i uint32) {
 			return
 		}
 
-		//先读出流中的head部分
 		headData := make([]byte, dp.GetHeadLen())
 		_, err = io.ReadFull(conn, headData)
 		if err != nil {
@@ -47,7 +47,6 @@ func ClientTest(i uint32) {
 			return
 		}
 
-		// 将headData字节流 拆包到msg中
 		msgHead, err := dp.Unpack(headData)
 		if err != nil {
 			fmt.Println("client unpack head err: ", err)
@@ -55,11 +54,9 @@ func ClientTest(i uint32) {
 		}
 
 		if msgHead.GetDataLen() > 0 {
-			//msg 是有data数据的，需要再次读取data数据
 			msg := msgHead.(*zpack.Message)
 			msg.Data = make([]byte, msg.GetDataLen())
 
-			//根据dataLen从io中读取字节流
 			_, err := io.ReadFull(conn, msg.Data)
 			if err != nil {
 				fmt.Println("client unpack data err")
@@ -74,10 +71,9 @@ func ClientTest(i uint32) {
 }
 
 /*
-	模拟服务器端
+	server
 */
 
-// ping test 自定义路由
 type PingRouter struct {
 	BaseRouter
 }
@@ -134,28 +130,22 @@ func DoConnectionBegin(conn ziface.IConnection) {
 	}
 }
 
-// 连接断开的时候执行
 func DoConnectionLost(conn ziface.IConnection) {
 	fmt.Println("DoConnectionLost is Called ... ")
 }
 
 func TestServer(t *testing.T) {
-	//创建一个server句柄
 	s := NewServer()
 
-	//注册链接hook回调函数
 	s.SetOnConnStart(DoConnectionBegin)
 	s.SetOnConnStop(DoConnectionLost)
 
-	// 多路由
 	s.AddRouter(1, &PingRouter{})
 	s.AddRouter(2, &HelloRouter{})
 
-	//	客户端测试
 	go ClientTest(1)
 	go ClientTest(2)
 
-	//2 开启服务
 	go s.Serve()
 
 	select {
