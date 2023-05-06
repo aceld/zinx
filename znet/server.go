@@ -355,7 +355,7 @@ func (s *Server) Serve() {
 }
 
 func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
-	s.msgHandler.AddRouterSlices(msgID, router.PreHandle, router.Handle, router.PostHandle)
+	s.msgHandler.AddRouter(msgID, router)
 }
 
 func (s *Server) AddRouterSlices(msgID uint32, router ...ziface.RouterHandler) ziface.IRouterSlices {
