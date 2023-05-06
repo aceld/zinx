@@ -12,7 +12,6 @@ import (
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zinterceptor"
 	"github.com/aceld/zinx/zlog"
-	"github.com/aceld/zinx/zmetrics"
 	"github.com/aceld/zinx/zpack"
 	"github.com/gorilla/websocket"
 )
@@ -127,9 +126,6 @@ func newWebsocketConn(server ziface.IServer, conn *websocket.Conn, connID uint64
 
 	// Add the newly created Conn to the connection management (将新创建的Conn添加到链接管理中)
 	server.GetConnMgr().Add(c)
-
-	// Increase the ws service connection count metric (统计ws服务链接数量指标)
-	zmetrics.Metrics().IncConn(c.localAddr, c.name)
 
 	return c
 }
@@ -497,9 +493,6 @@ func (c *WsConnection) finalizer() {
 
 	// Set the flag to indicate that the connection is closed. (设置标志位)
 	c.isClosed = true
-
-	// Remove the connection count metric from Metrics. (将Metrics的指标删除conn数量)
-	zmetrics.Metrics().DecConn(c.localAddr, c.name)
 
 	zlog.Ins().InfoF("Conn Stop()...ConnID = %d", c.connID)
 }
