@@ -8,8 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aceld/zinx/zmetrics"
-
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zinterceptor"
 	"github.com/aceld/zinx/zlog"
@@ -138,10 +136,6 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 	// Add the newly created Conn to the connection manager
 	// (将新创建的Conn添加到链接管理中)
 	server.GetConnMgr().Add(c)
-
-	// Increase the connection count metric for the WS server
-	// (统计ws服务链接数量指标)
-	zmetrics.Metrics().IncConn(c.localAddr, c.name)
 
 	return c
 }
@@ -498,10 +492,6 @@ func (c *Connection) finalizer() {
 	}
 
 	c.isClosed = true
-
-	// Remove the connection count from the metrics
-	// (将Metrics的指标删除conn数量)
-	zmetrics.Metrics().DecConn(c.localAddr, c.name)
 
 	zlog.Ins().InfoF("Conn Stop()...ConnID = %d", c.connID)
 }

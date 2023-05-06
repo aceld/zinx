@@ -9,7 +9,6 @@ import (
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/zlog"
-	"github.com/aceld/zinx/zmetrics"
 	"github.com/gorilla/websocket"
 	"net"
 	"net/http"
@@ -405,17 +404,6 @@ func (s *Server) Start() {
 		go s.ListenWebsocketConn()
 	}
 
-	// Initialize Prometheus Metrics counters
-	// (Prometheus Metrics 指标统计指标初始化)
-	zmetrics.InitZinxMetrics()
-
-	// Start Metrics Prometheus service
-	// (启动Metrics Prometheus服务)
-	if zconf.GlobalObject.PrometheusMetricsEnable == true && zconf.GlobalObject.PrometheusServer == true {
-		if zmetrics.RunMetricsService(zconf.GlobalObject) != nil {
-			zlog.Ins().ErrorF("RunMetricsService err")
-		}
-	}
 }
 
 // Stop stops the server (停止服务)

@@ -82,21 +82,6 @@ type Config struct {
 	*/
 	CertFile       string // The name of the certificate file. If it is empty, TLS encryption is not enabled.(证书文件名称 默认"")
 	PrivateKeyFile string // The name of the private key file. If it is empty, TLS encryption is not enabled.(私钥文件名称 默认"" --如果没有设置证书和私钥文件，则不启用TLS加密)
-
-	/*
-	   Prometheus Metrics
-	*/
-	// A boolean value that indicates whether Prometheus Metrics is enabled. The default value is false.
-	// (是否开启Prometheus Metrics 指标统计, 默认为false关闭)
-	PrometheusMetricsEnable bool
-
-	// A boolean value that indicates whether a separate Prometheus Metrics server is required. The default value is false.
-	// (是否需要zinx单独启动一个Prometheus Metrics 服务, 默认为false关闭)
-	PrometheusServer bool
-
-	// The IP address and port number of the Prometheus Metrics server. The default value is "0.0.0.0:20004".
-	// (Prometheus Metrics 服务IP和端口, 默认为 0.0.0.0:20004)
-	PrometheusListen string
 }
 
 /*
@@ -197,28 +182,25 @@ func init() {
 	// Initialize the GlobalObject variable and set some default values.
 	// (初始化GlobalObject变量，设置一些默认值)
 	GlobalObject = &Config{
-		Name:                    "ZinxServerApp",
-		Version:                 "V1.0",
-		TCPPort:                 8999,
-		WsPort:                  9000,
-		Host:                    "0.0.0.0",
-		MaxConn:                 12000,
-		MaxPacketSize:           4096,
-		WorkerPoolSize:          10,
-		MaxWorkerTaskLen:        1024,
-		MaxMsgChanLen:           1024,
-		LogDir:                  pwd + "/log",
-		LogFile:                 "", //if set "", print to Stderr(默认日志文件为空，打印到stderr)
-		LogIsolationLevel:       0,
-		HeartbeatMax:            10, //The default maximum interval for heartbeat detection is 10 seconds. (默认心跳检测最长间隔为10秒)
-		IOReadBuffSize:          1024,
-		CertFile:                "",
-		PrivateKeyFile:          "",
-		Mode:                    ServerModeTcp,
-		PrometheusMetricsEnable: false,
-		PrometheusServer:        false,
-		PrometheusListen:        "0.0.0.0:20004",
-		RouterSlicesMode:        false,
+		Name:              "ZinxServerApp",
+		Version:           "V1.0",
+		TCPPort:           8999,
+		WsPort:            9000,
+		Host:              "0.0.0.0",
+		MaxConn:           12000,
+		MaxPacketSize:     4096,
+		WorkerPoolSize:    10,
+		MaxWorkerTaskLen:  1024,
+		MaxMsgChanLen:     1024,
+		LogDir:            pwd + "/log",
+		LogFile:           "", //if set "", print to Stderr(默认日志文件为空，打印到stderr)
+		LogIsolationLevel: 0,
+		HeartbeatMax:      10, //The default maximum interval for heartbeat detection is 10 seconds. (默认心跳检测最长间隔为10秒)
+		IOReadBuffSize:    1024,
+		CertFile:          "",
+		PrivateKeyFile:    "",
+		Mode:              ServerModeTcp,
+		RouterSlicesMode:  false,
 	}
 
 	// Note: Load some user-configured parameters from the configuration file.
