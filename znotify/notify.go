@@ -8,9 +8,12 @@ import (
 	"sync"
 )
 
-// 建立一个用户自定义ID和连接映射的结构
+// Establish a structure that maps user-defined IDs to connections
+// Map will have concurrent access issues, as well as looping through large amounts of data
+// Currently, a map structure is used to store the data, but it may not be the best choice
+// (建立一个用户自定义ID和连接映射的结构
 // map会存在 并发问题，大量数据循环读取问题
-// 暂时先用map结构存储，但是应该不是最好的选择，抛砖引玉
+// 暂时先用map结构存储，但是应该不是最好的选择，抛砖引玉)
 type ConnIDMap map[uint64]ziface.IConnection
 
 type notify struct {
@@ -94,7 +97,9 @@ func (n *notify) notifyAll(MsgId uint32, data []byte) error {
 	return nil
 }
 
-// 极端情况 同时加入和发送的人很多需要尽快释放map的情况， 目前问题很多不采用
+// In extreme cases where many people are joining and sending messages at the same time, and the map needs to be released as soon as possible,
+// but there are currently many problems and it is not used
+// (极端情况 同时加入和发送的人很多需要尽快释放map的情况， 目前问题很多不采用)
 func (n *notify) notifyAll2(MsgId uint32, data []byte) error {
 	conns := make([]ziface.IConnection, 0, len(n.cimap))
 	n.RLock()

@@ -14,37 +14,54 @@ import (
 )
 
 const (
-	//如果不启动Worker协程池，则会给MsgHandler分配一个虚拟的WorkerID，这个workerID为0, 便于指标统计
-	//启动了Worker协程池后，每个worker的ID为0,1,2,3...
+	// If the Worker goroutine pool is not started, a virtual WorkerID is assigned to the MsgHandler, which is 0, for metric counting
+	// After starting the Worker goroutine pool, the ID of each worker is 0,1,2,3...
+	// (如果不启动Worker协程池，则会给MsgHandler分配一个虚拟的WorkerID，这个workerID为0, 便于指标统计
+	// 启动了Worker协程池后，每个worker的ID为0,1,2,3...)
 	WorkerIDWithoutWorkerPool int = 0
 )
 
-// MsgHandle 对消息的处理回调模块
+// MsgHandle is the module for handling message processing callbacks
+// (对消息的处理回调模块)
 type MsgHandle struct {
-	Apis           map[uint32]ziface.IRouter // 存放每个MsgID 所对应的处理方法的map属性
-	WorkerPoolSize uint32                    // 业务工作Worker池的数量
-	TaskQueue      []chan ziface.IRequest    // Worker负责取任务的消息队列
-	builder        *chainBuilder             // 责任链构造器
-	RouterSlices   *RouterSlices
+	// A map property that stores the processing methods for each MsgID
+	// (存放每个MsgID 所对应的处理方法的map属性)
+	Apis map[uint32]ziface.IRouter
+
+	// The number of worker goroutines in the business work Worker pool
+	// (业务工作Worker池的数量)
+	WorkerPoolSize uint32
+
+	// A message queue for workers to take tasks
+	// (Worker负责取任务的消息队列)
+	TaskQueue []chan ziface.IRequest
+
+	// Chain builder for the responsibility chain
+	// (责任链构造器)
+	builder      *chainBuilder
+	RouterSlices *RouterSlices
 }
 
-// NewMsgHandle 创建MsgHandle
+// newMsgHandle creates MsgHandle
 // zinxRole: IServer/IClient
 func newMsgHandle() *MsgHandle {
 	handle := &MsgHandle{
 		Apis:           make(map[uint32]ziface.IRouter),
 		RouterSlices:   NewRouterSlices(),
 		WorkerPoolSize: zconf.GlobalObject.WorkerPoolSize,
-		// 一个worker对应一个queue
+		// One worker corresponds to one queue (一个worker对应一个queue)
 		TaskQueue: make([]chan ziface.IRequest, zconf.GlobalObject.WorkerPoolSize),
 		builder:   newChainBuilder(),
 	}
-	// 此处必须把 msghandler 添加到责任链中，并且是责任链最后一环，在msghandler中进行解码后由router做数据分发
+
+	// It is necessary to add the MsgHandle to the responsibility chain here, and it is the last link in the responsibility chain. After decoding in the MsgHandle, data distribution is done by router
+	// (此处必须把 msghandler 添加到责任链中，并且是责任链最后一环，在msghandler中进行解码后由router做数据分发)
 	handle.builder.Tail(handle)
 	return handle
 }
 
-// Zinx默认必经的数据处理拦截器
+// Data processing interceptor that is necessary by default in Zinx
+// (Zinx默认必经的数据处理拦截器)
 func (mh *MsgHandle) Intercept(chain ziface.IChain) ziface.IcResp {
 	request := chain.Request()
 	if request != nil {
@@ -52,11 +69,13 @@ func (mh *MsgHandle) Intercept(chain ziface.IChain) ziface.IcResp {
 		case ziface.IRequest:
 			iRequest := request.(ziface.IRequest)
 			if zconf.GlobalObject.WorkerPoolSize > 0 {
-				// 已经启动工作池机制，将消息交给Worker处理
+				// If the worker pool mechanism has been started, hand over the message to the worker for processing
+				// (已经启动工作池机制，将消息交给Worker处理)
 				mh.SendMsgToTaskQueue(iRequest)
 			} else {
 
-				// 从绑定好的消息和对应的处理方法中执行对应的Handle方法
+				// Execute the corresponding Handle method from the bound message and its corresponding processing method
+				// (从绑定好的消息和对应的处理方法中执行对应的Handle方法)
 				if !zconf.GlobalObject.RouterSlicesMode {
 					go mh.doMsgHandler(iRequest, WorkerIDWithoutWorkerPool)
 				} else if zconf.GlobalObject.RouterSlicesMode {
@@ -77,18 +96,21 @@ func (mh *MsgHandle) AddInterceptor(interceptor ziface.IInterceptor) {
 }
 
 func (mh *MsgHandle) GetTaskQueueWorkerId(request ziface.IRequest) uint64 {
-	// 根据ConnID来分配当前的连接应该由哪个worker负责处理
+	// Assign the worker responsible for processing the current connection based on the ConnID
+	// Using a round-robin average allocation rule to get the workerID that needs to process this connection
+	// (根据ConnID来分配当前的连接应该由哪个worker负责处理
 	// 轮询的平均分配法则
-	// 得到需要处理此条连接的workerID
+	// 得到需要处理此条连接的workerID)
 	workerID := request.GetConnection().GetConnID() % uint64(mh.WorkerPoolSize)
 	return workerID
 }
 
-// SendMsgToTaskQueue 将消息交给TaskQueue,由worker进行处理
+// SendMsgToTaskQueue sends the message to the TaskQueue for processing by the worker
+// (将消息交给TaskQueue,由worker进行处理)
 func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
 	workerID := mh.GetTaskQueueWorkerId(request)
 	// zlog.Ins().DebugF("Add ConnID=%d request msgID=%d to workerID=%d", request.GetConnection().GetConnID(), request.GetMsgID(), workerID)
-	// 将请求消息发送给任务队列
+	// Send the request message to the task queue
 	mh.TaskQueue[workerID] <- request
 	zlog.Ins().DebugF("SendMsgToTaskQueue-->%s", hex.EncodeToString(request.GetData()))
 }
@@ -97,26 +119,26 @@ func (mh *MsgHandle) StatisticsMetrics(request ziface.IRequest, workerId int, ms
 
 	conn := request.GetConnection()
 
-	//统计MsgID被调度的路由次数
+	// Increment the count of times the MsgID is scheduled for routing
 	zmetrics.Metrics().IncRouterSchedule(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerId), strconv.Itoa(int(msgId)))
 
-	//统计Router和MsgID业务调度的耗时
+	// Record the duration of the Router and MsgID business scheduling
 	zmetrics.Metrics().ObserveRouterScheduleDuration(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerId), strconv.Itoa(int(msgId)), time.Since(timeNow))
 }
 
-// doFuncHandler 执行函数式请求
+// doFuncHandler handles functional requests (执行函数式请求)
 func (mh *MsgHandle) doFuncHandler(request ziface.IFuncRequest, workerId int) {
 	defer func() {
 		if err := recover(); err != nil {
 			zlog.Ins().ErrorF("doFuncRequest panic: %v", err)
 		}
 	}()
-
-	// 执行函数式请求
+	// Execute the functional request (执行函数式请求)
 	request.CallFunc()
 }
 
-// DoMsgHandler 立即以非阻塞方式处理消息
+// doMsgHandler immediately handles messages in a non-blocking manner
+// (立即以非阻塞方式处理消息)
 func (mh *MsgHandle) doMsgHandler(request ziface.IRequest, workerID int) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -137,38 +159,46 @@ func (mh *MsgHandle) doMsgHandler(request ziface.IRequest, workerID int) {
 		return
 	}
 
-	// Request请求绑定Router对应关系
+	// Bind the Request request to the corresponding Router relationship
+	// (Request请求绑定Router对应关系)
 	request.BindRouter(handler)
-	// 执行对应处理方法
+
+	// Execute the corresponding processing method
 	request.Call()
 
-	//统计Router调度指标数据
+	// Record the Router scheduling indicator data
 	mh.StatisticsMetrics(request, workerID, msgId, timeNow)
 }
 
 func (mh *MsgHandle) Execute(request ziface.IRequest) {
-	mh.builder.Execute(request) // 将消息丢到责任链，通过责任链里拦截器层层处理层层传递
+	// Pass the message to the responsibility chain to handle it through interceptors layer by layer and pass it on layer by layer.
+	// (将消息丢到责任链，通过责任链里拦截器层层处理层层传递)
+	mh.builder.Execute(request)
 }
 
-// AddRouter 为消息添加具体的处理逻辑
+// AddRouter adds specific processing logic for messages
+// (为消息添加具体的处理逻辑)
 func (mh *MsgHandle) AddRouter(msgID uint32, router ziface.IRouter) {
-	// 1 判断当前msg绑定的API处理方法是否已经存在
+	// 1. Check whether the current API processing method bound to the msgID already exists
+	// (判断当前msg绑定的API处理方法是否已经存在)
 	if _, ok := mh.Apis[msgID]; ok {
 		msgErr := fmt.Sprintf("repeated api , msgID = %+v\n", msgID)
 		panic(msgErr)
 	}
-	// 2 添加msg与api的绑定关系
+	// 2. Add the binding relationship between msg and API
+	// (添加msg与api的绑定关系)
 	mh.Apis[msgID] = router
 	zlog.Ins().InfoF("Add Router msgID = %d", msgID)
 }
 
-// 切片路由添加
+// AddRouterSlices adds router handlers using slices
+// (切片路由添加)
 func (mh *MsgHandle) AddRouterSlices(msgId uint32, handler ...ziface.RouterHandler) ziface.IRouterSlices {
 	mh.RouterSlices.AddHandler(msgId, handler...)
 	return mh.RouterSlices
 }
 
-// 路由分组
+// Group routes into a group (路由分组)
 func (mh *MsgHandle) Group(start, end uint32, Handlers ...ziface.RouterHandler) ziface.IGroupRouterSlices {
 	return NewGroup(start, end, mh.RouterSlices, Handlers...)
 }
@@ -199,26 +229,30 @@ func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest, workerID int) {
 	request.BindRouterSlices(handlers)
 	request.RouterSlicesNext()
 
-	//统计MsgID被调度的路由次数
+	// Statistics the number of times a MsgID is dispatched by the router
 	mh.StatisticsMetrics(request, workerID, msgId, timeNow)
 }
 
-// StartOneWorker 启动一个Worker工作流程
+// StartOneWorker starts a worker workflow
+// (启动一个Worker工作流程)
 func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest) {
 	zlog.Ins().InfoF("Worker ID = %d is started.", workerID)
-	// 不断地等待队列中的消息
+	// Continuously wait for messages in the queue
+	// (不断地等待队列中的消息)
 	for {
 		select {
-		// 有消息则取出队列的Request，并执行绑定的业务方法
+		// If there is a message, take out the Request from the queue and execute the bound business method
+		// (有消息则取出队列的Request，并执行绑定的业务方法)
 		case request := <-taskQueue:
 
 			switch req := request.(type) {
 
-			case ziface.IFuncRequest: // 内部函数调用request
+			case ziface.IFuncRequest:
+				// Internal function call request (内部函数调用request)
 
 				mh.doFuncHandler(req, workerID)
 
-			case ziface.IRequest: // 客户端消息request
+			case ziface.IRequest: // Client message request
 
 				if !zconf.GlobalObject.RouterSlicesMode {
 					mh.doMsgHandler(req, workerID)
@@ -226,7 +260,8 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 					mh.doMsgHandlerSlices(req, workerID)
 				}
 
-				// Metrics统计，每次处理完一个请求，当前WorkId处理的任务数量+1
+				// Metrics statistics. After each request is processed, the number of tasks processed by the current WorkId is increased by 1.
+				// (Metrics统计，每次处理完一个请求，当前WorkId处理的任务数量+1)
 				conn := request.GetConnection()
 				zmetrics.Metrics().IncTask(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerID))
 			}
@@ -234,14 +269,18 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 	}
 }
 
-// StartWorkerPool 启动worker工作池
+// StartWorkerPool starts the worker pool
 func (mh *MsgHandle) StartWorkerPool() {
-	// 遍历需要启动worker的数量，依此启动
+	// Iterate through the required number of workers and start them one by one
+	// (遍历需要启动worker的数量，依此启动)
 	for i := 0; i < int(mh.WorkerPoolSize); i++ {
-		// 一个worker被启动
-		// 给当前worker对应的任务队列开辟空间
+		// A worker is started
+		// Allocate space for the corresponding task queue for the current worker
+		// (给当前worker对应的任务队列开辟空间)
 		mh.TaskQueue[i] = make(chan ziface.IRequest, zconf.GlobalObject.MaxWorkerTaskLen)
-		// 启动当前Worker，阻塞的等待对应的任务队列是否有消息传递进来
+
+		// Start the current worker, blocking and waiting for messages to be passed in the corresponding task queue
+		// (启动当前Worker，阻塞的等待对应的任务队列是否有消息传递进来)
 		go mh.StartOneWorker(i, mh.TaskQueue[i])
 	}
 }

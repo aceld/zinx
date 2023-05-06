@@ -23,46 +23,66 @@ import (
 	"github.com/aceld/zinx/zpack"
 )
 
-// Server 接口实现，定义一个Server服务类
+// Server interface implementation, defines a Server service class
+// (接口实现，定义一个Server服务类)
 type Server struct {
-	//服务器的名称
+	// Name of the server (服务器的名称)
 	Name string
 	//tcp4 or other
 	IPVersion string
-	//服务绑定的IP地址
+	// IP version (e.g. "tcp4") - 服务绑定的IP地址
 	IP string
-	//服务绑定的端口
+	// IP address the server is bound to (服务绑定的端口)
 	Port int
-	// 服务绑定的websocket 端口
+	// 服务绑定的websocket 端口 (Websocket port the server is bound to)
 	WsPort int
-	//当前Server的消息管理模块，用来绑定MsgID和对应的处理方法
+
+	// Current server's message handler module, used to bind MsgID to corresponding processing methods
+	// (当前Server的消息管理模块，用来绑定MsgID和对应的处理方法)
 	msgHandler ziface.IMsgHandle
-	//路由模式
+
+	// Routing mode (路由模式)
 	RouterSlicesMode bool
-	//当前Server的链接管理器
+
+	// Current server's connection manager (当前Server的链接管理器)
 	ConnMgr ziface.IConnManager
-	//该Server的连接创建时Hook函数
+
+	// Hook function called when a new connection is established
+	// (该Server的连接创建时Hook函数)
 	onConnStart func(conn ziface.IConnection)
-	//该Server的连接断开时的Hook函数
+
+	// Hook function called when a connection is terminated
+	// (该Server的连接断开时的Hook函数)
 	onConnStop func(conn ziface.IConnection)
-	//数据报文封包方式
+
+	// Data packet encapsulation method
+	// (数据报文封包方式)
 	packet ziface.IDataPack
-	//异步捕获链接关闭状态
+
+	// Asynchronous capture of connection closing status
+	// (异步捕获链接关闭状态)
 	exitChan chan struct{}
-	//断粘包解码器
+
+	// Decoder for dealing with message fragmentation and reassembly
+	// (断粘包解码器)
 	decoder ziface.IDecoder
-	//心跳检测器
+
+	// Heartbeat checker
+	// (心跳检测器)
 	hc ziface.IHeartbeatChecker
 
 	// websocket
 	upgrader *websocket.Upgrader
-	// websocket 连接认证
+
+	// websocket connection authentication
 	websocketAuth func(r *http.Request) error
+
 	// connection id
 	cID uint64
 }
 
-// NewServer 创建一个服务器句柄
+// NewServer creates a server handle
+// (创建一个服务器句柄)
 func NewServer(opts ...Option) ziface.IServer {
 	logo.PrintLogo()
 
@@ -76,9 +96,10 @@ func NewServer(opts ...Option) ziface.IServer {
 		RouterSlicesMode: zconf.GlobalObject.RouterSlicesMode,
 		ConnMgr:          newConnManager(),
 		exitChan:         nil,
-		//默认使用zinx的TLV封包方式
+		// Default to using Zinx's TLV data pack format
+		// (默认使用zinx的TLV封包方式)
 		packet:  zpack.Factory().NewPack(ziface.ZinxDataPack),
-		decoder: zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
+		decoder: zdecoder.NewTLVDecoder(), // Default to using TLV decode (默认使用TLV的解码方式)
 		upgrader: &websocket.Upgrader{
 			ReadBufferSize: int(zconf.GlobalObject.IOReadBuffSize),
 			CheckOrigin: func(r *http.Request) bool {
@@ -91,22 +112,24 @@ func NewServer(opts ...Option) ziface.IServer {
 		opt(s)
 	}
 
-	//提示当前配置信息
+	// Apply custom options (提示当前配置信息)
 	zconf.GlobalObject.Show()
 
 	return s
 }
 
-// NewServer 创建一个服务器句柄
+// NewUserConfServer creates a server handle using user-defined configuration
+// (创建一个服务器句柄)
 func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 
-	//刷新用户配置到全局配置变量
+	// Refresh user configuration to global configuration variable
+	// (刷新用户配置到全局配置变量)
 	zconf.UserConfToGlobal(config)
 
-	//提示当前配置信息
+	// Display current configuration information
+	// (提示当前配置信息)
 	zconf.GlobalObject.Show()
 
-	//打印logo
 	logo.PrintLogo()
 
 	s := &Server{
@@ -120,7 +143,7 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 		ConnMgr:          newConnManager(),
 		exitChan:         nil,
 		packet:           zpack.Factory().NewPack(ziface.ZinxDataPack),
-		decoder:          zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
+		decoder:          zdecoder.NewTLVDecoder(), // Default to using TLV decoder (默认使用TLV的解码方式)
 		upgrader: &websocket.Upgrader{
 			ReadBufferSize: int(zconf.GlobalObject.IOReadBuffSize),
 			CheckOrigin: func(r *http.Request) bool {
@@ -128,7 +151,7 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 			},
 		},
 	}
-	//更替打包方式
+	// Apply custom options (更替打包方式)
 	for _, opt := range opts {
 		opt(s)
 	}
@@ -136,7 +159,8 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 	return s
 }
 
-// NewDefaultRouterSlicesServer 创建一个默认自带一个Recover处理器的服务器句柄
+// NewDefaultRouterSlicesServer creates a server handle with a default RouterRecovery processor.
+// (创建一个默认自带一个Recover处理器的服务器句柄)
 func NewDefaultRouterSlicesServer(opts ...Option) ziface.IServer {
 	logo.PrintLogo()
 	zconf.GlobalObject.RouterSlicesMode = true
@@ -150,9 +174,9 @@ func NewDefaultRouterSlicesServer(opts ...Option) ziface.IServer {
 		RouterSlicesMode: zconf.GlobalObject.RouterSlicesMode,
 		ConnMgr:          newConnManager(),
 		exitChan:         nil,
-		//默认使用zinx的TLV封包方式
+		// by default use zinx's TLV packet (默认使用zinx的TLV封包方式)
 		packet:  zpack.Factory().NewPack(ziface.ZinxDataPack),
-		decoder: zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
+		decoder: zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式 (by default use TLV decoding)
 		upgrader: &websocket.Upgrader{
 			ReadBufferSize: int(zconf.GlobalObject.IOReadBuffSize),
 			CheckOrigin: func(r *http.Request) bool {
@@ -165,26 +189,27 @@ func NewDefaultRouterSlicesServer(opts ...Option) ziface.IServer {
 		opt(s)
 	}
 	s.Use(RouterRecovery)
-	//提示当前配置信息
+	// display current configuration information (提示当前配置信息)
 	zconf.GlobalObject.Show()
 
 	return s
 }
 
-// NewUserRouterSlicesServer 创建一个用户配置的自带一个Recover处理器的服务器句柄，如果用户不希望Use这个方法，那么应该使用NewUserConfServer
+// NewUserRouterSlicesServer creates a server handle with user-configured options and a default Recover handler.
+// If the user does not wish to use the Use method, they should use NewUserConfServer instead.
+// (创建一个用户配置的自带一个Recover处理器的服务器句柄，如果用户不希望Use这个方法，那么应该使用NewUserConfServer)
 func NewUserConfDefaultRouterSlicesServer(config *zconf.Config, opts ...Option) ziface.IServer {
 
 	if !config.RouterSlicesMode {
 		panic("RouterSlicesMode is false")
 	}
 
-	//刷新用户配置到全局配置变量
+	// Refresh user configuration to global configuration variable (刷新用户配置到全局配置变量)
 	zconf.UserConfToGlobal(config)
 
-	//提示当前配置信息
+	// Display current configuration information (提示当前配置信息)
 	zconf.GlobalObject.Show()
 
-	//打印logo
 	logo.PrintLogo()
 
 	s := &Server{
@@ -198,7 +223,7 @@ func NewUserConfDefaultRouterSlicesServer(config *zconf.Config, opts ...Option) 
 		ConnMgr:          newConnManager(),
 		exitChan:         nil,
 		packet:           zpack.Factory().NewPack(ziface.ZinxDataPack),
-		decoder:          zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式
+		decoder:          zdecoder.NewTLVDecoder(), // Default to using TLV decoding (默认使用TLV的解码方式)
 		upgrader: &websocket.Upgrader{
 			ReadBufferSize: int(zconf.GlobalObject.IOReadBuffSize),
 			CheckOrigin: func(r *http.Request) bool {
@@ -206,7 +231,7 @@ func NewUserConfDefaultRouterSlicesServer(config *zconf.Config, opts ...Option) 
 			},
 		},
 	}
-	//更替打包方式
+	// Replace the default packaging method (更替打包方式)
 	for _, opt := range opts {
 		opt(s)
 	}
@@ -214,38 +239,38 @@ func NewUserConfDefaultRouterSlicesServer(config *zconf.Config, opts ...Option) 
 	return s
 }
 
-// ============== 实现 ziface.IServer 里的全部接口方法 ========
 func (s *Server) StartConn(conn ziface.IConnection) {
-	// HeartBeat 心跳检测
+	// HeartBeat check
 	if s.hc != nil {
-		//从Server端克隆一个心跳检测器
+		// Clone a heart-beat checker from the server side
 		heartBeatChecker := s.hc.Clone()
 
-		//绑定当前链接
+		// Bind current connection
 		heartBeatChecker.BindConn(conn)
 	}
 
-	//3.4 启动当前链接的处理业务
+	// Start processing business for the current connection
 	conn.Start()
 }
 
 func (s *Server) ListenTcpConn() {
-	//1 获取一个TCP的Addr
+	// 1. Get a TCP address
 	addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 	if err != nil {
 		zlog.Ins().ErrorF("[START] resolve tcp addr err: %v\n", err)
 		return
 	}
-	// 2 监听服务器地址
+
+	// 2. Listen to the server address
 	var listener net.Listener
 	if zconf.GlobalObject.CertFile != "" && zconf.GlobalObject.PrivateKeyFile != "" {
-		// 读取证书和密钥
+		// Read certificate and private key
 		crt, err := tls.LoadX509KeyPair(zconf.GlobalObject.CertFile, zconf.GlobalObject.PrivateKeyFile)
 		if err != nil {
 			panic(err)
 		}
 
-		// TLS连接
+		// TLS connection
 		tlsConfig := &tls.Config{}
 		tlsConfig.Certificates = []tls.Certificate{crt}
 		tlsConfig.Time = time.Now
@@ -261,16 +286,18 @@ func (s *Server) ListenTcpConn() {
 		}
 	}
 
-	//3 启动server网络连接业务
+	// 3. Start server network connection business
 	go func() {
 		for {
-			//3.1 设置服务器最大连接控制,如果超过最大连接，则等待
+			// 3.1 Set the maximum connection control for the server. If it exceeds the maximum connection, wait.
+			// (设置服务器最大连接控制,如果超过最大连接，则等待)
 			if s.ConnMgr.Len() >= zconf.GlobalObject.MaxConn {
 				zlog.Ins().InfoF("Exceeded the maxConnNum:%d, Wait:%d", zconf.GlobalObject.MaxConn, AcceptDelay.duration)
 				AcceptDelay.Delay()
 				continue
 			}
-			//3.2 阻塞等待客户端建立连接请求
+			// 3.2 Block and wait for a client to establish a connection request.
+			// (阻塞等待客户端建立连接请求)
 			conn, err := listener.Accept()
 			if err != nil {
 				//Go 1.16+
@@ -284,8 +311,9 @@ func (s *Server) ListenTcpConn() {
 			}
 
 			AcceptDelay.Reset()
-			//3.4 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 
+			// 3.4 Handle the business method for this new connection request. At this time, the handler and conn should be bound.
+			// (处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的)
 			newCid := atomic.AddUint64(&s.cID, 1)
 			dealConn := newServerConn(s, conn, newCid)
 
@@ -305,13 +333,15 @@ func (s *Server) ListenTcpConn() {
 func (s *Server) ListenWebsocketConn() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		//1. 设置服务器最大连接控制,如果超过最大连接，则等待
+		// 1. Check if the server has reached the maximum allowed number of connections
+		// (设置服务器最大连接控制,如果超过最大连接，则等待)
 		if s.ConnMgr.Len() >= zconf.GlobalObject.MaxConn {
 			zlog.Ins().InfoF("Exceeded the maxConnNum:%d, Wait:%d", zconf.GlobalObject.MaxConn, AcceptDelay.duration)
 			AcceptDelay.Delay()
 			return
 		}
-		// 2. 如果需要 websocket 认证请设置认证信息
+		// 2. If websocket authentication is required, set the authentication information
+		// (如果需要 websocket 认证请设置认证信息)
 		if s.websocketAuth != nil {
 			err := s.websocketAuth(r)
 			if err != nil {
@@ -320,13 +350,14 @@ func (s *Server) ListenWebsocketConn() {
 				AcceptDelay.Delay()
 				return
 			}
-
 		}
-		// 判断 header 里面是有子协议
+		// 3. Check if there is a subprotocol specified in the header
+		// (判断 header 里面是有子协议)
 		if len(r.Header.Get("Sec-Websocket-Protocol")) > 0 {
 			s.upgrader.Subprotocols = websocket.Subprotocols(r)
 		}
-		// 4. 升级成 websocket 连接
+		// 4. Upgrade the connection to a websocket connection
+		// (升级成 websocket 连接)
 		conn, err := s.upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			zlog.Ins().ErrorF("new websocket err:%v", err)
@@ -335,6 +366,7 @@ func (s *Server) ListenWebsocketConn() {
 			return
 		}
 		AcceptDelay.Reset()
+		// 5. Handle the business logic of the new connection, which should already be bound to a handler and conn
 		// 5. 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 		newCid := atomic.AddUint64(&s.cID, 1)
 		wsConn := newWebsocketConn(s, conn, newCid)
@@ -348,19 +380,23 @@ func (s *Server) ListenWebsocketConn() {
 	}
 }
 
-// Start 开启网络服务
+// Start the network service
+// (开启网络服务)
 func (s *Server) Start() {
 	zlog.Ins().InfoF("[START] Server name: %s,listener at IP: %s, Port %d is starting", s.Name, s.IP, s.Port)
 	s.exitChan = make(chan struct{})
 
-	// 将解码器添加到拦截器
+	// Add decoder to interceptors
+	// (将解码器添加到拦截器)
 	if s.decoder != nil {
 		s.msgHandler.AddInterceptor(s.decoder)
 	}
-	// 启动worker工作池机制
+	// Start worker pool mechanism
+	// (启动worker工作池机制)
 	s.msgHandler.StartWorkerPool()
 
-	//开启一个go去做服务端Listener业务
+	// Start a goroutine to handle server listener business
+	// (开启一个go去做服务端Listener业务)
 	switch zconf.GlobalObject.Mode {
 	case zconf.ServerModeTcp:
 		go s.ListenTcpConn()
@@ -371,10 +407,12 @@ func (s *Server) Start() {
 		go s.ListenWebsocketConn()
 	}
 
-	// Prometheus Metrics 指标统计指标初始化
+	// Initialize Prometheus Metrics counters
+	// (Prometheus Metrics 指标统计指标初始化)
 	zmetrics.InitZinxMetrics()
 
-	// 启动Metrics Prometheus服务
+	// Start Metrics Prometheus service
+	// (启动Metrics Prometheus服务)
 	if zconf.GlobalObject.PrometheusMetricsEnable == true && zconf.GlobalObject.PrometheusServer == true {
 		if zmetrics.RunMetricsService(zconf.GlobalObject) != nil {
 			zlog.Ins().ErrorF("RunMetricsService err")
@@ -382,34 +420,35 @@ func (s *Server) Start() {
 	}
 }
 
-// Stop 停止服务
+// Stop stops the server (停止服务)
 func (s *Server) Stop() {
 	zlog.Ins().InfoF("[STOP] Zinx server , name %s", s.Name)
 
-	//将其他需要清理的连接信息或者其他信息 也要一并停止或者清理
+	// Clear other connection information or other information that needs to be cleaned up
+	// (将其他需要清理的连接信息或者其他信息 也要一并停止或者清理)
 	s.ConnMgr.ClearConn()
 	s.exitChan <- struct{}{}
 	close(s.exitChan)
 }
 
-// Serve 运行服务
+// Serve runs the server (运行服务)
 func (s *Server) Serve() {
 	s.Start()
-	//阻塞,否则主Go退出， listenner的go将会退出
+	// Block, otherwise the listener's goroutine will exit when the main Go exits (阻塞,否则主Go退出， listenner的go将会退出)
 	c := make(chan os.Signal, 1)
-	//监听指定信号 ctrl+c kill信号
+	// Listen for specified signals: ctrl+c or kill signal (监听指定信号 ctrl+c kill信号)
 	signal.Notify(c, os.Interrupt, os.Kill)
 	sig := <-c
 	zlog.Ins().InfoF("[SERVE] Zinx server , name %s, Serve Interrupt, signal = %v", s.Name, sig)
 }
 
-// AddRouter 路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
 func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
 	if s.RouterSlicesMode {
 		panic("Server RouterSlicesMode is true ")
 	}
 	s.msgHandler.AddRouter(msgID, router)
 }
+
 func (s *Server) AddRouterSlices(msgID uint32, router ...ziface.RouterHandler) ziface.IRouterSlices {
 	if !s.RouterSlicesMode {
 		panic("Server RouterSlicesMode is false ")
@@ -431,27 +470,22 @@ func (s *Server) Use(Handlers ...ziface.RouterHandler) ziface.IRouterSlices {
 	return s.msgHandler.Use(Handlers...)
 }
 
-// GetConnMgr 得到链接管理
 func (s *Server) GetConnMgr() ziface.IConnManager {
 	return s.ConnMgr
 }
 
-// SetOnConnStart 设置该Server的连接创建时Hook函数
 func (s *Server) SetOnConnStart(hookFunc func(ziface.IConnection)) {
 	s.onConnStart = hookFunc
 }
 
-// SetOnConnStop 设置该Server的连接断开时的Hook函数
 func (s *Server) SetOnConnStop(hookFunc func(ziface.IConnection)) {
 	s.onConnStop = hookFunc
 }
 
-// GetOnConnStart 得到该Server的连接创建时Hook函数
 func (s *Server) GetOnConnStart() func(ziface.IConnection) {
 	return s.onConnStart
 }
 
-// 得到该Server的连接断开时的Hook函数
 func (s *Server) GetOnConnStop() func(ziface.IConnection) {
 	return s.onConnStop
 }
@@ -468,33 +502,39 @@ func (s *Server) GetMsgHandler() ziface.IMsgHandle {
 	return s.msgHandler
 }
 
-// StartHeartBeat 启动心跳检测
-// interval 每次发送心跳的时间间隔
+// StartHeartBeat starts the heartbeat check.
+// interval is the time interval between each heartbeat.
+// (启动心跳检测
+// interval 每次发送心跳的时间间隔)
 func (s *Server) StartHeartBeat(interval time.Duration) {
 	checker := NewHeartbeatChecker(interval)
 
-	//添加心跳检测的路由
+	// Add the heartbeat check router. (添加心跳检测的路由)
 	s.AddRouter(checker.MsgID(), checker.Router())
 
-	//server绑定心跳检测器
+	// Bind the heartbeat checker to the server. (server绑定心跳检测器)
 	s.hc = checker
 }
 
-// StartHeartBeatWithFunc 启动心跳检测
-// option 心跳检测的配置
+// StartHeartBeatWithFunc starts the heartbeat detection with the given configuration.
+// interval is the time interval for sending heartbeat messages.
+// option is the configuration for heartbeat detection.
+// 启动心跳检测
+// (option 心跳检测的配置)
 func (s *Server) StartHeartBeatWithOption(interval time.Duration, option *ziface.HeartBeatOption) {
 	checker := NewHeartbeatChecker(interval)
 
+	// Configure the heartbeat checker with the provided options
 	if option != nil {
 		checker.SetHeartbeatMsgFunc(option.MakeMsg)
 		checker.SetOnRemoteNotAlive(option.OnRemoteNotAlive)
 		checker.BindRouter(option.HeadBeatMsgID, option.Router)
 	}
 
-	//添加心跳检测的路由
+	// Add the heartbeat checker's router to the server's router (添加心跳检测的路由)
 	s.AddRouter(checker.MsgID(), checker.Router())
 
-	//server绑定心跳检测器
+	// Bind the server with the heartbeat checker (server绑定心跳检测器)
 	s.hc = checker
 }
 
@@ -525,5 +565,4 @@ func (s *Server) ServerName() string {
 	return s.Name
 }
 
-func init() {
-}
+func init() {}

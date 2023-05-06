@@ -19,10 +19,12 @@ var metricsInitOnce sync.Once
 func RunMetricsService(conf *zconf.Config) (err error) {
 
 	metricsServiceOnce.Do(func() {
-		// metricsServic 只启动一个服务
+		// metricsService only starts one server. (metricsServic 只启动一个服务)
 		go func() {
 			http.Handle(METRICS_ROUTE, promhttp.Handler())
-			err = http.ListenAndServe(conf.PrometheusListen, nil) //多个进程不可监听同一个端口
+			// Multiple processes cannot listen on the same port.
+			// (多个进程不可监听同一个端口)
+			err = http.ListenAndServe(conf.PrometheusListen, nil)
 			if err != nil {
 				zlog.Ins().ErrorF("RunMetricsService err = %s\n", err)
 			}
