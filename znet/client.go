@@ -245,7 +245,7 @@ func (c *Client) Stop() {
 }
 
 func (c *Client) AddRouter(msgID uint32, router ziface.IRouter) {
-	c.msgHandler.AddRouter(msgID, router)
+	c.msgHandler.AddRouterSlices(msgID, router.PreHandle, router.Handle, router.PostHandle)
 }
 
 func (c *Client) Conn() ziface.IConnection {

@@ -2,7 +2,7 @@ package znet
 
 import (
 	"encoding/hex"
-	"fmt"
+
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
@@ -19,10 +19,6 @@ const (
 // MsgHandle is the module for handling message processing callbacks
 // (对消息的处理回调模块)
 type MsgHandle struct {
-	// A map property that stores the processing methods for each MsgID
-	// (存放每个MsgID 所对应的处理方法的map属性)
-	Apis map[uint32]ziface.IRouter
-
 	// The number of worker goroutines in the business work Worker pool
 	// (业务工作Worker池的数量)
 	WorkerPoolSize uint32
@@ -41,7 +37,6 @@ type MsgHandle struct {
 // zinxRole: IServer/IClient
 func newMsgHandle() *MsgHandle {
 	handle := &MsgHandle{
-		Apis:           make(map[uint32]ziface.IRouter),
 		RouterSlices:   NewRouterSlices(),
 		WorkerPoolSize: zconf.GlobalObject.WorkerPoolSize,
 		// One worker corresponds to one queue (一个worker对应一个queue)
@@ -71,12 +66,7 @@ func (mh *MsgHandle) Intercept(chain ziface.IChain) ziface.IcResp {
 
 				// Execute the corresponding Handle method from the bound message and its corresponding processing method
 				// (从绑定好的消息和对应的处理方法中执行对应的Handle方法)
-				if !zconf.GlobalObject.RouterSlicesMode {
-					go mh.doMsgHandler(iRequest, WorkerIDWithoutWorkerPool)
-				} else if zconf.GlobalObject.RouterSlicesMode {
-					go mh.doMsgHandlerSlices(iRequest, WorkerIDWithoutWorkerPool)
-				}
-
+				go mh.doMsgHandlerSlices(iRequest, WorkerIDWithoutWorkerPool)
 			}
 		}
 	}
@@ -121,31 +111,6 @@ func (mh *MsgHandle) doFuncHandler(request ziface.IFuncRequest, workerId int) {
 	request.CallFunc()
 }
 
-// doMsgHandler immediately handles messages in a non-blocking manner
-// (立即以非阻塞方式处理消息)
-func (mh *MsgHandle) doMsgHandler(request ziface.IRequest, workerID int) {
-	defer func() {
-		if err := recover(); err != nil {
-			zlog.Ins().ErrorF("doMsgHandler panic: %v", err)
-		}
-	}()
-
-	msgId := request.GetMsgID()
-	handler, ok := mh.Apis[msgId]
-
-	if !ok {
-		zlog.Ins().ErrorF("api msgID = %d is not FOUND!", request.GetMsgID())
-		return
-	}
-
-	// Bind the Request request to the corresponding Router relationship
-	// (Request请求绑定Router对应关系)
-	request.BindRouter(handler)
-
-	// Execute the corresponding processing method
-	request.Call()
-}
-
 func (mh *MsgHandle) Execute(request ziface.IRequest) {
 	// Pass the message to the responsibility chain to handle it through interceptors layer by layer and pass it on layer by layer.
 	// (将消息丢到责任链，通过责任链里拦截器层层处理层层传递)
@@ -155,16 +120,7 @@ func (mh *MsgHandle) Execute(request ziface.IRequest) {
 // AddRouter adds specific processing logic for messages
 // (为消息添加具体的处理逻辑)
 func (mh *MsgHandle) AddRouter(msgID uint32, router ziface.IRouter) {
-	// 1. Check whether the current API processing method bound to the msgID already exists
-	// (判断当前msg绑定的API处理方法是否已经存在)
-	if _, ok := mh.Apis[msgID]; ok {
-		msgErr := fmt.Sprintf("repeated api , msgID = %+v\n", msgID)
-		panic(msgErr)
-	}
-	// 2. Add the binding relationship between msg and API
-	// (添加msg与api的绑定关系)
-	mh.Apis[msgID] = router
-	zlog.Ins().InfoF("Add Router msgID = %d", msgID)
+	mh.AddRouterSlices(msgID, router.PreHandle, router.Handle, router.PostHandle)
 }
 
 // AddRouterSlices adds router handlers using slices
@@ -199,6 +155,7 @@ func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest, workerID int) {
 
 	request.BindRouterSlices(handlers)
 	request.RouterSlicesNext()
+
 }
 
 // StartOneWorker starts a worker workflow
@@ -222,11 +179,8 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 
 			case ziface.IRequest: // Client message request
 
-				if !zconf.GlobalObject.RouterSlicesMode {
-					mh.doMsgHandler(req, workerID)
-				} else if zconf.GlobalObject.RouterSlicesMode {
-					mh.doMsgHandlerSlices(req, workerID)
-				}
+				mh.doMsgHandlerSlices(req, workerID)
+
 			}
 		}
 	}
