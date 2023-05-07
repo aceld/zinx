@@ -3,11 +3,6 @@ package znet
 import (
 	"encoding/hex"
 	"fmt"
-	"strconv"
-	"time"
-
-	"github.com/aceld/zinx/zmetrics"
-
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
@@ -115,17 +110,6 @@ func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
 	zlog.Ins().DebugF("SendMsgToTaskQueue-->%s", hex.EncodeToString(request.GetData()))
 }
 
-func (mh *MsgHandle) StatisticsMetrics(request ziface.IRequest, workerId int, msgId uint32, timeNow time.Time) {
-
-	conn := request.GetConnection()
-
-	// Increment the count of times the MsgID is scheduled for routing
-	zmetrics.Metrics().IncRouterSchedule(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerId), strconv.Itoa(int(msgId)))
-
-	// Record the duration of the Router and MsgID business scheduling
-	zmetrics.Metrics().ObserveRouterScheduleDuration(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerId), strconv.Itoa(int(msgId)), time.Since(timeNow))
-}
-
 // doFuncHandler handles functional requests (执行函数式请求)
 func (mh *MsgHandle) doFuncHandler(request ziface.IFuncRequest, workerId int) {
 	defer func() {
@@ -146,11 +130,6 @@ func (mh *MsgHandle) doMsgHandler(request ziface.IRequest, workerID int) {
 		}
 	}()
 
-	var timeNow time.Time
-	if zmetrics.Metrics().IsEnable() {
-		timeNow = time.Now()
-	}
-
 	msgId := request.GetMsgID()
 	handler, ok := mh.Apis[msgId]
 
@@ -165,9 +144,6 @@ func (mh *MsgHandle) doMsgHandler(request ziface.IRequest, workerID int) {
 
 	// Execute the corresponding processing method
 	request.Call()
-
-	// Record the Router scheduling indicator data
-	mh.StatisticsMetrics(request, workerID, msgId, timeNow)
 }
 
 func (mh *MsgHandle) Execute(request ziface.IRequest) {
@@ -214,11 +190,6 @@ func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest, workerID int) {
 		}
 	}()
 
-	var timeNow time.Time
-	if zmetrics.Metrics().IsEnable() {
-		timeNow = time.Now()
-	}
-
 	msgId := request.GetMsgID()
 	handlers, ok := mh.RouterSlices.GetHandlers(msgId)
 	if !ok {
@@ -228,9 +199,6 @@ func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest, workerID int) {
 
 	request.BindRouterSlices(handlers)
 	request.RouterSlicesNext()
-
-	// Statistics the number of times a MsgID is dispatched by the router
-	mh.StatisticsMetrics(request, workerID, msgId, timeNow)
 }
 
 // StartOneWorker starts a worker workflow
@@ -259,11 +227,6 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 				} else if zconf.GlobalObject.RouterSlicesMode {
 					mh.doMsgHandlerSlices(req, workerID)
 				}
-
-				// Metrics statistics. After each request is processed, the number of tasks processed by the current WorkId is increased by 1.
-				// (Metrics统计，每次处理完一个请求，当前WorkId处理的任务数量+1)
-				conn := request.GetConnection()
-				zmetrics.Metrics().IncTask(conn.LocalAddrString(), conn.GetName(), strconv.Itoa(workerID))
 			}
 		}
 	}
