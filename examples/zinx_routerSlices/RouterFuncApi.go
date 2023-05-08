@@ -39,7 +39,7 @@ func TestFunc(request ziface.IRequest) {
 func main() {
 
 	// New version usage and explanation.(新版本使用方法以及说明)
-	server := znet.NewUserConfServer(&zconf.Config{RouterSlicesMode: true, TCPPort: 8999, Host: "127.0.0.1"})
+	server := znet.NewUserConfServer(&zconf.Config{RouterSlicesMode: true, TCPPort: 8999, Host: "127.0.0.1", WorkerPoolGoroutineNums: 3})
 
 	// Simulation scenario 1: A normal business that only executes a single operation function separately.
 	// 模拟场景 1，普通业务单独只执行一个操作函数

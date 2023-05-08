@@ -208,7 +208,7 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 	// Continuously wait for messages in the queue
 	// (不断地等待队列中的消息)
 	//启动配置好的个数的协程去从消息池中取消息，多个协程可以避免因为单个阻塞的任务导致协程等待影响后面任务的执行
-	for i := uint32(0); i < zconf.GlobalObject.WorkerGoroutineNums; i++ {
+	for i := uint32(0); i < zconf.GlobalObject.WorkerPoolGoroutineNums; i++ {
 		go func() {
 			for {
 				select {

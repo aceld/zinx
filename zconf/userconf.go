@@ -35,8 +35,8 @@ func UserConfToGlobal(config *Config) {
 	if config.MaxWorkerTaskLen != 0 {
 		GlobalObject.MaxWorkerTaskLen = config.MaxWorkerTaskLen
 	}
-	if config.WorkerGoroutineNums > 0 {
-		GlobalObject.WorkerGoroutineNums = config.WorkerGoroutineNums
+	if config.WorkerPoolGoroutineNums > 0 {
+		GlobalObject.WorkerPoolGoroutineNums = config.WorkerPoolGoroutineNums
 	}
 	if config.MaxMsgChanLen != 0 {
 		GlobalObject.MaxMsgChanLen = config.MaxMsgChanLen
