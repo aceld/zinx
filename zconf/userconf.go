@@ -35,11 +35,17 @@ func UserConfToGlobal(config *Config) {
 	if config.MaxWorkerTaskLen != 0 {
 		GlobalObject.MaxWorkerTaskLen = config.MaxWorkerTaskLen
 	}
+	if config.WorkerGoroutineNums > 0 {
+		GlobalObject.WorkerGoroutineNums = config.WorkerGoroutineNums
+	}
 	if config.MaxMsgChanLen != 0 {
 		GlobalObject.MaxMsgChanLen = config.MaxMsgChanLen
 	}
 	if config.IOReadBuffSize != 0 {
 		GlobalObject.IOReadBuffSize = config.IOReadBuffSize
+	}
+	if config.RouterSlicesMode {
+		GlobalObject.RouterSlicesMode = config.RouterSlicesMode
 	}
 
 	// logger
@@ -81,7 +87,4 @@ func UserConfToGlobal(config *Config) {
 		GlobalObject.WsPort = config.WsPort
 	}
 
-	if config.RouterSlicesMode {
-		GlobalObject.RouterSlicesMode = config.RouterSlicesMode
-	}
 }
