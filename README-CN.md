@@ -12,7 +12,9 @@ Zinx 是一个基于Golang的轻量级并发服务器框架
 
 ## 开发者文档
 
-[《Zinx Documentation》](https://www.yuque.com/aceld/tsgooa/sbvzgczh3hqz8q3l)
+[ < Zinx Wiki : English > ](https://github.com/aceld/zinx/wiki)
+
+[ < Zinx 文档 : 简体中文> ](https://www.yuque.com/aceld/tsgooa/sbvzgczh3hqz8q3l)
 
 > **说明**:目前zinx已经在很多企业进行开发使用，具体使用领域包括:后端模块的消息中转、长链接游戏服务器、Web框架中的消息处理插件等。zinx的定位是代码简洁，让更多的开发者迅速的了解框架的内脏细节并且可以快速基于zinx DIY(二次开发)一款适合自己企业场景的模块。
 
@@ -32,7 +34,12 @@ http://zinx.me
 ## 在线开发教程
 
 ### 文字教程
-[语雀-《Zinx框架教程-基于Golang的轻量级并发服务器》](https://www.yuque.com/aceld)
+
+| platform | Entry | 
+| ---- | ---- | 
+| <img src="https://user-images.githubusercontent.com/7778936/236784004-b6d99e26-b1ab-4bc3-988e-7a46108b85fe.png" width = "100" height = "100" alt="" align=center />| [Zinx Framework tutorial-Lightweight server based on Golang](https://dev.to/aceld/1building-basic-services-with-zinx-framework-296e)| 
+|<img src="https://user-images.githubusercontent.com/7778936/236784168-6528a9b8-d37b-4b02-a37c-b9988d7508d8.jpeg" width = "100" height = "100" alt="" align=center />|[《Golang轻量级并发服务器框架zinx》](https://www.yuque.com/aceld)|
+
 
 ### 视频教程
 
@@ -41,10 +48,6 @@ http://zinx.me
 | <img src="https://s1.ax1x.com/2022/09/22/xFePUK.png" width = "100" height = "100" alt="" align=center />| [![zinx-BiliBili](https://s2.ax1x.com/2019/10/13/uv340S.jpg)](https://www.bilibili.com/video/av71067087)| 
 | <img src="https://s1.ax1x.com/2022/09/22/xFesxJ.png" width = "100" height = "80" alt="" align=center />  | [![zinx-BiliBili](https://s2.ax1x.com/2019/10/13/uv340S.jpg)](https://www.douyin.com/video/6983301202939333891) |
 | <img src="https://s1.ax1x.com/2022/09/23/xkQcng.png" width = "100" height = "100" alt="" align=center />| [![zinx-youtube](https://s2.ax1x.com/2019/10/14/KSurCR.jpg)](https://www.youtube.com/watch?v=U95iF-HMWsU&list=PL_GrAPKmuajzeNI8HBTi-k5NQO1g0rM-A)| 
-
-
-### 移动端
-![gongzhonghao](https://s1.ax1x.com/2020/07/07/UFyUdx.th.jpg)
 
     
 ## 一、写在前面
@@ -83,8 +86,6 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 
 
 ## 三、Zinx开发接口文档
-
-[《Zinx 开发接口文档》](https://www.yuque.com/aceld/tsgooa/sbvzgczh3hqz8q3l)
 
 
 ### （1）快速开始
@@ -323,7 +324,12 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
 `原创书籍`:
 [https://www.yuque.com/aceld](https://www.yuque.com/aceld)
 
-### Zinx技术讨论社区
-|  **微信群**   | **微信公众号**  | **QQ群资源分享**  |
-|  ----  | ----  | ----  |
-| <img src="https://s1.ax1x.com/2020/07/07/UF6rNV.png" width = "150" height = "180" alt="" align=center />  | <img src="https://s1.ax1x.com/2020/07/07/UFyUdx.th.jpg" height = "150"  alt="" align=center /> | <img src="https://s1.ax1x.com/2020/07/07/UF6Y9S.th.png" width = "150" height = "150" alt="" align=center /> |
+
+### 加入Zinx技术社区
+
+| platform | Entry | 
+| ---- | ---- | 
+| <img src="https://user-images.githubusercontent.com/7778936/236775008-6bd488e3-249a-4d43-8885-7e3889e11e2d.png" width = "100" height = "100" alt="" align=center />| https://discord.gg/xQ8Xxfyfcz| 
+| <img src="https://user-images.githubusercontent.com/7778936/236775137-5381f8a6-f534-49c4-8628-e52bf245c3bc.jpeg" width = "100" height = "100" alt="" align=center />  | 加微信: `ace_ld`  或扫二维码，备注`zinx`即可。</br><img src="https://user-images.githubusercontent.com/7778936/236781258-2f0371bd-5797-49e8-a74c-680e9f15843d.png" width = "150" height = "150" alt="" align=center /> |
+|<img src="https://user-images.githubusercontent.com/7778936/236778547-9cdadfb6-0f62-48ac-851a-b940389038d0.jpeg" width = "100" height = "100" alt="" align=center />|<img src="https://s1.ax1x.com/2020/07/07/UFyUdx.th.jpg" height = "150"  alt="" align=center /> **WeChat Public Account** |
+|<img src="https://user-images.githubusercontent.com/7778936/236779000-70f16c8f-0eec-4b5f-9faa-e1d5229a43e0.png" width = "100" height = "100" alt="" align=center />|<img src="https://s1.ax1x.com/2020/07/07/UF6Y9S.th.png" width = "150" height = "150" alt="" align=center /> **QQ Group** |
