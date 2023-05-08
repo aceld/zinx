@@ -14,11 +14,14 @@ func main() {
 	}
 
 	dp := zpack.NewDataPack()
-	msg, _ := dp.Pack(zpack.NewMsgPackage(1, []byte("ZinxPing")))
-	_, err = conn.Write(msg)
-	if err != nil {
-		fmt.Println("write error err ", err)
-		return
+	for i := 1; i < 4; i++ {
+		msg, _ := dp.Pack(zpack.NewMsgPackage(uint32(i), []byte("ZinxPing")))
+		fmt.Println(i)
+		_, err = conn.Write(msg)
+		if err != nil {
+			fmt.Println("write error err ", err)
+			return
+		}
 	}
 
 }

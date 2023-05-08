@@ -45,7 +45,7 @@ type Config struct {
 	MaxPacketSize           uint32 //The maximum size of the packets that can be sent or received.(读写数据包的最大值)
 	MaxConn                 int    //The maximum number of connections that the server can handle.(当前服务器主机允许的最大链接个数)
 	WorkerPoolSize          uint32 //The number of worker pools in the business logic.(业务工作Worker池的数量)
-	WorkerPoolGoroutineNums uint32 //从业务工作Worker池去读取消息的协程数量
+	WorkerPoolGoroutineNums uint32 //从业务工作Worker池去读取消息的协程数量 警告！WorkerPoolGoroutineNums>1会导致同一chan中的消息执行顺序不可控！
 	MaxWorkerTaskLen        uint32 //The maximum number of tasks that a worker pool can handle.(业务工作Worker对应负责的任务队列最大任务存储数量)
 	MaxMsgChanLen           uint32 //The maximum length of the send buffer message queue.(SendBuffMsg发送消息的缓冲最大长度)
 	IOReadBuffSize          uint32 //The maximum size of the read buffer for each IO operation.(每次IO最大的读取长度)
