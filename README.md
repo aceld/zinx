@@ -2,7 +2,7 @@
 English | [简体中文](README-CN.md)
 
 [![License](https://img.shields.io/badge/License-GPL%203.0-black.svg)](LICENSE)
-[![Discord](https://img.shields.io/badge/zinx-Discord-blue.svg)](https://discord.gg/rM2sw5uv)
+[![Discord](https://img.shields.io/badge/zinx-Discord-blue.svg)](https://discord.gg/xQ8Xxfyfcz)
 [![Gitter](https://img.shields.io/badge/zinx-Gitter-green.svg)](https://gitter.im/zinx_go/community) 
 [![zinx tutorial](https://img.shields.io/badge/ZinxTutorial-YuQue-red.svg)](https://www.yuque.com/aceld/npyr8s/bgftov) 
 [![Original Book of Zinx](https://img.shields.io/badge/OriginalBook-YuQue-black.svg)](https://www.yuque.com/aceld)
