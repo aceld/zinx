@@ -27,6 +27,8 @@ func f3(request ziface.IRequest) {
 func main() {
 
 	server := znet.NewUserConfServer(&zconf.Config{RouterSlicesMode: true, TCPPort: 8999, Host: "127.0.0.1", WorkerPoolGoroutineNums: 1})
+	//配置大于1
+	//server := znet.NewUserConfServer(&zconf.Config{RouterSlicesMode: true, TCPPort: 8999, Host: "127.0.0.1", WorkerPoolGoroutineNums: 2})
 	server.Use(znet.RouterTime)
 	server.AddRouterSlices(1, f1)
 	server.AddRouterSlices(2, f2)
