@@ -1,6 +1,7 @@
 # <img width="80px" src="https://s2.ax1x.com/2019/10/09/u4yHo9.png" /> 
 
 [English](README.md) | 简体中文
+
 [![License](https://img.shields.io/badge/License-GPL%203.0-black.svg)](LICENSE)
 [![Discord](https://img.shields.io/badge/zinx-Discord在线社区-blue.svg)](https://discord.gg/xQ8Xxfyfcz)
 [![Gitter](https://img.shields.io/badge/zinx-Gitter在线交流-green.svg)](https://gitter.im/zinx_go/community)
