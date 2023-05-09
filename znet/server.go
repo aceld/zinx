@@ -16,7 +16,6 @@ import (
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/zlog"
-	"github.com/aceld/zinx/zmetrics"
 	"github.com/gorilla/websocket"
 
 	"github.com/aceld/zinx/ziface"
