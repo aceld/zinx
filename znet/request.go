@@ -43,7 +43,7 @@ func NewRequest(conn ziface.IConnection, msg ziface.IMessage) ziface.IRequest {
 	req.msg = msg
 	req.stepLock = new(sync.RWMutex)
 	req.needNext = true
-
+	req.index = -1
 	return req
 }
 
@@ -120,7 +120,6 @@ func (r *Request) Abort() {
 // New version
 func (r *Request) BindRouterSlices(handlers []ziface.RouterHandler) {
 	r.handlers = handlers
-	r.index = -1
 }
 
 func (r *Request) RouterSlicesNext() {
