@@ -16,7 +16,6 @@ import (
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/zlog"
-	"github.com/aceld/zinx/zmetrics"
 	"github.com/gorilla/websocket"
 
 	"github.com/aceld/zinx/ziface"
@@ -80,21 +79,22 @@ type Server struct {
 	// connection id
 	cID uint64
 }
+
 // newServerWithConfig creates a server handle based on config
 // (根据config创建一个服务器句柄)
 func newServerWithConfig(config *zconf.Config, ipVersion string, opts ...Option) ziface.IServer {
 	logo.PrintLogo()
 
 	s := &Server{
-		Name:       config.Name,
-		IPVersion:  ipVersion,
-		IP:         config.Host,
-		Port:       config.TCPPort,
-		WsPort:     config.WsPort,
-		msgHandler: newMsgHandle(),
-		RouterSlicesMode: zconf.GlobalObject.RouterSlicesMode,
-		ConnMgr:    newConnManager(),
-		exitChan:   nil,
+		Name:             config.Name,
+		IPVersion:        ipVersion,
+		IP:               config.Host,
+		Port:             config.TCPPort,
+		WsPort:           config.WsPort,
+		msgHandler:       newMsgHandle(),
+		RouterSlicesMode: config.RouterSlicesMode,
+		ConnMgr:          newConnManager(),
+		exitChan:         nil,
 		// Default to using Zinx's TLV data pack format
 		// (默认使用zinx的TLV封包方式)
 		packet:  zpack.Factory().NewPack(ziface.ZinxDataPack),
@@ -139,6 +139,7 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 // NewDefaultRouterSlicesServer creates a server handle with a default RouterRecovery processor.
 // (创建一个默认自带一个Recover处理器的服务器句柄)
 func NewDefaultRouterSlicesServer(opts ...Option) ziface.IServer {
+	zconf.GlobalObject.RouterSlicesMode = true
 	s := newServerWithConfig(zconf.GlobalObject, "tcp", opts...)
 	s.Use(RouterRecovery)
 	return s
@@ -149,6 +150,10 @@ func NewDefaultRouterSlicesServer(opts ...Option) ziface.IServer {
 // (创建一个用户配置的自带一个Recover处理器的服务器句柄，如果用户不希望Use这个方法，那么应该使用NewUserConfServer)
 func NewUserConfDefaultRouterSlicesServer(config *zconf.Config, opts ...Option) ziface.IServer {
 
+	if !config.RouterSlicesMode {
+		panic("RouterSlicesMode is false")
+	}
+
 	// Refresh user configuration to global configuration variable (刷新用户配置到全局配置变量)
 	zconf.UserConfToGlobal(config)
 
@@ -156,7 +161,6 @@ func NewUserConfDefaultRouterSlicesServer(config *zconf.Config, opts ...Option) 
 	s.Use(RouterRecovery)
 	return s
 }
-
 
 func (s *Server) StartConn(conn ziface.IConnection) {
 	// HeartBeat check
