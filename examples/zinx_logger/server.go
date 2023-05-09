@@ -41,9 +41,14 @@ func (t *TestRouter) PostHandle(req ziface.IRequest) {
 	}
 }
 
+func onLog(a []byte) {
+
+}
+
 func main() {
 	s := znet.NewServer()
 	s.AddRouter(1, &TestRouter{})
 	zlog.SetLogger(new(MyLogger))
+	zlog.StdZinxLog.SetOnLogListen(&onLog)
 	s.Serve()
 }

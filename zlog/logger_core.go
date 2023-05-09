@@ -109,14 +109,16 @@ type ZinxLoggerCore struct {
 	// file swap lock
 	// (文件交换锁)
 	fsLock sync.Mutex
+
+	onLogHook func([]byte)
 }
 
 /*
-	NewZinxLog Create a new log
+NewZinxLog Create a new log
 
-	out: The file io for standard output
-	prefix: The prefix of the log
-	flag: The flag of the log header information
+out: The file io for standard output
+prefix: The prefix of the log
+flag: The flag of the log header information
 */
 func NewZinxLog(out io.Writer, prefix string, flag int) *ZinxLoggerCore {
 
@@ -135,13 +137,17 @@ func CleanZinxLog(log *ZinxLoggerCore) {
 	log.closeFile()
 }
 
-/*
-	formatHeader generates the header information for a log entry.
+func (log *ZinxLoggerCore) SetLogHook(f func([]byte)) {
+	log.onLogHook = f
+}
 
-	t: The current time.
-	file: The file name of the source code invoking the log function.
-	line: The line number of the source code invoking the log function.
-	level: The log level of the current log entry.
+/*
+formatHeader generates the header information for a log entry.
+
+t: The current time.
+file: The file name of the source code invoking the log function.
+line: The line number of the source code invoking the log function.
+level: The log level of the current log entry.
 */
 func (log *ZinxLoggerCore) formatHeader(t time.Time, file string, line int, level int) {
 	var buf *bytes.Buffer = &log.buf
@@ -248,6 +254,10 @@ func (log *ZinxLoggerCore) OutPut(level int, s string) error {
 	} else {
 		// write the filled buffer to IO output
 		_, err = log.out.Write(log.buf.Bytes())
+	}
+
+	if log.onLogHook != nil {
+		log.onLogHook(log.buf.Bytes())
 	}
 
 	return err
