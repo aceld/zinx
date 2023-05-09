@@ -5,6 +5,7 @@ type IHeartbeatChecker interface {
 	SetHeartbeatMsgFunc(HeartBeatMsgFunc)
 	SetHeartbeatFunc(HeartBeatFunc)
 	BindRouter(uint32, IRouter)
+	BindRouterSlices(uint32, ...RouterHandler)
 	Start()
 	Stop()
 	SendHeartBeatMsg() error
@@ -12,6 +13,7 @@ type IHeartbeatChecker interface {
 	Clone() IHeartbeatChecker
 	MsgID() uint32
 	Router() IRouter
+	RouterSlices() []RouterHandler
 }
 
 // User-defined method for handling heartbeat detection messages
@@ -31,6 +33,7 @@ type HeartBeatOption struct {
 	OnRemoteNotAlive OnRemoteNotAlive // User-defined method for handling remote connections that are not alive(用户自定义的远程连接不存活时的处理方法)
 	HeadBeatMsgID    uint32           // User-defined ID for heartbeat detection messages(用户自定义的心跳检测消息ID)
 	Router           IRouter          // User-defined business processing route for heartbeat detection messages(用户自定义的心跳检测消息业务处理路由)
+	RouterSlices     []RouterHandler  //新版本的路由处理函数的集合
 }
 
 const (

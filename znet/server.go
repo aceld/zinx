@@ -16,6 +16,7 @@ import (
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/zlog"
+	"github.com/aceld/zinx/zmetrics"
 	"github.com/gorilla/websocket"
 
 	"github.com/aceld/zinx/ziface"
@@ -39,6 +40,9 @@ type Server struct {
 	// Current server's message handler module, used to bind MsgID to corresponding processing methods
 	// (当前Server的消息管理模块，用来绑定MsgID和对应的处理方法)
 	msgHandler ziface.IMsgHandle
+
+	// Routing mode (路由模式)
+	RouterSlicesMode bool
 
 	// Current server's connection manager (当前Server的链接管理器)
 	ConnMgr ziface.IConnManager
@@ -76,7 +80,6 @@ type Server struct {
 	// connection id
 	cID uint64
 }
-
 // newServerWithConfig creates a server handle based on config
 // (根据config创建一个服务器句柄)
 func newServerWithConfig(config *zconf.Config, ipVersion string, opts ...Option) ziface.IServer {
@@ -89,6 +92,7 @@ func newServerWithConfig(config *zconf.Config, ipVersion string, opts ...Option)
 		Port:       config.TCPPort,
 		WsPort:     config.WsPort,
 		msgHandler: newMsgHandle(),
+		RouterSlicesMode: zconf.GlobalObject.RouterSlicesMode,
 		ConnMgr:    newConnManager(),
 		exitChan:   nil,
 		// Default to using Zinx's TLV data pack format
@@ -152,6 +156,7 @@ func NewUserConfDefaultRouterSlicesServer(config *zconf.Config, opts ...Option) 
 	s.Use(RouterRecovery)
 	return s
 }
+
 
 func (s *Server) StartConn(conn ziface.IConnection) {
 	// HeartBeat check
@@ -279,8 +284,9 @@ func (s *Server) ListenWebsocketConn() {
 			AcceptDelay.Delay()
 			return
 		}
+		AcceptDelay.Reset()
 		// 5. Handle the business logic of the new connection, which should already be bound to a handler and conn
-		// (处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的)
+		// 5. 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 		newCid := atomic.AddUint64(&s.cID, 1)
 		wsConn := newWebsocketConn(s, conn, newCid)
 		go s.StartConn(wsConn)
@@ -345,18 +351,30 @@ func (s *Server) Serve() {
 }
 
 func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
+	if s.RouterSlicesMode {
+		panic("Server RouterSlicesMode is true ")
+	}
 	s.msgHandler.AddRouter(msgID, router)
 }
 
 func (s *Server) AddRouterSlices(msgID uint32, router ...ziface.RouterHandler) ziface.IRouterSlices {
+	if !s.RouterSlicesMode {
+		panic("Server RouterSlicesMode is false ")
+	}
 	return s.msgHandler.AddRouterSlices(msgID, router...)
 }
 
 func (s *Server) Group(start, end uint32, Handlers ...ziface.RouterHandler) ziface.IGroupRouterSlices {
+	if !s.RouterSlicesMode {
+		panic("Server RouterSlicesMode is false")
+	}
 	return s.msgHandler.Group(start, end, Handlers...)
 }
 
 func (s *Server) Use(Handlers ...ziface.RouterHandler) ziface.IRouterSlices {
+	if !s.RouterSlicesMode {
+		panic("Server RouterSlicesMode is false")
+	}
 	return s.msgHandler.Use(Handlers...)
 }
 
@@ -400,7 +418,12 @@ func (s *Server) StartHeartBeat(interval time.Duration) {
 	checker := NewHeartbeatChecker(interval)
 
 	// Add the heartbeat check router. (添加心跳检测的路由)
-	s.AddRouter(checker.MsgID(), checker.Router())
+	//检测当前路由模式
+	if s.RouterSlicesMode {
+		s.AddRouterSlices(checker.MsgID(), checker.RouterSlices()...)
+	} else {
+		s.AddRouter(checker.MsgID(), checker.Router())
+	}
 
 	// Bind the heartbeat checker to the server. (server绑定心跳检测器)
 	s.hc = checker
@@ -418,11 +441,21 @@ func (s *Server) StartHeartBeatWithOption(interval time.Duration, option *ziface
 	if option != nil {
 		checker.SetHeartbeatMsgFunc(option.MakeMsg)
 		checker.SetOnRemoteNotAlive(option.OnRemoteNotAlive)
-		checker.BindRouter(option.HeadBeatMsgID, option.Router)
+		//检测当前路由模式
+		if s.RouterSlicesMode {
+			checker.BindRouterSlices(option.HeadBeatMsgID, option.RouterSlices...)
+		} else {
+			checker.BindRouter(option.HeadBeatMsgID, option.Router)
+		}
 	}
 
 	// Add the heartbeat checker's router to the server's router (添加心跳检测的路由)
-	s.AddRouter(checker.MsgID(), checker.Router())
+	//检测当前路由模式
+	if s.RouterSlicesMode {
+		s.AddRouterSlices(checker.MsgID(), checker.RouterSlices()...)
+	} else {
+		s.AddRouter(checker.MsgID(), checker.Router())
+	}
 
 	// Bind the server with the heartbeat checker (server绑定心跳检测器)
 	s.hc = checker

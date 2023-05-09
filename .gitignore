@@ -17,3 +17,5 @@ log
 
 /examples/zinx_websocket/minicode/node_modules
 /examples/zinx_websocket/minicode/miniprogram_npm
+
+rebase

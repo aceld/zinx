@@ -106,6 +106,7 @@ func NewTLSClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 	return c
 }
 
+
 // Start starts the client, sends requests and establishes a connection.
 // (重新启动客户端，发送请求且建立连接)
 func (c *Client) Restart() {
