@@ -3,6 +3,7 @@ package zutils
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -52,7 +53,11 @@ func New(path string) *Writer {
 	}
 	w.maxSize = sizeMiB * defMaxSize
 	w.maxAge = defMaxAge
-	os.MkdirAll(filepath.Dir(w.fpath), 0755)
+	err := os.MkdirAll(filepath.Dir(w.fpath), 0755)
+	if err != nil {
+		fmt.Printf("%c[%d;%d;%dm%s%c[0m", 0x1B, 0, 40, 31, fmt.Sprintf("create log file error %-v", err), 0x1B)
+		return nil
+	}
 	go w.daemon()
 	return w
 }
