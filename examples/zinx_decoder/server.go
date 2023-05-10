@@ -17,6 +17,7 @@ func DoConnectionLost(conn ziface.IConnection) {
 }
 
 func main() {
+	//zlog.SetLogFile("./logs", "app.log")
 	s := znet.NewServer()
 
 	s.SetOnConnStart(DoConnectionBegin)

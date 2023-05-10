@@ -1,0 +1,12 @@
+{
+  "Name":"zinx v-0.10 demoApp",
+  "Host":"0.0.0.0",
+  "TCPPort":9090,
+  "MaxConn":3,
+  "WorkerPoolSize":10,
+  "LogDir": "./mylog",
+  "LogFile":"app.log",
+  "LogSaveDays":15,
+  "LogCons": true,
+  "LogIsolationLevel":0
+}

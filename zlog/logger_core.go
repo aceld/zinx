@@ -18,10 +18,10 @@ package zlog
 import (
 	"bytes"
 	"fmt"
-	"io"
+	"github.com/aceld/zinx/zutils"
 	"os"
+	"path/filepath"
 	"runtime"
-	"strings"
 	"sync"
 	"time"
 )
@@ -75,16 +75,8 @@ type ZinxLoggerCore struct {
 	// log tag bit (日志标记位)
 	flag int
 
-	// the file descriptor for log output
-	// (日志输出的文件描述符)
-	out io.Writer
-
 	// the output buffer (输出的缓冲区)
 	buf bytes.Buffer
-
-	// the output file currently bound to the log
-	// (当前日志绑定的输出文件)
-	file *os.File
 
 	// log isolation level
 	// (日志隔离级别)
@@ -94,21 +86,7 @@ type ZinxLoggerCore struct {
 	// (获取日志文件名和代码上述的runtime.Call 的函数调用层数)
 	calldDepth int
 
-	// log file name
-	// (日志文件名称)
-	fileName string
-
-	// log file directory
-	// (日志文件目录)
-	fileDir string
-
-	// last write date
-	// (上次写入日期)
-	lastWriteDate int
-
-	// file swap lock
-	// (文件交换锁)
-	fsLock sync.Mutex
+	fw *zutils.Writer
 
 	onLogHook func([]byte)
 }
@@ -120,11 +98,11 @@ out: The file io for standard output
 prefix: The prefix of the log
 flag: The flag of the log header information
 */
-func NewZinxLog(out io.Writer, prefix string, flag int) *ZinxLoggerCore {
+func NewZinxLog(prefix string, flag int) *ZinxLoggerCore {
 
 	// By default, debug is turned on, the depth is 2, and the ZinxLogger object calling the log print method can call up to two levels to reach the output function
 	// (默认 debug打开， calledDepth深度为2,ZinxLogger对象调用日志打印方法最多调用两层到达output函数)
-	zlog := &ZinxLoggerCore{out: out, prefix: prefix, flag: flag, file: nil, isolationLevel: 0, calldDepth: 2}
+	zlog := &ZinxLoggerCore{prefix: prefix, flag: flag, isolationLevel: 0, calldDepth: 2}
 
 	// Set the log object's resource cleanup destructor method (this is not necessary, as go's Gc will automatically collect, but for the sake of neatness)
 	// (设置log对象 回收资源 析构方法(不设置也可以，go的Gc会自动回收，强迫症没办法))
@@ -245,23 +223,19 @@ func (log *ZinxLoggerCore) OutPut(level int, s string) error {
 		log.buf.WriteByte('\n')
 	}
 
-	log.updateOutputFile()
-
 	var err error
-	if log.file == nil {
+	if log.fw == nil {
 		// if log file is not set, output to console
 		_, _ = os.Stderr.Write(log.buf.Bytes())
 	} else {
 		// write the filled buffer to IO output
-		_, err = log.out.Write(log.buf.Bytes())
+		_, err = log.fw.Write(log.buf.Bytes())
 	}
 
 	if log.onLogHook != nil {
 		log.onLogHook(log.buf.Bytes())
 	}
-
 	return err
-
 }
 
 func (log *ZinxLoggerCore) verifyLogIsolation(logLevel int) bool {
@@ -407,66 +381,48 @@ func (log *ZinxLoggerCore) SetPrefix(prefix string) {
 // SetLogFile sets the log file output
 // (设置日志文件输出)
 func (log *ZinxLoggerCore) SetLogFile(fileDir string, fileName string) {
-	log.fileDir = fileDir
-	log.fileName = fileName
+	if log.fw != nil {
+		log.fw.Close()
+	}
+	log.fw = zutils.New(filepath.Join(fileDir, fileName))
+}
+
+// SetMaxAge 最大保留天数
+func (log *ZinxLoggerCore) SetMaxAge(ma int) {
+	if log.fw == nil {
+		return
+	}
+	log.mu.Lock()
+	defer log.mu.Unlock()
+	log.fw.SetMaxAge(ma)
+}
+
+// SetMaxSize 单个日志最大容量 单位：字节
+func (log *ZinxLoggerCore) SetMaxSize(ms int64) {
+	if log.fw == nil {
+		return
+	}
+	log.mu.Lock()
+	defer log.mu.Unlock()
+	log.fw.SetMaxSize(ms)
+}
+
+// SetCons 同时输出控制台
+func (log *ZinxLoggerCore) SetCons(b bool) {
+	if log.fw == nil {
+		return
+	}
+	log.mu.Lock()
+	defer log.mu.Unlock()
+	log.fw.SetCons(b)
 }
 
 // Close the file associated with the log
 // (关闭日志绑定的文件)
 func (log *ZinxLoggerCore) closeFile() {
-	if log.file != nil {
-		_ = log.file.Close()
-		log.file = nil
-		log.out = os.Stderr
+	if log.fw != nil {
+		log.fw.Close()
 	}
-}
-
-// update the output file for the log
-// (更新文件输出)
-func (log *ZinxLoggerCore) updateOutputFile() {
-
-	var file *os.File
-
-	yearDay := time.Now().YearDay()
-
-	if log.lastWriteDate == yearDay && log.file != nil {
-		return
-	}
-
-	log.fsLock.Lock()
-	defer log.fsLock.Unlock()
-
-	if log.lastWriteDate == yearDay && log.file != nil {
-		return
-	}
-
-	log.lastWriteDate = yearDay
-
-	// create the log directory
-	_ = mkdirLog(log.fileDir)
-
-	// define the log file name = log file name . date suffix . log
-	// supported file name formats:
-	// 1. "zinx.log"
-	// 2. "zinx"
-	// 3. "zinx.zinx.zinx.log"
-	realFileNameSlice := strings.Split(log.fileName, ".log")
-	realFileName := realFileNameSlice[0]
-	newDailyFile := log.fileDir + "/" + realFileName + "." + time.Now().Format("20060102") + ".log"
-
-	if log.checkFileExist(newDailyFile) {
-		file, _ = os.OpenFile(newDailyFile, os.O_APPEND|os.O_RDWR, 0644) // rw-r--r--
-	} else {
-		file, _ = os.OpenFile(newDailyFile, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)
-	}
-
-	if log.file != nil {
-		log.closeFile()
-	}
-
-	log.file = file
-	log.out = file
-
 }
 
 func (log *ZinxLoggerCore) SetLogLevel(logLevel int) {
@@ -479,19 +435,6 @@ func (log *ZinxLoggerCore) checkFileExist(filename string) bool {
 		exist = false
 	}
 	return exist
-}
-
-func mkdirLog(dir string) (e error) {
-	_, er := os.Stat(dir)
-	b := er == nil || os.IsExist(er)
-	if !b {
-		if err := os.MkdirAll(dir, 0775); err != nil {
-			if os.IsPermission(err) {
-				e = err
-			}
-		}
-	}
-	return
 }
 
 // Convert an integer to a fixed-length string, where the width of the string should be greater than 0

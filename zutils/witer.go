@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+/*
+add by uuxia
+代码出处：https://github.com/zxysilent/logs
+*/
 const (
 	sizeMiB    = 1024 * 1024
 	defMaxAge  = 31
@@ -52,10 +56,10 @@ func New(path string) *Writer {
 	go w.daemon()
 	return w
 }
-func (w *Writer) daemon() {
-	for range time.NewTicker(time.Second * 5).C {
-		w.flush()
-	}
+
+func (w *Writer) Close() error {
+	w.flush()
+	return w.close()
 }
 
 // SetMaxAge 最大保留天数
@@ -186,11 +190,6 @@ func (w *Writer) time2name(t time.Time) string {
 	return t.Format(".2006-01-02-150405")
 }
 
-func (w *Writer) Close() error {
-	w.flush()
-	return w.close()
-}
-
 // close closes the file if it is open.
 func (w *Writer) close() error {
 	w.mu.Lock()
@@ -263,4 +262,10 @@ func appendInt(b []byte, x int, width int) []byte {
 	}
 	b[i] = utod(u)
 	return b
+}
+
+func (w *Writer) daemon() {
+	for range time.NewTicker(time.Second * 5).C {
+		w.flush()
+	}
 }

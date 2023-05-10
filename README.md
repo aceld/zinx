@@ -261,12 +261,14 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
 ```json
 {
   "Name":"zinx v-0.10 demoApp",
-  "Host":"127.0.0.1",
-  "TCPPort":7777,
+  "Host":"0.0.0.0",
+  "TCPPort":9090,
   "MaxConn":3,
   "WorkerPoolSize":10,
   "LogDir": "./mylog",
-  "LogFile":"zinx.log",
+  "LogFile":"app.log",
+  "LogSaveDays":15,
+  "LogCons": true,
   "LogIsolationLevel":0
 }
 ```
