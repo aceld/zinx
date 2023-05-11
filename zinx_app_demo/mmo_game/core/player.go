@@ -103,12 +103,8 @@ func (p *Player) SyncSurrounding() {
 			},
 		},
 	}
-	//3.2 打包广播消息
-	data := datapack.SerializeMsg2Bytes(200, msg)
-	//3.3 每个玩家分别给对应的客户端发送200消息，显示人物
-	for _, player := range players {
-		player.SendBytes(data)
-	}
+	//3.2 每个玩家分别给对应的客户端发送200消息，显示人物
+	BroadCast(players, 200, msg)
 	//4 让周围九宫格内的玩家出现在自己的视野中
 	//4.1 制作Message SyncPlayers 数据
 	playersData := make([]*pb.Player, 0, len(players))
@@ -148,13 +144,8 @@ func (p *Player) Talk(content string) {
 	//2. 得到当前世界所有的在线玩家
 	players := WorldMgrObj.GetAllPlayers()
 
-	//3. 打包广播消息
-	data := datapack.SerializeMsg2Bytes(200, msg)
-
-	//4. 向所有的玩家发送MsgID:200消息
-	for _, player := range players {
-		player.SendBytes(data)
-	}
+	//3. 向所有的玩家发送MsgID:200消息
+	BroadCast(players, 200, msg)
 }
 
 // 广播玩家位置移动
@@ -198,12 +189,9 @@ func (p *Player) UpdatePos(x float32, y float32, z float32, v float32) {
 
 	//获取当前玩家周边全部玩家
 	players := p.GetSurroundingPlayers()
-	// 打包广播消息
-	data := datapack.SerializeMsg2Bytes(200, msg)
+
 	//向周边的每个玩家发送MsgID:200消息，移动位置更新消息
-	for _, player := range players {
-		player.SendBytes(data)
-	}
+	BroadCast(players, 200, msg)
 }
 
 func (p *Player) OnExchangeAoiGrID(oldGID, newGID int) error {
@@ -331,12 +319,9 @@ func (p *Player) LostConnection() {
 	msg := &pb.SyncPID{
 		PID: p.PID,
 	}
-	data := datapack.SerializeMsg2Bytes(201, msg)
 
 	//3 向周围玩家发送消息
-	for _, player := range players {
-		player.SendBytes(data)
-	}
+	BroadCast(players, 201, msg)
 
 	//4 世界管理器将当前玩家从AOI中摘除
 	WorldMgrObj.AoiMgr.RemoveFromGrIDByPos(int(p.PID), p.X, p.Z)
@@ -375,8 +360,22 @@ Send serialized bytes to the client for use in broadcast functions to significan
 发送已序列化的字符串给客户端，用于各类广播方法，减少消息序列化次数，显著降低大规模广播时的CPU消耗。
 */
 func (p *Player) SendBytes(data []byte) {
+	if p.Conn == nil {
+		fmt.Println("failed to send bytes, connection in player is nil")
+		return
+	}
+
 	if err := p.Conn.SendToQueue(data); err != nil {
 		fmt.Println("failed to send bytes with err: ", err)
 		return
+	}
+}
+
+// Send Message to multiple players
+// 将消息广播给一组玩家
+func BroadCast(players []*Player, msgID uint32, msgData proto.Message) {
+	data := datapack.SerializeMsg2Bytes(msgID, msgData)
+	for _, player := range players {
+		player.SendBytes(data)
 	}
 }
