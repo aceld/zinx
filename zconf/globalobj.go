@@ -24,10 +24,10 @@ const (
 )
 
 /*
-   Store all global parameters related to the Zinx framework for use by other modules.
-   Some parameters can also be configured by the user based on the zinx.json file.
-	(存储一切有关Zinx框架的全局参数，供其他模块使用
-	一些参数也可以通过 用户根据 zinx.json来配置)
+	   Store all global parameters related to the Zinx framework for use by other modules.
+	   Some parameters can also be configured by the user based on the zinx.json file.
+		(存储一切有关Zinx框架的全局参数，供其他模块使用
+		一些参数也可以通过 用户根据 zinx.json来配置)
 */
 type Config struct {
 	/*
@@ -66,6 +66,10 @@ type Config struct {
 	// (日志文件名称   默认""  --如果没有设置日志文件，打印信息将打印至stderr)
 	LogFile string
 
+	LogSaveDays int   // 日志最大保留天数
+	LogFileSize int64 // 日志单个日志最大容量 默认 64MB,单位：字节，记得一定要换算成MB（1024 * 1024）
+	LogCons     bool  // 日志标准输出  默认 false
+
 	// The level of log isolation. The values can be 0 (all open), 1 (debug off), 2 (debug/info off), 3 (debug/info/warn off), and so on.
 	//日志隔离级别  -- 0：全开 1：关debug 2：关debug/info 3：关debug/info/warn ...
 	LogIsolationLevel int
@@ -85,7 +89,7 @@ type Config struct {
 }
 
 /*
-	Define a global object.(定义一个全局的对象)
+Define a global object.(定义一个全局的对象)
 */
 var GlobalObject *Config
 
@@ -154,6 +158,13 @@ func (g *Config) HeartbeatMaxDuration() time.Duration {
 func (g *Config) InitLogConfig() {
 	if g.LogFile != "" {
 		zlog.SetLogFile(g.LogDir, g.LogFile)
+		zlog.SetCons(g.LogCons)
+	}
+	if g.LogSaveDays > 0 {
+		zlog.SetMaxAge(g.LogSaveDays)
+	}
+	if g.LogFileSize > 0 {
+		zlog.SetMaxSize(g.LogFileSize)
 	}
 	if g.LogIsolationLevel > zlog.LogDebug {
 		zlog.SetLogLevel(g.LogIsolationLevel)
@@ -161,7 +172,7 @@ func (g *Config) InitLogConfig() {
 }
 
 /*
-	init, set default value
+init, set default value
 */
 func init() {
 	pwd, err := os.Getwd()

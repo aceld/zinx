@@ -21,10 +21,8 @@ package zlog
    zlog.Ins().InfoF()等方法
 */
 
-import "os"
-
 // StdZinxLog creates a global log
-var StdZinxLog = NewZinxLog(os.Stderr, "", BitDefault)
+var StdZinxLog = NewZinxLog("", BitDefault)
 
 // Flags gets the flags of StdZinxLog
 func Flags() int {
@@ -49,6 +47,21 @@ func SetPrefix(prefix string) {
 // SetLogFile sets the log file of StdZinxLog
 func SetLogFile(fileDir string, fileName string) {
 	StdZinxLog.SetLogFile(fileDir, fileName)
+}
+
+// SetMaxAge 最大保留天数
+func SetMaxAge(ma int) {
+	StdZinxLog.SetMaxAge(ma)
+}
+
+// SetMaxSize 单个日志最大容量 单位：字节
+func SetMaxSize(ms int64) {
+	StdZinxLog.SetMaxSize(ms)
+}
+
+// SetCons 同时输出控制台
+func SetCons(b bool) {
+	StdZinxLog.SetCons(b)
 }
 
 // SetLogLevel sets the log level of StdZinxLog
