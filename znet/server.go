@@ -80,19 +80,19 @@ type Server struct {
 	cID uint64
 }
 
-// NewServer creates a server handle
-// (创建一个服务器句柄)
-func NewServer(opts ...Option) ziface.IServer {
+// newServerWithConfig creates a server handle based on config
+// (根据config创建一个服务器句柄)
+func newServerWithConfig(config *zconf.Config, ipVersion string, opts ...Option) ziface.IServer {
 	logo.PrintLogo()
 
 	s := &Server{
-		Name:             zconf.GlobalObject.Name,
-		IPVersion:        "tcp",
-		IP:               zconf.GlobalObject.Host,
-		Port:             zconf.GlobalObject.TCPPort,
-		WsPort:           zconf.GlobalObject.WsPort,
+		Name:             config.Name,
+		IPVersion:        ipVersion,
+		IP:               config.Host,
+		Port:             config.TCPPort,
+		WsPort:           config.WsPort,
 		msgHandler:       newMsgHandle(),
-		RouterSlicesMode: zconf.GlobalObject.RouterSlicesMode,
+		RouterSlicesMode: config.RouterSlicesMode,
 		ConnMgr:          newConnManager(),
 		exitChan:         nil,
 		// Default to using Zinx's TLV data pack format
@@ -100,7 +100,7 @@ func NewServer(opts ...Option) ziface.IServer {
 		packet:  zpack.Factory().NewPack(ziface.ZinxDataPack),
 		decoder: zdecoder.NewTLVDecoder(), // Default to using TLV decode (默认使用TLV的解码方式)
 		upgrader: &websocket.Upgrader{
-			ReadBufferSize: int(zconf.GlobalObject.IOReadBuffSize),
+			ReadBufferSize: int(config.IOReadBuffSize),
 			CheckOrigin: func(r *http.Request) bool {
 				return true
 			},
@@ -111,10 +111,17 @@ func NewServer(opts ...Option) ziface.IServer {
 		opt(s)
 	}
 
-	// Apply custom options (提示当前配置信息)
-	zconf.GlobalObject.Show()
+	// Display current configuration information
+	// (提示当前配置信息)
+	config.Show()
 
 	return s
+}
+
+// NewServer creates a server handle
+// (创建一个服务器句柄)
+func NewServer(opts ...Option) ziface.IServer {
+	return newServerWithConfig(zconf.GlobalObject, "tcp", opts...)
 }
 
 // NewUserConfServer creates a server handle using user-defined configuration
@@ -125,72 +132,16 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 	// (刷新用户配置到全局配置变量)
 	zconf.UserConfToGlobal(config)
 
-	// Display current configuration information
-	// (提示当前配置信息)
-	zconf.GlobalObject.Show()
-
-	logo.PrintLogo()
-
-	s := &Server{
-		Name:             config.Name,
-		IPVersion:        "tcp4",
-		IP:               config.Host,
-		Port:             config.TCPPort,
-		WsPort:           config.WsPort,
-		msgHandler:       newMsgHandle(),
-		RouterSlicesMode: config.RouterSlicesMode,
-		ConnMgr:          newConnManager(),
-		exitChan:         nil,
-		packet:           zpack.Factory().NewPack(ziface.ZinxDataPack),
-		decoder:          zdecoder.NewTLVDecoder(), // Default to using TLV decoder (默认使用TLV的解码方式)
-		upgrader: &websocket.Upgrader{
-			ReadBufferSize: int(zconf.GlobalObject.IOReadBuffSize),
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			},
-		},
-	}
-	// Apply custom options (更替打包方式)
-	for _, opt := range opts {
-		opt(s)
-	}
-
+	s := newServerWithConfig(config, "tcp4", opts...)
 	return s
 }
 
 // NewDefaultRouterSlicesServer creates a server handle with a default RouterRecovery processor.
 // (创建一个默认自带一个Recover处理器的服务器句柄)
 func NewDefaultRouterSlicesServer(opts ...Option) ziface.IServer {
-	logo.PrintLogo()
 	zconf.GlobalObject.RouterSlicesMode = true
-	s := &Server{
-		Name:             zconf.GlobalObject.Name,
-		IPVersion:        "tcp",
-		IP:               zconf.GlobalObject.Host,
-		Port:             zconf.GlobalObject.TCPPort,
-		WsPort:           zconf.GlobalObject.WsPort,
-		msgHandler:       newMsgHandle(),
-		RouterSlicesMode: zconf.GlobalObject.RouterSlicesMode,
-		ConnMgr:          newConnManager(),
-		exitChan:         nil,
-		// by default use zinx's TLV packet (默认使用zinx的TLV封包方式)
-		packet:  zpack.Factory().NewPack(ziface.ZinxDataPack),
-		decoder: zdecoder.NewTLVDecoder(), //默认使用TLV的解码方式 (by default use TLV decoding)
-		upgrader: &websocket.Upgrader{
-			ReadBufferSize: int(zconf.GlobalObject.IOReadBuffSize),
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			},
-		},
-	}
-
-	for _, opt := range opts {
-		opt(s)
-	}
+	s := newServerWithConfig(zconf.GlobalObject, "tcp", opts...)
 	s.Use(RouterRecovery)
-	// display current configuration information (提示当前配置信息)
-	zconf.GlobalObject.Show()
-
 	return s
 }
 
@@ -206,34 +157,7 @@ func NewUserConfDefaultRouterSlicesServer(config *zconf.Config, opts ...Option) 
 	// Refresh user configuration to global configuration variable (刷新用户配置到全局配置变量)
 	zconf.UserConfToGlobal(config)
 
-	// Display current configuration information (提示当前配置信息)
-	zconf.GlobalObject.Show()
-
-	logo.PrintLogo()
-
-	s := &Server{
-		Name:             config.Name,
-		IPVersion:        "tcp4",
-		IP:               config.Host,
-		Port:             config.TCPPort,
-		WsPort:           config.WsPort,
-		msgHandler:       newMsgHandle(),
-		RouterSlicesMode: config.RouterSlicesMode,
-		ConnMgr:          newConnManager(),
-		exitChan:         nil,
-		packet:           zpack.Factory().NewPack(ziface.ZinxDataPack),
-		decoder:          zdecoder.NewTLVDecoder(), // Default to using TLV decoding (默认使用TLV的解码方式)
-		upgrader: &websocket.Upgrader{
-			ReadBufferSize: int(zconf.GlobalObject.IOReadBuffSize),
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			},
-		},
-	}
-	// Replace the default packaging method (更替打包方式)
-	for _, opt := range opts {
-		opt(s)
-	}
+	s := newServerWithConfig(zconf.GlobalObject, "tcp4", opts...)
 	s.Use(RouterRecovery)
 	return s
 }
