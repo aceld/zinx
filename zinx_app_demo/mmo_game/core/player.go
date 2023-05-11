@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"sync"
-	"time"
 
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zinx_app_demo/mmo_game/datapack"
@@ -238,7 +237,6 @@ func (p *Player) OnExchangeAoiGrID(oldGID, newGID int) error {
 				PID: player.PID,
 			}
 			p.SendMsg(201, anotherOfflineMsg)
-			time.Sleep(200 * time.Millisecond)
 		}
 	}
 
@@ -288,7 +286,6 @@ func (p *Player) OnExchangeAoiGrID(oldGID, newGID int) error {
 				},
 			}
 
-			time.Sleep(200 * time.Millisecond)
 			p.SendMsg(200, anotherOnlineMsg)
 		}
 	}
