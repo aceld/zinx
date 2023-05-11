@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/zinx_app_demo/mmo_game/datapack"
 	"github.com/aceld/zinx/zinx_app_demo/mmo_game/pb"
 	"github.com/golang/protobuf/proto"
 )
 
-//玩家对象
+// 玩家对象
 type Player struct {
 	PID  int32              //玩家ID
 	Conn ziface.IConnection //当前玩家的连接
@@ -22,12 +23,12 @@ type Player struct {
 }
 
 /*
-	Player ID 生成器
+Player ID 生成器
 */
 var PIDGen int32 = 1  //用来生成玩家ID的计数器
 var IDLock sync.Mutex //保护PIDGen的互斥机制
 
-//创建一个玩家对象
+// 创建一个玩家对象
 func NewPlayer(conn ziface.IConnection) *Player {
 	//生成一个PID
 	IDLock.Lock()
@@ -47,7 +48,7 @@ func NewPlayer(conn ziface.IConnection) *Player {
 	return p
 }
 
-//告知客户端pID,同步已经生成的玩家ID给客户端
+// 告知客户端pID,同步已经生成的玩家ID给客户端
 func (p *Player) SyncPID() {
 	//组建MsgID0 proto数据
 	data := &pb.SyncPID{
@@ -58,7 +59,7 @@ func (p *Player) SyncPID() {
 	p.SendMsg(1, data)
 }
 
-//广播玩家自己的出生地点
+// 广播玩家自己的出生地点
 func (p *Player) BroadCastStartPosition() {
 
 	//组建MsgID200 proto数据
@@ -79,7 +80,7 @@ func (p *Player) BroadCastStartPosition() {
 	p.SendMsg(200, msg)
 }
 
-//给当前玩家周边的(九宫格内)玩家广播自己的位置，让他们显示自己
+// 给当前玩家周边的(九宫格内)玩家广播自己的位置，让他们显示自己
 func (p *Player) SyncSurrounding() {
 	//1 根据自己的位置，获取周围九宫格内的玩家pID
 	pIDs := WorldMgrObj.AoiMgr.GetPIDsByPos(p.X, p.Z)
@@ -102,9 +103,11 @@ func (p *Player) SyncSurrounding() {
 			},
 		},
 	}
-	//3.2 每个玩家分别给对应的客户端发送200消息，显示人物
+	//3.2 打包广播消息
+	data := datapack.SerializeMsg2Bytes(200, msg)
+	//3.3 每个玩家分别给对应的客户端发送200消息，显示人物
 	for _, player := range players {
-		player.SendMsg(200, msg)
+		player.SendBytes(data)
 	}
 	//4 让周围九宫格内的玩家出现在自己的视野中
 	//4.1 制作Message SyncPlayers 数据
@@ -131,7 +134,7 @@ func (p *Player) SyncSurrounding() {
 	p.SendMsg(202, SyncPlayersMsg)
 }
 
-//广播玩家聊天
+// 广播玩家聊天
 func (p *Player) Talk(content string) {
 	//1. 组建MsgID200 proto数据
 	msg := &pb.BroadCast{
@@ -145,13 +148,16 @@ func (p *Player) Talk(content string) {
 	//2. 得到当前世界所有的在线玩家
 	players := WorldMgrObj.GetAllPlayers()
 
-	//3. 向所有的玩家发送MsgID:200消息
+	//3. 打包广播消息
+	data := datapack.SerializeMsg2Bytes(200, msg)
+
+	//4. 向所有的玩家发送MsgID:200消息
 	for _, player := range players {
-		player.SendMsg(200, msg)
+		player.SendBytes(data)
 	}
 }
 
-//广播玩家位置移动
+// 广播玩家位置移动
 func (p *Player) UpdatePos(x float32, y float32, z float32, v float32) {
 
 	//触发消失视野和添加视野业务
@@ -192,9 +198,11 @@ func (p *Player) UpdatePos(x float32, y float32, z float32, v float32) {
 
 	//获取当前玩家周边全部玩家
 	players := p.GetSurroundingPlayers()
+	// 打包广播消息
+	data := datapack.SerializeMsg2Bytes(200, msg)
 	//向周边的每个玩家发送MsgID:200消息，移动位置更新消息
 	for _, player := range players {
-		player.SendMsg(200, msg)
+		player.SendBytes(data)
 	}
 }
 
@@ -220,6 +228,7 @@ func (p *Player) OnExchangeAoiGrID(oldGID, newGID int) error {
 	offlineMsg := &pb.SyncPID{
 		PID: p.PID,
 	}
+	dataOffline := datapack.SerializeMsg2Bytes(201, offlineMsg)
 
 	//找到在旧的九宫格中出现,但是在新的九宫格中没有出现的格子
 	leavingGrIDs := make([]*GrID, 0)
@@ -234,7 +243,7 @@ func (p *Player) OnExchangeAoiGrID(oldGID, newGID int) error {
 		players := WorldMgrObj.GetPlayersByGID(grID.GID)
 		for _, player := range players {
 			//让自己在其他玩家的客户端中消失
-			player.SendMsg(201, offlineMsg)
+			player.SendBytes(dataOffline)
 
 			//将其他玩家信息 在自己的客户端中消失
 			anotherOfflineMsg := &pb.SyncPID{
@@ -267,6 +276,7 @@ func (p *Player) OnExchangeAoiGrID(oldGID, newGID int) error {
 			},
 		},
 	}
+	dataOnline := datapack.SerializeMsg2Bytes(200, onlineMsg)
 
 	//获取需要显示格子的全部玩家
 	for _, grID := range enteringGrIDs {
@@ -274,7 +284,7 @@ func (p *Player) OnExchangeAoiGrID(oldGID, newGID int) error {
 
 		for _, player := range players {
 			//让自己出现在其他人视野中
-			player.SendMsg(200, onlineMsg)
+			player.SendBytes(dataOnline)
 
 			//让其他人出现在自己的视野中
 			anotherOnlineMsg := &pb.BroadCast{
@@ -298,7 +308,7 @@ func (p *Player) OnExchangeAoiGrID(oldGID, newGID int) error {
 	return nil
 }
 
-//获得当前玩家的AOI周边玩家信息
+// 获得当前玩家的AOI周边玩家信息
 func (p *Player) GetSurroundingPlayers() []*Player {
 	//得到当前AOI区域的所有pID
 	pIDs := WorldMgrObj.AoiMgr.GetPIDsByPos(p.X, p.Z)
@@ -312,7 +322,7 @@ func (p *Player) GetSurroundingPlayers() []*Player {
 	return players
 }
 
-//玩家下线
+// 玩家下线
 func (p *Player) LostConnection() {
 	//1 获取周围AOI九宫格内的玩家
 	players := p.GetSurroundingPlayers()
@@ -321,10 +331,11 @@ func (p *Player) LostConnection() {
 	msg := &pb.SyncPID{
 		PID: p.PID,
 	}
+	data := datapack.SerializeMsg2Bytes(201, msg)
 
 	//3 向周围玩家发送消息
 	for _, player := range players {
-		player.SendMsg(201, msg)
+		player.SendBytes(data)
 	}
 
 	//4 世界管理器将当前玩家从AOI中摘除
@@ -333,8 +344,7 @@ func (p *Player) LostConnection() {
 }
 
 /*
-	发送消息给客户端，
-	主要是将pb的protobuf数据序列化之后发送
+发送消息给客户端
 */
 func (p *Player) SendMsg(msgID uint32, data proto.Message) {
 	if p.Conn == nil {
@@ -357,4 +367,16 @@ func (p *Player) SendMsg(msgID uint32, data proto.Message) {
 	}
 
 	return
+}
+
+/*
+added by LI
+Send serialized bytes to the client for use in broadcast functions to significantly reduce cpu usage.
+发送已序列化的字符串给客户端，用于各类广播方法，减少消息序列化次数，显著降低大规模广播时的CPU消耗。
+*/
+func (p *Player) SendBytes(data []byte) {
+	if err := p.Conn.SendToQueue(data); err != nil {
+		fmt.Println("failed to send bytes with err: ", err)
+		return
+	}
 }
