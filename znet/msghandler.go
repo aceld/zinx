@@ -29,8 +29,8 @@ type MsgHandle struct {
 	// (业务工作Worker池的数量)
 	WorkerPoolSize uint32
 
-	// A collection of idle workers for balancing versions
-	// 空闲worker集合，用于平衡版本
+	// A collection of idle workers, used for zconf.{WorkMode:OneWorkerEachConn}
+	// 空闲worker集合，用于zconf.{WorkMode:OneWorkerEachConn}
 	freeWorkers  map[uint32]struct{}
 	freeWorkerMu sync.Mutex
 
@@ -48,8 +48,12 @@ type MsgHandle struct {
 // zinxRole: IServer/IClient
 func newMsgHandle() *MsgHandle {
 	var freeWorkers map[uint32]struct{}
-	if zconf.GlobalObject.BalanceWorkderTaskLen != 0 {
-		zconf.GlobalObject.ChangeWorkerSize(zconf.GlobalObject.BalanceWorkderTaskLen)
+	if zconf.GlobalObject.WorkerMode == "OneWorkerEachConn" {
+		// Assign a workder to each link, avoid interactions when multiple links are processed by the same worker
+		// MaxWorkerTaskLen can also be reduced, for example, 50
+		// 为每个链接分配一个workder，避免同一worker处理多个链接时的互相影响
+		// 同时可以减小MaxWorkerTaskLen，比如50，因为每个worker的负担减轻了
+		zconf.GlobalObject.WorkerPoolSize = uint32(zconf.GlobalObject.MaxConn)
 
 		freeWorkers = make(map[uint32]struct{}, zconf.GlobalObject.WorkerPoolSize)
 		for i := uint32(0); i < zconf.GlobalObject.WorkerPoolSize; i++ {

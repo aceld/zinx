@@ -42,14 +42,14 @@ type Config struct {
 	/*
 		Zinx
 	*/
-	Version               string //The version of the Zinx framework.(当前Zinx版本号)
-	MaxPacketSize         uint32 //The maximum size of the packets that can be sent or received.(读写数据包的最大值)
-	MaxConn               int    //The maximum number of connections that the server can handle.(当前服务器主机允许的最大链接个数)
-	WorkerPoolSize        uint32 //The number of worker pools in the business logic.(业务工作Worker池的数量)
-	MaxWorkerTaskLen      uint32 //The maximum number of tasks that a worker pool can handle.(业务工作Worker对应负责的任务队列最大任务存储数量)
-	BalanceWorkderTaskLen uint32 //Assign a workder to each link.（为每个链接分配一个workder）
-	MaxMsgChanLen         uint32 //The maximum length of the send buffer message queue.(SendBuffMsg发送消息的缓冲最大长度)
-	IOReadBuffSize        uint32 //The maximum size of the read buffer for each IO operation.(每次IO最大的读取长度)
+	Version          string //The version of the Zinx framework.(当前Zinx版本号)
+	MaxPacketSize    uint32 //The maximum size of the packets that can be sent or received.(读写数据包的最大值)
+	MaxConn          int    //The maximum number of connections that the server can handle.(当前服务器主机允许的最大链接个数)
+	WorkerPoolSize   uint32 //The number of worker pools in the business logic.(业务工作Worker池的数量)
+	MaxWorkerTaskLen uint32 //The maximum number of tasks that a worker pool can handle.(业务工作Worker对应负责的任务队列最大任务存储数量)
+	WorkerMode       string //The way to assign workers to connections.(为链接分配worker的方式)
+	MaxMsgChanLen    uint32 //The maximum length of the send buffer message queue.(SendBuffMsg发送消息的缓冲最大长度)
+	IOReadBuffSize   uint32 //The maximum size of the read buffer for each IO operation.(每次IO最大的读取长度)
 
 	//The server mode, which can be "tcp" or "websocket". If it is empty, both modes are enabled.
 	//"tcp":tcp监听, "websocket":websocket 监听 为空时同时开启
@@ -173,17 +173,6 @@ func (g *Config) InitLogConfig() {
 	}
 }
 
-// Assign a workder to each link and use this value instead of MaxWorkerTaskLen, Avoid interactions when multiple links are processed by the same worker
-// 为每个链接分配一个workder，同时使用这个值替代MaxWorkerTaskLen，避免同一worker处理多个链接时的互相影响
-func (g *Config) ChangeWorkerSize(balanceWorkderTaskLen uint32) {
-	if g.WorkerPoolSize != 0 || g.MaxWorkerTaskLen != 0 {
-		panic("If you want to use BalanceWorkderTaskLen, explicitly set WorkerPoolSize and MaxWorkerTaskLen to 0.")
-	}
-
-	GlobalObject.WorkerPoolSize = uint32(GlobalObject.MaxConn)
-	GlobalObject.MaxWorkerTaskLen = balanceWorkderTaskLen
-}
-
 /*
 init, set default value
 */
@@ -206,26 +195,26 @@ func init() {
 	// Initialize the GlobalObject variable and set some default values.
 	// (初始化GlobalObject变量，设置一些默认值)
 	GlobalObject = &Config{
-		Name:                  "ZinxServerApp",
-		Version:               "V1.0",
-		TCPPort:               8999,
-		WsPort:                9000,
-		Host:                  "0.0.0.0",
-		MaxConn:               12000,
-		MaxPacketSize:         4096,
-		WorkerPoolSize:        10,
-		MaxWorkerTaskLen:      1024,
-		BalanceWorkderTaskLen: 0, // Recommended value:50.（推荐值：50）
-		MaxMsgChanLen:         1024,
-		LogDir:                pwd + "/log",
-		LogFile:               "", //if set "", print to Stderr(默认日志文件为空，打印到stderr)
-		LogIsolationLevel:     0,
-		HeartbeatMax:          10, //The default maximum interval for heartbeat detection is 10 seconds. (默认心跳检测最长间隔为10秒)
-		IOReadBuffSize:        1024,
-		CertFile:              "",
-		PrivateKeyFile:        "",
-		Mode:                  ServerModeTcp,
-		RouterSlicesMode:      false,
+		Name:              "ZinxServerApp",
+		Version:           "V1.0",
+		TCPPort:           8999,
+		WsPort:            9000,
+		Host:              "0.0.0.0",
+		MaxConn:           12000,
+		MaxPacketSize:     4096,
+		WorkerPoolSize:    10,
+		MaxWorkerTaskLen:  1024,
+		WorkerMode:        "",
+		MaxMsgChanLen:     1024,
+		LogDir:            pwd + "/log",
+		LogFile:           "", //if set "", print to Stderr(默认日志文件为空，打印到stderr)
+		LogIsolationLevel: 0,
+		HeartbeatMax:      10, //The default maximum interval for heartbeat detection is 10 seconds. (默认心跳检测最长间隔为10秒)
+		IOReadBuffSize:    1024,
+		CertFile:          "",
+		PrivateKeyFile:    "",
+		Mode:              ServerModeTcp,
+		RouterSlicesMode:  false,
 	}
 
 	// Note: Load some user-configured parameters from the configuration file.
