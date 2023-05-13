@@ -32,6 +32,10 @@ type Connection struct {
 	// 这个是理论支持的进程connID的最大数量)
 	connID uint64
 
+	// The workerid responsible for handling the link
+	// 负责处理该链接的workerid
+	workerID uint32
+
 	// The message management module that manages MsgID and the corresponding processing method
 	// (消息管理MsgID和对应处理方法的消息管理模块)
 	msgHandler ziface.IMsgHandle
@@ -276,6 +280,9 @@ func (c *Connection) Start() {
 		c.updateActivity()
 	}
 
+	// 占用workerid
+	c.workerID = c.msgHandler.UseWorker(c)
+
 	// Start the Goroutine for reading data from the client
 	// (开启用户从客户端读取数据流程的Goroutine)
 	go c.StartReader()
@@ -283,6 +290,9 @@ func (c *Connection) Start() {
 	select {
 	case <-c.ctx.Done():
 		c.finalizer()
+
+		// 归还workerid
+		c.msgHandler.FreeWorker(c.workerID)
 		return
 	}
 }
@@ -308,6 +318,10 @@ func (c *Connection) GetTCPConnection() net.Conn {
 
 func (c *Connection) GetConnID() uint64 {
 	return c.connID
+}
+
+func (c *Connection) GetWorkerID() uint32 {
+	return c.workerID
 }
 
 func (c *Connection) RemoteAddr() net.Addr {

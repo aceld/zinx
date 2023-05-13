@@ -3,6 +3,8 @@ package znet
 import (
 	"encoding/hex"
 	"fmt"
+	"sync"
+
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
@@ -27,6 +29,11 @@ type MsgHandle struct {
 	// (业务工作Worker池的数量)
 	WorkerPoolSize uint32
 
+	// A collection of idle workers for balancing versions
+	// 空闲worker集合，用于平衡版本
+	freeWorkers  map[uint32]struct{}
+	freeWorkerMu sync.Mutex
+
 	// A message queue for workers to take tasks
 	// (Worker负责取任务的消息队列)
 	TaskQueue []chan ziface.IRequest
@@ -49,10 +56,52 @@ func newMsgHandle() *MsgHandle {
 		builder:   newChainBuilder(),
 	}
 
+	if int(zconf.GlobalObject.WorkerPoolSize) == zconf.GlobalObject.MaxConn {
+		handle.freeWorkers = make(map[uint32]struct{}, zconf.GlobalObject.WorkerPoolSize)
+		for i := uint32(0); i < zconf.GlobalObject.WorkerPoolSize; i++ {
+			handle.freeWorkers[i] = struct{}{}
+		}
+	}
+
 	// It is necessary to add the MsgHandle to the responsibility chain here, and it is the last link in the responsibility chain. After decoding in the MsgHandle, data distribution is done by router
 	// (此处必须把 msghandler 添加到责任链中，并且是责任链最后一环，在msghandler中进行解码后由router做数据分发)
 	handle.builder.Tail(handle)
 	return handle
+}
+
+// Use worker ID
+// 占用workerID
+func (mh *MsgHandle) UseWorker(conn ziface.IConnection) uint32 {
+	if int(zconf.GlobalObject.WorkerPoolSize) == zconf.GlobalObject.MaxConn {
+		// 改成空闲hashmap，以进行绝对的负载均衡，仅适用于新算法，因为新算法不会有重叠
+		// 新算法应该有两个封装函数，务必确保释放和回收的数量一致（如果不一致，最严重结果是会发生相互影响的阻塞）
+		mh.freeWorkerMu.Lock()
+		defer mh.freeWorkerMu.Lock()
+
+		for k := range mh.freeWorkers {
+			delete(mh.freeWorkers, k)
+			return k
+		}
+	} else {
+		// Assign the worker responsible for processing the current connection based on the ConnID
+		// Using a round-robin average allocation rule to get the workerID that needs to process this connection
+		// (根据ConnID来分配当前的连接应该由哪个worker负责处理
+		// 轮询的平均分配法则
+		// 得到需要处理此条连接的workerID)
+		return uint32(conn.GetConnID() % uint64(mh.WorkerPoolSize))
+	}
+	return 0
+}
+
+// Free worker ID
+// 释放workerid
+func (mh *MsgHandle) FreeWorker(workerID uint32) {
+	if int(zconf.GlobalObject.WorkerPoolSize) == zconf.GlobalObject.MaxConn {
+		mh.freeWorkerMu.Lock()
+		defer mh.freeWorkerMu.Lock()
+
+		mh.freeWorkers[workerID] = struct{}{}
+	}
 }
 
 // Data processing interceptor that is necessary by default in Zinx
@@ -90,20 +139,10 @@ func (mh *MsgHandle) AddInterceptor(interceptor ziface.IInterceptor) {
 	}
 }
 
-func (mh *MsgHandle) GetTaskQueueWorkerId(request ziface.IRequest) uint64 {
-	// Assign the worker responsible for processing the current connection based on the ConnID
-	// Using a round-robin average allocation rule to get the workerID that needs to process this connection
-	// (根据ConnID来分配当前的连接应该由哪个worker负责处理
-	// 轮询的平均分配法则
-	// 得到需要处理此条连接的workerID)
-	workerID := request.GetConnection().GetConnID() % uint64(mh.WorkerPoolSize)
-	return workerID
-}
-
 // SendMsgToTaskQueue sends the message to the TaskQueue for processing by the worker
 // (将消息交给TaskQueue,由worker进行处理)
 func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
-	workerID := mh.GetTaskQueueWorkerId(request)
+	workerID := request.GetConnection().GetWorkerID()
 	// zlog.Ins().DebugF("Add ConnID=%d request msgID=%d to workerID=%d", request.GetConnection().GetConnID(), request.GetMsgID(), workerID)
 	// Send the request message to the task queue
 	mh.TaskQueue[workerID] <- request
