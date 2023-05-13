@@ -35,15 +35,8 @@ func UserConfToGlobal(config *Config) {
 	if config.MaxWorkerTaskLen != 0 {
 		GlobalObject.MaxWorkerTaskLen = config.MaxWorkerTaskLen
 	}
-
-	// Assign a workder to each link and use this value instead of MaxWorkerTaskLen, Avoid interactions when multiple links are processed by the same worker
-	// 为每个链接分配一个workder，同时使用这个值替代MaxWorkerTaskLen，避免同一worker处理多个链接时的互相影响
 	if config.BalanceWorkderTaskLen != 0 {
-		if config.WorkerPoolSize != 0 || config.MaxWorkerTaskLen != 0 {
-			panic("BalanceWorkderTaskLen and WorkerPoolSize+MaxWorkerTaskLen do not work together")
-		}
-		GlobalObject.WorkerPoolSize = uint32(GlobalObject.MaxConn)
-		GlobalObject.MaxWorkerTaskLen = config.BalanceWorkderTaskLen
+		GlobalObject.ChangeWorkerSize(config.BalanceWorkderTaskLen)
 	}
 
 	if config.MaxMsgChanLen != 0 {

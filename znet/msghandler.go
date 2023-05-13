@@ -47,20 +47,24 @@ type MsgHandle struct {
 // newMsgHandle creates MsgHandle
 // zinxRole: IServer/IClient
 func newMsgHandle() *MsgHandle {
+	var freeWorkers map[uint32]struct{}
+	if zconf.GlobalObject.BalanceWorkderTaskLen != 0 {
+		zconf.GlobalObject.ChangeWorkerSize(zconf.GlobalObject.BalanceWorkderTaskLen)
+
+		freeWorkers = make(map[uint32]struct{}, zconf.GlobalObject.WorkerPoolSize)
+		for i := uint32(0); i < zconf.GlobalObject.WorkerPoolSize; i++ {
+			freeWorkers[i] = struct{}{}
+		}
+	}
+
 	handle := &MsgHandle{
 		Apis:           make(map[uint32]ziface.IRouter),
 		RouterSlices:   NewRouterSlices(),
 		WorkerPoolSize: zconf.GlobalObject.WorkerPoolSize,
 		// One worker corresponds to one queue (一个worker对应一个queue)
-		TaskQueue: make([]chan ziface.IRequest, zconf.GlobalObject.WorkerPoolSize),
-		builder:   newChainBuilder(),
-	}
-
-	if int(zconf.GlobalObject.WorkerPoolSize) == zconf.GlobalObject.MaxConn {
-		handle.freeWorkers = make(map[uint32]struct{}, zconf.GlobalObject.WorkerPoolSize)
-		for i := uint32(0); i < zconf.GlobalObject.WorkerPoolSize; i++ {
-			handle.freeWorkers[i] = struct{}{}
-		}
+		TaskQueue:   make([]chan ziface.IRequest, zconf.GlobalObject.WorkerPoolSize),
+		freeWorkers: freeWorkers,
+		builder:     newChainBuilder(),
 	}
 
 	// It is necessary to add the MsgHandle to the responsibility chain here, and it is the last link in the responsibility chain. After decoding in the MsgHandle, data distribution is done by router
@@ -76,7 +80,7 @@ func (mh *MsgHandle) UseWorker(conn ziface.IConnection) uint32 {
 		// 改成空闲hashmap，以进行绝对的负载均衡，仅适用于新算法，因为新算法不会有重叠
 		// 新算法应该有两个封装函数，务必确保释放和回收的数量一致（如果不一致，最严重结果是会发生相互影响的阻塞）
 		mh.freeWorkerMu.Lock()
-		defer mh.freeWorkerMu.Lock()
+		defer mh.freeWorkerMu.Unlock()
 
 		for k := range mh.freeWorkers {
 			delete(mh.freeWorkers, k)
@@ -98,7 +102,7 @@ func (mh *MsgHandle) UseWorker(conn ziface.IConnection) uint32 {
 func (mh *MsgHandle) FreeWorker(workerID uint32) {
 	if int(zconf.GlobalObject.WorkerPoolSize) == zconf.GlobalObject.MaxConn {
 		mh.freeWorkerMu.Lock()
-		defer mh.freeWorkerMu.Lock()
+		defer mh.freeWorkerMu.Unlock()
 
 		mh.freeWorkers[workerID] = struct{}{}
 	}

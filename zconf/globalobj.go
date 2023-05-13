@@ -173,6 +173,17 @@ func (g *Config) InitLogConfig() {
 	}
 }
 
+// Assign a workder to each link and use this value instead of MaxWorkerTaskLen, Avoid interactions when multiple links are processed by the same worker
+// 为每个链接分配一个workder，同时使用这个值替代MaxWorkerTaskLen，避免同一worker处理多个链接时的互相影响
+func (g *Config) ChangeWorkerSize(balanceWorkderTaskLen uint32) {
+	if g.WorkerPoolSize != 0 || g.MaxWorkerTaskLen != 0 {
+		panic("If you want to use BalanceWorkderTaskLen, explicitly set WorkerPoolSize and MaxWorkerTaskLen to 0.")
+	}
+
+	GlobalObject.WorkerPoolSize = uint32(GlobalObject.MaxConn)
+	GlobalObject.MaxWorkerTaskLen = balanceWorkderTaskLen
+}
+
 /*
 init, set default value
 */
