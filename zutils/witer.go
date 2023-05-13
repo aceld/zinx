@@ -1,10 +1,12 @@
 package zutils
 
 import (
+	"archive/zip"
 	"bufio"
 	"bytes"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,10 +14,6 @@ import (
 	"time"
 )
 
-/*
-add by uuxia
-代码出处：https://github.com/zxysilent/logs
-*/
 const (
 	sizeMiB    = 1024 * 1024
 	defMaxAge  = 31
@@ -25,19 +23,20 @@ const (
 var _ io.WriteCloser = (*Writer)(nil)
 
 type Writer struct {
-	maxAge  int       // 最大保留天数
-	maxSize int64     // 单个日志最大容量 默认 64MB
-	size    int64     // 累计大小
-	fpath   string    // 文件目录 完整路径 fpath=fdir+fname+fsuffix
-	fdir    string    //
-	fname   string    // 文件名
-	fsuffix string    // 文件后缀名 默认 .log
-	created time.Time // 文件创建日期
-	creates []byte    // 文件创建日期
-	cons    bool      // 标准输出  默认 false
-	file    *os.File
-	bw      *bufio.Writer
-	mu      sync.Mutex
+	maxAge    int       // 最大保留天数
+	maxSize   int64     // 单个日志最大容量 默认 64MB
+	size      int64     // 累计大小
+	fpath     string    // 文件目录 完整路径 fpath=fdir+fname+fsuffix
+	fdir      string    //
+	fname     string    // 文件名
+	fsuffix   string    // 文件后缀名 默认 .log
+	zipsuffix string    // 文件后缀名 默认 .log
+	created   time.Time // 文件创建日期
+	creates   []byte    // 文件创建日期
+	cons      bool      // 标准输出  默认 false
+	file      *os.File
+	bw        *bufio.Writer
+	mu        sync.Mutex
 }
 
 func New(path string) *Writer {
@@ -51,20 +50,19 @@ func New(path string) *Writer {
 	if w.fsuffix == "" {
 		w.fsuffix = ".log"
 	}
+	if w.zipsuffix == "" {
+		w.zipsuffix = ".zip"
+	}
 	w.maxSize = sizeMiB * defMaxSize
 	w.maxAge = defMaxAge
-	err := os.MkdirAll(filepath.Dir(w.fpath), 0755)
-	if err != nil {
-		fmt.Printf("%c[%d;%d;%dm%s%c[0m", 0x1B, 0, 40, 31, fmt.Sprintf("create log file error %-v", err), 0x1B)
-		return nil
-	}
+	os.MkdirAll(filepath.Dir(w.fpath), 0755)
 	go w.daemon()
 	return w
 }
-
-func (w *Writer) Close() error {
-	w.flush()
-	return w.close()
+func (w *Writer) daemon() {
+	for range time.NewTicker(time.Second * 5).C {
+		w.flush()
+	}
 }
 
 // SetMaxAge 最大保留天数
@@ -143,8 +141,18 @@ func (w *Writer) rotate() error {
 		w.file.Sync()
 		w.file.Close()
 		// 保存
-		fbak := w.fname + w.time2name(w.created) + w.fsuffix
-		os.Rename(w.fpath, filepath.Join(w.fdir, fbak))
+		fbak := w.fname + w.time2name(w.created)
+		fbakname := fbak + w.fsuffix
+		err := os.Rename(w.fpath, filepath.Join(w.fdir, fbakname))
+		if err == nil {
+			err1 := ZipToFile(filepath.Join(w.fdir, fbak+".zip"), filepath.Join(w.fdir, fbakname))
+			if err1 == nil {
+				os.Remove(filepath.Join(w.fdir, fbakname))
+			} else {
+				fmt.Println(err1)
+			}
+		}
+
 		w.size = 0
 	}
 	finfo, err := os.Stat(w.fpath)
@@ -188,11 +196,16 @@ func (w *Writer) delete() {
 }
 func (w *Writer) name2time(name string) (time.Time, error) {
 	name = strings.TrimPrefix(name, filepath.Base(w.fname))
-	name = strings.TrimSuffix(name, w.fsuffix)
+	name = strings.TrimSuffix(name, w.zipsuffix)
 	return time.Parse(".2006-01-02-150405", name)
 }
 func (w *Writer) time2name(t time.Time) string {
 	return t.Format(".2006-01-02-150405")
+}
+
+func (w *Writer) Close() error {
+	w.flush()
+	return w.close()
 }
 
 // close closes the file if it is open.
@@ -269,8 +282,95 @@ func appendInt(b []byte, x int, width int) []byte {
 	return b
 }
 
-func (w *Writer) daemon() {
-	for range time.NewTicker(time.Second * 5).C {
-		w.flush()
+// ZipToFile 压缩至文件
+// @params dst string 压缩文件目标路径
+// @params src string 待压缩源文件/目录路径
+// @return     error  错误信息
+func ZipToFile(dst, src string) error {
+	// 创建一个ZIP文件
+	fw, err := os.Create(filepath.Clean(dst))
+	if err != nil {
+		return err
 	}
+	defer fw.Close()
+
+	// 执行压缩
+	return Zip(fw, src)
+}
+
+// Zip 压缩文件或目录
+// @params dst io.Writer 压缩文件可写流
+// @params src string    待压缩源文件/目录路径
+func Zip(dst io.Writer, src string) error {
+	// 强转一下路径
+	src = filepath.Clean(src)
+	// 提取最后一个文件或目录的名称
+	baseFile := filepath.Base(src)
+	// 判断src是否存在
+	_, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	// 通文件流句柄创建一个ZIP压缩包
+	zw := zip.NewWriter(dst)
+	// 延迟关闭这个压缩包
+	defer zw.Close()
+
+	// 通过filepath封装的Walk来递归处理源路径到压缩文件中
+	return filepath.Walk(src, func(path string, info fs.FileInfo, err error) error {
+		// 是否存在异常
+		if err != nil {
+			return err
+		}
+
+		// 通过原始文件头信息，创建zip文件头信息
+		zfh, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+
+		// 赋值默认的压缩方法，否则不压缩
+		zfh.Method = zip.Deflate
+
+		// 移除绝对路径
+		tmpPath := path
+		index := strings.Index(tmpPath, baseFile)
+		if index > -1 {
+			tmpPath = tmpPath[index:]
+		}
+		// 替换文件名，并且去除前后 "\" 或 "/"
+		tmpPath = strings.Trim(tmpPath, string(filepath.Separator))
+		// 替换一下分隔符，zip不支持 "\\"
+		zfh.Name = strings.ReplaceAll(tmpPath, "\\", "/")
+		// 目录需要拼上一个 "/" ，否则会出现一个和目录一样的文件在压缩包中
+		if info.IsDir() {
+			zfh.Name += "/"
+		}
+
+		// 写入文件头信息，并返回一个ZIP文件写入句柄
+		zfw, err := zw.CreateHeader(zfh)
+		if err != nil {
+			return err
+		}
+
+		// 仅在他是标准文件时进行文件内容写入
+		if zfh.Mode().IsRegular() {
+			// 打开要压缩的文件
+			sfr, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer sfr.Close()
+
+			// 将srcFileReader拷贝到zipFilWrite中
+			_, err = io.Copy(zfw, sfr)
+			if err != nil {
+				return err
+			}
+		}
+
+		// 搞定
+		return nil
+	})
 }
