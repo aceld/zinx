@@ -54,7 +54,6 @@ func newMsgHandle() *MsgHandle {
 		// 为每个链接分配一个workder，避免同一worker处理多个链接时的互相影响
 		// 同时可以减小MaxWorkerTaskLen，比如50，因为每个worker的负担减轻了
 		zconf.GlobalObject.WorkerPoolSize = uint32(zconf.GlobalObject.MaxConn)
-
 		freeWorkers = make(map[uint32]struct{}, zconf.GlobalObject.WorkerPoolSize)
 		for i := uint32(0); i < zconf.GlobalObject.WorkerPoolSize; i++ {
 			freeWorkers[i] = struct{}{}
@@ -80,9 +79,7 @@ func newMsgHandle() *MsgHandle {
 // Use worker ID
 // 占用workerID
 func (mh *MsgHandle) UseWorker(conn ziface.IConnection) uint32 {
-	if int(zconf.GlobalObject.WorkerPoolSize) == zconf.GlobalObject.MaxConn {
-		// 改成空闲hashmap，以进行绝对的负载均衡，仅适用于新算法，因为新算法不会有重叠
-		// 新算法应该有两个封装函数，务必确保释放和回收的数量一致（如果不一致，最严重结果是会发生相互影响的阻塞）
+	if zconf.GlobalObject.WorkerMode == "OneWorkerEachConn" {
 		mh.freeWorkerMu.Lock()
 		defer mh.freeWorkerMu.Unlock()
 
@@ -104,7 +101,7 @@ func (mh *MsgHandle) UseWorker(conn ziface.IConnection) uint32 {
 // Free worker ID
 // 释放workerid
 func (mh *MsgHandle) FreeWorker(workerID uint32) {
-	if int(zconf.GlobalObject.WorkerPoolSize) == zconf.GlobalObject.MaxConn {
+	if zconf.GlobalObject.WorkerMode == "OneWorkerEachConn" {
 		mh.freeWorkerMu.Lock()
 		defer mh.freeWorkerMu.Unlock()
 
