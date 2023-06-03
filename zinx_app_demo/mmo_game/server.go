@@ -2,18 +2,18 @@ package main
 
 import (
 	"fmt"
-	"github.com/aceld/zinx/zdecoder"
-	"github.com/aceld/zinx/zpack"
 
+	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zinx_app_demo/mmo_game/api"
 	"github.com/aceld/zinx/zinx_app_demo/mmo_game/core"
 	"github.com/aceld/zinx/znet"
+	"github.com/aceld/zinx/zpack"
 )
 
-//当客户端建立连接的时候的hook函数
-func OnConnecionAdd(conn ziface.IConnection) {
-	fmt.Println("=====> OnConnecionAdd is Called ...")
+// OnConnectionAdd 当客户端建立连接的时候的hook函数
+func OnConnectionAdd(conn ziface.IConnection) {
+	fmt.Println("=====> OnConnectionAdd is Called ...")
 	//创建一个玩家
 	player := core.NewPlayer(conn)
 
@@ -35,7 +35,7 @@ func OnConnecionAdd(conn ziface.IConnection) {
 	fmt.Println("=====> Player pIDID = ", player.PID, " arrived ====")
 }
 
-//当客户端断开连接的时候的hook函数
+// 当客户端断开连接的时候的hook函数
 func OnConnectionLost(conn ziface.IConnection) {
 	//获取当前连接的PID属性
 	pID, _ := conn.GetProperty("pID")
@@ -61,7 +61,7 @@ func main() {
 	s := znet.NewServer()
 
 	//注册客户端连接建立和丢失函数
-	s.SetOnConnStart(OnConnecionAdd)
+	s.SetOnConnStart(OnConnectionAdd)
 	s.SetOnConnStop(OnConnectionLost)
 
 	//注册路由

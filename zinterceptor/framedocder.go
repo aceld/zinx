@@ -10,9 +10,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/aceld/zinx/ziface"
 	"math"
 	"sync"
+
+	"github.com/aceld/zinx/ziface"
 )
 
 // FrameDecoder
@@ -398,10 +399,10 @@ func (d *FrameDecoder) getUnadjustedFrameLength(buf *bytes.Buffer, offset int, l
 	case 3:
 		//int占32位，这里取出后24位，返回int类型
 		if order == binary.LittleEndian {
-			n := uint(uint(arr[0]) | uint(arr[1])<<8 | uint(arr[2])<<16)
+			n := uint(arr[0]) | uint(arr[1])<<8 | uint(arr[2])<<16
 			frameLength = int64(n)
 		} else {
-			n := uint(uint(arr[2]) | uint(arr[1])<<8 | uint(arr[0])<<16)
+			n := uint(arr[2]) | uint(arr[1])<<8 | uint(arr[0])<<16
 			frameLength = int64(n)
 		}
 	case 4:
@@ -492,6 +493,7 @@ func (d *FrameDecoder) decode(buf []byte) []byte {
 	actualLengthFieldOffset := d.LengthFieldOffset
 	//获取长度字段的值，不包括lengthAdjustment的调整值
 	frameLength := d.getUnadjustedFrameLength(in, actualLengthFieldOffset, d.LengthFieldLength, d.Order)
+
 	//如果数据帧长度小于0，说明是个错误的数据包
 	if frameLength < 0 {
 		//内部会跳过这个数据包的字节数，并抛异常

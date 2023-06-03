@@ -10,7 +10,7 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-//世界聊天 路由业务
+// WorldChatApi 世界聊天 路由业务
 type WorldChatApi struct {
 	znet.BaseRouter
 }

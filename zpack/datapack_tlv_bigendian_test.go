@@ -2,11 +2,12 @@ package zpack
 
 import (
 	"fmt"
-	"github.com/aceld/zinx/ziface"
 	"io"
 	"net"
 	"testing"
 	"time"
+
+	"github.com/aceld/zinx/ziface"
 )
 
 // run in terminal:

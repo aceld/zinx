@@ -24,7 +24,7 @@ const (
 	MaxTimeDelay = 100
 )
 
-//TimerScheduler 计时器调度器
+// TimerScheduler 计时器调度器
 type TimerScheduler struct {
 	//当前调度器的最高级时间轮
 	tw *TimeWheel
@@ -61,7 +61,7 @@ func NewTimerScheduler() *TimerScheduler {
 	}
 }
 
-//CreateTimerAt 创建一个定点Timer 并将Timer添加到分层时间轮中， 返回Timer的tID
+// CreateTimerAt 创建一个定点Timer 并将Timer添加到分层时间轮中， 返回Timer的tID
 func (ts *TimerScheduler) CreateTimerAt(df *DelayFunc, unixNano int64) (uint32, error) {
 	ts.Lock()
 	defer ts.Unlock()
@@ -70,7 +70,7 @@ func (ts *TimerScheduler) CreateTimerAt(df *DelayFunc, unixNano int64) (uint32, 
 	return ts.IDGen, ts.tw.AddTimer(ts.IDGen, NewTimerAt(df, unixNano))
 }
 
-//CreateTimerAfter 创建一个延迟Timer 并将Timer添加到分层时间轮中， 返回Timer的tID
+// CreateTimerAfter 创建一个延迟Timer 并将Timer添加到分层时间轮中， 返回Timer的tID
 func (ts *TimerScheduler) CreateTimerAfter(df *DelayFunc, duration time.Duration) (uint32, error) {
 	ts.Lock()
 	defer ts.Unlock()
@@ -79,7 +79,7 @@ func (ts *TimerScheduler) CreateTimerAfter(df *DelayFunc, duration time.Duration
 	return ts.IDGen, ts.tw.AddTimer(ts.IDGen, NewTimerAfter(df, duration))
 }
 
-//CancelTimer 删除timer
+// CancelTimer 删除timer
 func (ts *TimerScheduler) CancelTimer(tID uint32) {
 	ts.Lock()
 	defer ts.Unlock()
@@ -91,12 +91,12 @@ func (ts *TimerScheduler) CancelTimer(tID uint32) {
 	}
 }
 
-//GetTriggerChan 获取计时结束的延迟执行函数通道
+// GetTriggerChan 获取计时结束的延迟执行函数通道
 func (ts *TimerScheduler) GetTriggerChan() chan *DelayFunc {
 	return ts.triggerChan
 }
 
-//Start 非阻塞的方式启动timerSchedule
+// Start 非阻塞的方式启动timerSchedule
 func (ts *TimerScheduler) Start() {
 	go func() {
 		for {
@@ -116,7 +116,7 @@ func (ts *TimerScheduler) Start() {
 	}()
 }
 
-//NewAutoExecTimerScheduler 时间轮定时器 自动调度
+// NewAutoExecTimerScheduler 时间轮定时器 自动调度
 func NewAutoExecTimerScheduler() *TimerScheduler {
 	//创建一个调度器
 	autoExecScheduler := NewTimerScheduler()

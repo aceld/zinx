@@ -44,9 +44,10 @@ package zdecoder
 
 import (
 	"encoding/hex"
+	"math"
+
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
-	"math"
 )
 
 const HEADER_SIZE = 5
