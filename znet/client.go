@@ -106,7 +106,6 @@ func NewTLSClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 	return c
 }
 
-
 // Start starts the client, sends requests and establishes a connection.
 // (重新启动客户端，发送请求且建立连接)
 func (c *Client) Restart() {
@@ -131,7 +130,7 @@ func (c *Client) Restart() {
 			// Create a raw socket and get net.Conn (创建原始Socket，得到net.Conn)
 			wsConn, _, err := c.dialer.Dial(wsAddr, nil)
 			if err != nil {
-				// Conection failed
+				// connection failed
 				zlog.Ins().ErrorF("WsClient connect to server failed, err:%v", err)
 				c.ErrChan <- err
 				return
@@ -159,7 +158,7 @@ func (c *Client) Restart() {
 			} else {
 				conn, err = net.DialTCP("tcp", nil, addr)
 				if err != nil {
-					// Conection failed
+					// connection failed
 					zlog.Ins().ErrorF("client connect to server failed, err:%v", err)
 					c.ErrChan <- err
 					return

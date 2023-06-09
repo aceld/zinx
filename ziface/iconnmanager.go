@@ -4,7 +4,7 @@
 package ziface
 
 /*
-	Connection Management Abstract Layer
+IConnManager Connection Management Abstract Layer
 */
 type IConnManager interface {
 	Add(IConnection)                                                       // Add connection

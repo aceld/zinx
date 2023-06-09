@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	"github.com/aceld/zinx/logo"
@@ -145,7 +146,7 @@ func NewDefaultRouterSlicesServer(opts ...Option) ziface.IServer {
 	return s
 }
 
-// NewUserRouterSlicesServer creates a server handle with user-configured options and a default Recover handler.
+// NewUserConfDefaultRouterSlicesServer creates a server handle with user-configured options and a default Recover handler.
 // If the user does not wish to use the Use method, they should use NewUserConfServer instead.
 // (创建一个用户配置的自带一个Recover处理器的服务器句柄，如果用户不希望Use这个方法，那么应该使用NewUserConfServer)
 func NewUserConfDefaultRouterSlicesServer(config *zconf.Config, opts ...Option) ziface.IServer {
@@ -349,7 +350,7 @@ func (s *Server) Serve() {
 	// Block, otherwise the listener's goroutine will exit when the main Go exits (阻塞,否则主Go退出， listenner的go将会退出)
 	c := make(chan os.Signal, 1)
 	// Listen for specified signals: ctrl+c or kill signal (监听指定信号 ctrl+c kill信号)
-	signal.Notify(c, os.Interrupt, os.Kill)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 	sig := <-c
 	zlog.Ins().InfoF("[SERVE] Zinx server , name %s, Serve Interrupt, signal = %v", s.Name, sig)
 }

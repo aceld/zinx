@@ -61,10 +61,9 @@ var crc16_l = []byte{
 func GetCrC(buff []byte) []byte {
 	var hi uint16 = 0x00ff
 	var low uint16 = 0x00ff
-	var pos uint16 = 0
 
 	for i := 0; i < len(buff); i++ {
-		pos = (low ^ uint16(buff[i])) & 0x00ff
+		pos := (low ^ uint16(buff[i])) & 0x00ff
 		low = hi ^ uint16(crc16_h[pos])
 		hi = uint16(crc16_l[pos])
 	}

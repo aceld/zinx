@@ -13,7 +13,7 @@ func TestNewAOIManager(t *testing.T) {
 func TestAOIManagerSuroundGrIDsByGID(t *testing.T) {
 	aoiMgr := NewAOIManager(0, 250, 5, 0, 250, 5)
 
-	for k, _ := range aoiMgr.grIDs {
+	for k := range aoiMgr.grIDs {
 		//得到当前格子周边的九宫格
 		grIDs := aoiMgr.GetSurroundGrIDsByGID(k)
 		//得到九宫格所有的IDs

@@ -8,14 +8,15 @@ package zconf
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/aceld/zinx/zlog"
-	"github.com/aceld/zinx/zutils/commandline/args"
-	"github.com/aceld/zinx/zutils/commandline/uflag"
 	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/aceld/zinx/zlog"
+	"github.com/aceld/zinx/zutils/commandline/args"
+	"github.com/aceld/zinx/zutils/commandline/uflag"
 )
 
 const (

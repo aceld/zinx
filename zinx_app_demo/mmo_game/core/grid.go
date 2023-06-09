@@ -6,7 +6,7 @@ import (
 )
 
 /*
-	一个地图中的格子类
+GrID 一个地图中的格子类
 */
 type GrID struct {
 	GID       int          //格子ID
@@ -18,7 +18,7 @@ type GrID struct {
 	pIDLock   sync.RWMutex //playerIDs的保护map的锁
 }
 
-//初始化一个格子
+// 初始化一个格子
 func NewGrID(gID, minX, maxX, minY, maxY int) *GrID {
 	return &GrID{
 		GID:       gID,
@@ -30,7 +30,7 @@ func NewGrID(gID, minX, maxX, minY, maxY int) *GrID {
 	}
 }
 
-//向当前格子中添加一个玩家
+// 向当前格子中添加一个玩家
 func (g *GrID) Add(playerID int) {
 	g.pIDLock.Lock()
 	defer g.pIDLock.Unlock()
@@ -38,7 +38,7 @@ func (g *GrID) Add(playerID int) {
 	g.playerIDs[playerID] = true
 }
 
-//从格子中删除一个玩家
+// 从格子中删除一个玩家
 func (g *GrID) Remove(playerID int) {
 	g.pIDLock.Lock()
 	defer g.pIDLock.Unlock()
@@ -46,19 +46,19 @@ func (g *GrID) Remove(playerID int) {
 	delete(g.playerIDs, playerID)
 }
 
-//得到当前格子中所有的玩家
+// 得到当前格子中所有的玩家
 func (g *GrID) GetPlyerIDs() (playerIDs []int) {
 	g.pIDLock.RLock()
 	defer g.pIDLock.RUnlock()
 
-	for k, _ := range g.playerIDs {
+	for k := range g.playerIDs {
 		playerIDs = append(playerIDs, k)
 	}
 
 	return
 }
 
-//打印信息方法
+// 打印信息方法
 func (g *GrID) String() string {
 	return fmt.Sprintf("GrID ID: %d, minX:%d, maxX:%d, minY:%d, maxY:%d, playerIDs:%v",
 		g.GID, g.MinX, g.MaxX, g.MinY, g.MaxY, g.playerIDs)

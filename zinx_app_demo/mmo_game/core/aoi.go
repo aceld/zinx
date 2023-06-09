@@ -12,7 +12,7 @@ const (
 )
 
 /*
-   AOI管理模块
+AOIManager AOI管理模块
 */
 type AOIManager struct {
 	MinX  int           //区域左边界坐标
@@ -25,7 +25,7 @@ type AOIManager struct {
 }
 
 /*
-	初始化一个AOI区域
+初始化一个AOI区域
 */
 func NewAOIManager(minX, maxX, cntsX, minY, maxY, cntsY int) *AOIManager {
 	aoiMgr := &AOIManager{
@@ -57,17 +57,17 @@ func NewAOIManager(minX, maxX, cntsX, minY, maxY, cntsY int) *AOIManager {
 	return aoiMgr
 }
 
-//得到每个格子在x轴方向的宽度
+// 得到每个格子在x轴方向的宽度
 func (m *AOIManager) grIDWIDth() int {
 	return (m.MaxX - m.MinX) / m.CntsX
 }
 
-//得到每个格子在x轴方向的长度
+// 得到每个格子在x轴方向的长度
 func (m *AOIManager) grIDLength() int {
 	return (m.MaxY - m.MinY) / m.CntsY
 }
 
-//打印信息方法
+// 打印信息方法
 func (m *AOIManager) String() string {
 	s := fmt.Sprintf("AOIManagr:\nminX:%d, maxX:%d, cntsX:%d, minY:%d, maxY:%d, cntsY:%d\n GrIDs in AOI Manager:\n",
 		m.MinX, m.MaxX, m.CntsX, m.MinY, m.MaxY, m.CntsY)
@@ -78,7 +78,7 @@ func (m *AOIManager) String() string {
 	return s
 }
 
-//根据格子的gID得到当前周边的九宫格信息
+// 根据格子的gID得到当前周边的九宫格信息
 func (m *AOIManager) GetSurroundGrIDsByGID(gID int) (grIDs []*GrID) {
 	//判断gID是否存在
 	if _, ok := m.grIDs[gID]; !ok {
@@ -117,7 +117,7 @@ func (m *AOIManager) GetSurroundGrIDsByGID(gID int) (grIDs []*GrID) {
 	return
 }
 
-//通过横纵坐标获取对应的格子ID
+// 通过横纵坐标获取对应的格子ID
 func (m *AOIManager) GetGIDByPos(x, y float32) int {
 	gx := (int(x) - m.MinX) / m.grIDWIDth()
 	gy := (int(y) - m.MinY) / m.grIDLength()
@@ -125,7 +125,7 @@ func (m *AOIManager) GetGIDByPos(x, y float32) int {
 	return gy*m.CntsX + gx
 }
 
-//通过横纵坐标得到周边九宫格内的全部PlayerIDs
+// 通过横纵坐标得到周边九宫格内的全部PlayerIDs
 func (m *AOIManager) GetPIDsByPos(x, y float32) (playerIDs []int) {
 	//根据横纵坐标得到当前坐标属于哪个格子ID
 	gID := m.GetGIDByPos(x, y)
@@ -140,30 +140,30 @@ func (m *AOIManager) GetPIDsByPos(x, y float32) (playerIDs []int) {
 	return
 }
 
-//通过GID获取当前格子的全部playerID
+// 通过GID获取当前格子的全部playerID
 func (m *AOIManager) GetPIDsByGID(gID int) (playerIDs []int) {
 	playerIDs = m.grIDs[gID].GetPlyerIDs()
 	return
 }
 
-//移除一个格子中的PlayerID
+// 移除一个格子中的PlayerID
 func (m *AOIManager) RemovePIDFromGrID(pID, gID int) {
 	m.grIDs[gID].Remove(pID)
 }
 
-//添加一个PlayerID到一个格子中
+// 添加一个PlayerID到一个格子中
 func (m *AOIManager) AddPIDToGrID(pID, gID int) {
 	m.grIDs[gID].Add(pID)
 }
 
-//通过横纵坐标添加一个Player到一个格子中
+// 通过横纵坐标添加一个Player到一个格子中
 func (m *AOIManager) AddToGrIDByPos(pID int, x, y float32) {
 	gID := m.GetGIDByPos(x, y)
 	grID := m.grIDs[gID]
 	grID.Add(pID)
 }
 
-//通过横纵坐标把一个Player从对应的格子中删除
+// 通过横纵坐标把一个Player从对应的格子中删除
 func (m *AOIManager) RemoveFromGrIDByPos(pID int, x, y float32) {
 	gID := m.GetGIDByPos(x, y)
 	grID := m.grIDs[gID]

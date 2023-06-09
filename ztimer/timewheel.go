@@ -26,7 +26,7 @@ import (
 	用时间轮的方式来管理和维护大量的timer调度，会解决上面的问题。
 */
 
-//TimeWheel 时间轮
+// TimeWheel 时间轮
 type TimeWheel struct {
 	//TimeWheel的名称
 	name string
@@ -47,7 +47,7 @@ type TimeWheel struct {
 	sync.RWMutex
 }
 
-//NewTimeWheel  创建一个时间轮
+// NewTimeWheel  创建一个时间轮
 func NewTimeWheel(name string, interval int64, scales int, maxCap int) *TimeWheel {
 	// name：时间轮的名称
 	// interval：每个刻度之间的duration时间间隔
@@ -71,15 +71,16 @@ func NewTimeWheel(name string, interval int64, scales int, maxCap int) *TimeWhee
 }
 
 /*
-	将一个timer定时器加入到分层时间轮中
-	tID: 每个定时器timer的唯一标识
-	t: 当前被加入时间轮的定时器
-	forceNext: 是否强制的将定时器添加到下一层时间轮
+将一个timer定时器加入到分层时间轮中
+tID: 每个定时器timer的唯一标识
+t: 当前被加入时间轮的定时器
+forceNext: 是否强制的将定时器添加到下一层时间轮
 
-	我们采用的算法是：
-	如果当前timer的超时时间间隔 大于一个刻度，那么进行hash计算 找到对应的刻度上添加
-	如果当前的timer的超时时间间隔 小于一个刻度 :
-					如果没有下一轮时间轮
+我们采用的算法是：
+如果当前timer的超时时间间隔 大于一个刻度，那么进行hash计算 找到对应的刻度上添加
+如果当前的timer的超时时间间隔 小于一个刻度 :
+
+	如果没有下一轮时间轮
 */
 func (tw *TimeWheel) addTimer(tID uint32, t *Timer, forceNext bool) error {
 	defer func() error {
@@ -128,7 +129,7 @@ func (tw *TimeWheel) addTimer(tID uint32, t *Timer, forceNext bool) error {
 	return nil
 }
 
-//AddTimer 添加一个timer到一个时间轮中(非时间轮自转情况)
+// AddTimer 添加一个timer到一个时间轮中(非时间轮自转情况)
 func (tw *TimeWheel) AddTimer(tID uint32, t *Timer) error {
 	tw.Lock()
 	defer tw.Unlock()
@@ -136,7 +137,7 @@ func (tw *TimeWheel) AddTimer(tID uint32, t *Timer) error {
 	return tw.addTimer(tID, t, false)
 }
 
-//RemoveTimer 删除一个定时器，根据定时器的ID
+// RemoveTimer 删除一个定时器，根据定时器的ID
 func (tw *TimeWheel) RemoveTimer(tID uint32) {
 	tw.Lock()
 	defer tw.Unlock()
@@ -148,14 +149,14 @@ func (tw *TimeWheel) RemoveTimer(tID uint32) {
 	}
 }
 
-//AddTimeWheel 给一个时间轮添加下层时间轮 比如给小时时间轮添加分钟时间轮，给分钟时间轮添加秒时间轮
+// AddTimeWheel 给一个时间轮添加下层时间轮 比如给小时时间轮添加分钟时间轮，给分钟时间轮添加秒时间轮
 func (tw *TimeWheel) AddTimeWheel(next *TimeWheel) {
 	tw.nextTimeWheel = next
 	zlog.Ins().InfoF("Add timerWhell[%s]'s next [%s] is succ!", tw.name, next.name)
 }
 
 /*
-	启动时间轮
+启动时间轮
 */
 func (tw *TimeWheel) run() {
 	for {
@@ -186,13 +187,13 @@ func (tw *TimeWheel) run() {
 	}
 }
 
-//Run 非阻塞的方式让时间轮转起来
+// Run 非阻塞的方式让时间轮转起来
 func (tw *TimeWheel) Run() {
 	go tw.run()
 	zlog.Ins().InfoF("timerwheel name = %s is running...", tw.name)
 }
 
-//GetTimerWithIn 获取定时器在一段时间间隔内的Timer
+// GetTimerWithIn 获取定时器在一段时间间隔内的Timer
 func (tw *TimeWheel) GetTimerWithIn(duration time.Duration) map[uint32]*Timer {
 	//最终触发定时器的一定是挂载最底层时间轮上的定时器
 	//1 找到最底层时间轮

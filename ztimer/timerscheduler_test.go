@@ -17,12 +17,12 @@ import (
 	"github.com/aceld/zinx/zlog"
 )
 
-//触发函数
+// 触发函数
 func foo(args ...interface{}) {
 	fmt.Printf("I am No. %d function, delay %d ms\n", args[0].(int), args[1].(int))
 }
 
-//手动创建调度器运转时间轮
+// 手动创建调度器运转时间轮
 func TestNewTimerScheduler(t *testing.T) {
 	timerScheduler := NewTimerScheduler()
 	timerScheduler.Start()
@@ -49,7 +49,7 @@ func TestNewTimerScheduler(t *testing.T) {
 	select {}
 }
 
-//采用自动调度器运转时间轮
+// 采用自动调度器运转时间轮
 func TestNewAutoExecTimerScheduler(t *testing.T) {
 	autoTS := NewAutoExecTimerScheduler()
 
@@ -67,7 +67,7 @@ func TestNewAutoExecTimerScheduler(t *testing.T) {
 	select {}
 }
 
-//测试取消一个定时器
+// 测试取消一个定时器
 func TestCancelTimerScheduler(t *testing.T) {
 	Scheduler := NewAutoExecTimerScheduler()
 	f1 := NewDelayFunc(foo, []interface{}{3, 3})

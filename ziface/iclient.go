@@ -1,6 +1,7 @@
 // @Title  iclient.go
 // @Description  Provides all interface declarations for the Client abstraction layer.
 // @Author  Aceld - 2023-2-28
+
 package ziface
 
 import "time"
