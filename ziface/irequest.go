@@ -10,11 +10,9 @@ type IFuncRequest interface {
 	CallFunc()
 }
 
-/*
-IRequest interface:
-	It actually packages the connection information and request data of the client request into Request
-	(实际上是把客户端请求的链接信息 和 请求的数据 包装到了 Request里)
-*/
+// IRequest interface:
+// It actually packages the connection information and request data of the client request into Request
+// (实际上是把客户端请求的链接信息 和 请求的数据 包装到了 Request里)
 type IRequest interface {
 	GetConnection() IConnection // Get the connection information of the request(获取请求连接信息)
 

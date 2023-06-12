@@ -155,10 +155,10 @@ func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
 }
 
 // doFuncHandler handles functional requests (执行函数式请求)
-func (mh *MsgHandle) doFuncHandler(request ziface.IFuncRequest, workerId int) {
+func (mh *MsgHandle) doFuncHandler(request ziface.IFuncRequest, workerID int) {
 	defer func() {
 		if err := recover(); err != nil {
-			zlog.Ins().ErrorF("doFuncRequest panic: %v", err)
+			zlog.Ins().ErrorF("workerID: %d doFuncRequest panic: %v", workerID, err)
 		}
 	}()
 	// Execute the functional request (执行函数式请求)
@@ -170,7 +170,7 @@ func (mh *MsgHandle) doFuncHandler(request ziface.IFuncRequest, workerId int) {
 func (mh *MsgHandle) doMsgHandler(request ziface.IRequest, workerID int) {
 	defer func() {
 		if err := recover(); err != nil {
-			zlog.Ins().ErrorF("doMsgHandler panic: %v", err)
+			zlog.Ins().ErrorF("workerID: %d doMsgHandler panic: %v", workerID, err)
 		}
 	}()
 
@@ -230,7 +230,7 @@ func (mh *MsgHandle) Use(Handlers ...ziface.RouterHandler) ziface.IRouterSlices 
 func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest, workerID int) {
 	defer func() {
 		if err := recover(); err != nil {
-			zlog.Ins().ErrorF("doMsgHandler panic: %v", err)
+			zlog.Ins().ErrorF("workerID: %d doMsgHandler panic: %v", workerID, err)
 		}
 	}()
 

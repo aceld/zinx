@@ -215,7 +215,6 @@ func (c *WsConnection) StartReader() {
 			n := len(buffer)
 			if err != nil {
 				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err.Error())
-
 				return
 			}
 			zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer[0:n]))
@@ -359,7 +358,7 @@ func (c *WsConnection) SendToQueue(data []byte) error {
 
 	if data == nil {
 		zlog.Ins().ErrorF("Pack data is nil")
-		return errors.New("Pack data is nil")
+		return errors.New("Pack data is nil ")
 	}
 
 	select {

@@ -2,14 +2,15 @@ package znotify
 
 import (
 	"fmt"
-	"github.com/aceld/zinx/zconf"
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/znet"
-	"github.com/aceld/zinx/zpack"
 	"net"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/aceld/zinx/zconf"
+	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/znet"
+	"github.com/aceld/zinx/zpack"
 )
 
 var nt = NewZNotify()

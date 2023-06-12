@@ -1,9 +1,10 @@
 package znet
 
 import (
-	"github.com/aceld/zinx/ziface"
 	"strconv"
 	"sync"
+
+	"github.com/aceld/zinx/ziface"
 )
 
 // BaseRouter is used as the base class when implementing a router.

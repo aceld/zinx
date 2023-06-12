@@ -2,10 +2,10 @@ package znet
 
 import (
 	"errors"
-	"github.com/aceld/zinx/zlog"
 	"sync"
 
 	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/zlog"
 )
 
 type ConnManager struct {

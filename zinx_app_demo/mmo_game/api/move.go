@@ -10,7 +10,7 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-//玩家移动
+// MoveApi 玩家移动
 type MoveApi struct {
 	znet.BaseRouter
 }

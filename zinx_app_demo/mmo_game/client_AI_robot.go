@@ -1,3 +1,6 @@
+//go:build robot
+// +build robot
+
 package main
 
 import (
@@ -155,7 +158,7 @@ func (this *TcpClient) AIRobotAction() {
 }
 
 /*
-	处理一个回执业务
+处理一个回执业务
 */
 func (this *TcpClient) DoMsg(msg *Message) {
 	//处理消息
