@@ -1,0 +1,28 @@
+run:
+  timeout: 30m
+  skip-dirs:
+  - examples
+
+linters:
+  disable-all: true
+  enable:
+  #- unused
+  - ineffassign
+  - goimports
+  - gofmt
+  - misspell
+  - unparam
+  - unconvert
+  - govet
+  # - errcheck
+  - staticcheck
+
+linters-settings:
+  staticcheck:
+    go: "1.16"
+    checks:
+    - "all"
+    - "-SA1019"
+
+  unused:
+    go: "1.16"
