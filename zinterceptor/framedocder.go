@@ -526,7 +526,7 @@ func (d *FrameDecoder) decode(buf []byte) []byte {
 
 	//跳过的字节数是否大于数据包长度
 	if d.InitialBytesToStrip > frameLengthInt {
-		d.failOnFrameLengthLessThanInitialBytesToStrip(in, int64(frameLength), d.InitialBytesToStrip)
+		d.failOnFrameLengthLessThanInitialBytesToStrip(in, frameLength, d.InitialBytesToStrip)
 	}
 	//跳过initialBytesToStrip个字节
 	in.Next(d.InitialBytesToStrip)
