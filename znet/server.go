@@ -434,7 +434,7 @@ func (s *Server) StartHeartBeat(interval time.Duration) {
 	s.hc = checker
 }
 
-// StartHeartBeatWithFunc starts the heartbeat detection with the given configuration.
+// StartHeartBeatWithOption starts the heartbeat detection with the given configuration.
 // interval is the time interval for sending heartbeat messages.
 // option is the configuration for heartbeat detection.
 // 启动心跳检测
