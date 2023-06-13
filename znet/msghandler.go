@@ -78,7 +78,13 @@ func newMsgHandle() *MsgHandle {
 
 // Use worker ID
 // 占用workerID
-func (mh *MsgHandle) UseWorker(conn ziface.IConnection) uint32 {
+func useWorker(conn ziface.IConnection) uint32 {
+	mh, _ := conn.GetMsgHandler().(*MsgHandle)
+	if mh == nil {
+		zlog.Ins().ErrorF("useWorker failed, mh is nil")
+		return 0
+	}
+
 	if zconf.GlobalObject.WorkerMode == zconf.WorkerModeBind {
 		mh.freeWorkerMu.Lock()
 		defer mh.freeWorkerMu.Unlock()
@@ -99,12 +105,18 @@ func (mh *MsgHandle) UseWorker(conn ziface.IConnection) uint32 {
 
 // Free worker ID
 // 释放workerid
-func (mh *MsgHandle) FreeWorker(workerID uint32) {
+func freeWorker(conn ziface.IConnection) {
+	mh, _ := conn.GetMsgHandler().(*MsgHandle)
+	if mh == nil {
+		zlog.Ins().ErrorF("useWorker failed, mh is nil")
+		return
+	}
+
 	if zconf.GlobalObject.WorkerMode == zconf.WorkerModeBind {
 		mh.freeWorkerMu.Lock()
 		defer mh.freeWorkerMu.Unlock()
 
-		mh.freeWorkers[workerID] = struct{}{}
+		mh.freeWorkers[conn.GetWorkerID()] = struct{}{}
 	}
 }
 

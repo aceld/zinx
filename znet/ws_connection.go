@@ -269,7 +269,7 @@ func (c *WsConnection) Start() {
 	}
 
 	// 占用workerid
-	c.workerID = c.msgHandler.UseWorker(c)
+	c.workerID = useWorker(c)
 
 	// Start the Goroutine for users to read data from the client.
 	// (开启用户从客户端读取数据流程的Goroutine)
@@ -280,7 +280,7 @@ func (c *WsConnection) Start() {
 		c.finalizer()
 
 		// 归还workerid
-		c.msgHandler.FreeWorker(c.workerID)
+		freeWorker(c)
 		return
 	}
 }
