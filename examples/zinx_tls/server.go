@@ -34,7 +34,7 @@ func (this *PingRouter) Handle(request ziface.IRequest) {
 }
 
 // genExampleCrtAndKeyFile
-// // Generate certificate and key files for testing purposes only! Please customize this function or use openssl to generate them for actual use.
+// Generate certificate and key files for testing purposes only! Please customize this function or use openssl to generate them for actual use.
 // (仅测试时生成证书和密钥文件！！实际使用请自定义该函数或者用openssl自行生成)
 // Reference for generating certificate and private key using openssl : https://blog.csdn.net/qq_44637753/article/details/124152315
 // (openssl生成证书和私钥方法参考 https://blog.csdn.net/qq_44637753/article/details/124152315)
