@@ -24,6 +24,11 @@ const (
 	ServerModeWebsocket = "websocket"
 )
 
+const (
+	WorkerModeHash = "Hash" //By default, the round-robin average allocation rule is used.(默认使用取余的方式)
+	WorkerModeBind = "Bind" //Bind a worker to each connection.(为每个连接分配一个worker)
+)
+
 /*
 	   Store all global parameters related to the Zinx framework for use by other modules.
 	   Some parameters can also be configured by the user based on the zinx.json file.

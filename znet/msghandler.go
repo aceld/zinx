@@ -29,8 +29,8 @@ type MsgHandle struct {
 	// (业务工作Worker池的数量)
 	WorkerPoolSize uint32
 
-	// A collection of idle workers, used for zconf.{WorkMode:OneWorkerEachConn}
-	// 空闲worker集合，用于zconf.{WorkMode:OneWorkerEachConn}
+	// A collection of idle workers, used for zconf.WorkerModeBind
+	// 空闲worker集合，用于zconf.WorkerModeBind
 	freeWorkers  map[uint32]struct{}
 	freeWorkerMu sync.Mutex
 
@@ -48,7 +48,7 @@ type MsgHandle struct {
 // zinxRole: IServer/IClient
 func newMsgHandle() *MsgHandle {
 	var freeWorkers map[uint32]struct{}
-	if zconf.GlobalObject.WorkerMode == "OneWorkerEachConn" {
+	if zconf.GlobalObject.WorkerMode == zconf.WorkerModeBind {
 		// Assign a workder to each link, avoid interactions when multiple links are processed by the same worker
 		// MaxWorkerTaskLen can also be reduced, for example, 50
 		// 为每个链接分配一个workder，避免同一worker处理多个链接时的互相影响
@@ -79,7 +79,7 @@ func newMsgHandle() *MsgHandle {
 // Use worker ID
 // 占用workerID
 func (mh *MsgHandle) UseWorker(conn ziface.IConnection) uint32 {
-	if zconf.GlobalObject.WorkerMode == "OneWorkerEachConn" {
+	if zconf.GlobalObject.WorkerMode == zconf.WorkerModeBind {
 		mh.freeWorkerMu.Lock()
 		defer mh.freeWorkerMu.Unlock()
 
@@ -87,21 +87,20 @@ func (mh *MsgHandle) UseWorker(conn ziface.IConnection) uint32 {
 			delete(mh.freeWorkers, k)
 			return k
 		}
-	} else {
-		// Assign the worker responsible for processing the current connection based on the ConnID
-		// Using a round-robin average allocation rule to get the workerID that needs to process this connection
-		// (根据ConnID来分配当前的连接应该由哪个worker负责处理
-		// 轮询的平均分配法则
-		// 得到需要处理此条连接的workerID)
-		return uint32(conn.GetConnID() % uint64(mh.WorkerPoolSize))
 	}
-	return 0
+
+	// Assign the worker responsible for processing the current connection based on the ConnID
+	// Using a round-robin average allocation rule to get the workerID that needs to process this connection
+	// (根据ConnID来分配当前的连接应该由哪个worker负责处理
+	// 轮询的平均分配法则
+	// 得到需要处理此条连接的workerID)
+	return uint32(conn.GetConnID() % uint64(mh.WorkerPoolSize))
 }
 
 // Free worker ID
 // 释放workerid
 func (mh *MsgHandle) FreeWorker(workerID uint32) {
-	if zconf.GlobalObject.WorkerMode == "OneWorkerEachConn" {
+	if zconf.GlobalObject.WorkerMode == zconf.WorkerModeBind {
 		mh.freeWorkerMu.Lock()
 		defer mh.freeWorkerMu.Unlock()
 
