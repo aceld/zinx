@@ -24,6 +24,11 @@ const (
 	ServerModeWebsocket = "websocket"
 )
 
+const (
+	WorkerModeHash = "Hash" //By default, the round-robin average allocation rule is used.(默认使用取余的方式)
+	WorkerModeBind = "Bind" //Bind a worker to each connection.(为每个连接分配一个worker)
+)
+
 /*
 	   Store all global parameters related to the Zinx framework for use by other modules.
 	   Some parameters can also be configured by the user based on the zinx.json file.
@@ -47,6 +52,7 @@ type Config struct {
 	MaxConn          int    //The maximum number of connections that the server can handle.(当前服务器主机允许的最大链接个数)
 	WorkerPoolSize   uint32 //The number of worker pools in the business logic.(业务工作Worker池的数量)
 	MaxWorkerTaskLen uint32 //The maximum number of tasks that a worker pool can handle.(业务工作Worker对应负责的任务队列最大任务存储数量)
+	WorkerMode       string //The way to assign workers to connections.(为链接分配worker的方式)
 	MaxMsgChanLen    uint32 //The maximum length of the send buffer message queue.(SendBuffMsg发送消息的缓冲最大长度)
 	IOReadBuffSize   uint32 //The maximum size of the read buffer for each IO operation.(每次IO最大的读取长度)
 
@@ -203,6 +209,7 @@ func init() {
 		MaxPacketSize:     4096,
 		WorkerPoolSize:    10,
 		MaxWorkerTaskLen:  1024,
+		WorkerMode:        "",
 		MaxMsgChanLen:     1024,
 		LogDir:            pwd + "/log",
 		LogFile:           "", //if set "", print to Stderr(默认日志文件为空，打印到stderr)

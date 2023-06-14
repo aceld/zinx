@@ -3,6 +3,7 @@ package znet
 import (
 	"encoding/hex"
 	"fmt"
+	"sync"
 
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
@@ -28,6 +29,11 @@ type MsgHandle struct {
 	// (业务工作Worker池的数量)
 	WorkerPoolSize uint32
 
+	// A collection of idle workers, used for zconf.WorkerModeBind
+	// 空闲worker集合，用于zconf.WorkerModeBind
+	freeWorkers  map[uint32]struct{}
+	freeWorkerMu sync.Mutex
+
 	// A message queue for workers to take tasks
 	// (Worker负责取任务的消息队列)
 	TaskQueue []chan ziface.IRequest
@@ -41,19 +47,77 @@ type MsgHandle struct {
 // newMsgHandle creates MsgHandle
 // zinxRole: IServer/IClient
 func newMsgHandle() *MsgHandle {
+	var freeWorkers map[uint32]struct{}
+	if zconf.GlobalObject.WorkerMode == zconf.WorkerModeBind {
+		// Assign a workder to each link, avoid interactions when multiple links are processed by the same worker
+		// MaxWorkerTaskLen can also be reduced, for example, 50
+		// 为每个链接分配一个workder，避免同一worker处理多个链接时的互相影响
+		// 同时可以减小MaxWorkerTaskLen，比如50，因为每个worker的负担减轻了
+		zconf.GlobalObject.WorkerPoolSize = uint32(zconf.GlobalObject.MaxConn)
+		freeWorkers = make(map[uint32]struct{}, zconf.GlobalObject.WorkerPoolSize)
+		for i := uint32(0); i < zconf.GlobalObject.WorkerPoolSize; i++ {
+			freeWorkers[i] = struct{}{}
+		}
+	}
+
 	handle := &MsgHandle{
 		Apis:           make(map[uint32]ziface.IRouter),
 		RouterSlices:   NewRouterSlices(),
 		WorkerPoolSize: zconf.GlobalObject.WorkerPoolSize,
 		// One worker corresponds to one queue (一个worker对应一个queue)
-		TaskQueue: make([]chan ziface.IRequest, zconf.GlobalObject.WorkerPoolSize),
-		builder:   newChainBuilder(),
+		TaskQueue:   make([]chan ziface.IRequest, zconf.GlobalObject.WorkerPoolSize),
+		freeWorkers: freeWorkers,
+		builder:     newChainBuilder(),
 	}
 
 	// It is necessary to add the MsgHandle to the responsibility chain here, and it is the last link in the responsibility chain. After decoding in the MsgHandle, data distribution is done by router
 	// (此处必须把 msghandler 添加到责任链中，并且是责任链最后一环，在msghandler中进行解码后由router做数据分发)
 	handle.builder.Tail(handle)
 	return handle
+}
+
+// Use worker ID
+// 占用workerID
+func useWorker(conn ziface.IConnection) uint32 {
+	mh, _ := conn.GetMsgHandler().(*MsgHandle)
+	if mh == nil {
+		zlog.Ins().ErrorF("useWorker failed, mh is nil")
+		return 0
+	}
+
+	if zconf.GlobalObject.WorkerMode == zconf.WorkerModeBind {
+		mh.freeWorkerMu.Lock()
+		defer mh.freeWorkerMu.Unlock()
+
+		for k := range mh.freeWorkers {
+			delete(mh.freeWorkers, k)
+			return k
+		}
+	}
+
+	// Assign the worker responsible for processing the current connection based on the ConnID
+	// Using a round-robin average allocation rule to get the workerID that needs to process this connection
+	// (根据ConnID来分配当前的连接应该由哪个worker负责处理
+	// 轮询的平均分配法则
+	// 得到需要处理此条连接的workerID)
+	return uint32(conn.GetConnID() % uint64(mh.WorkerPoolSize))
+}
+
+// Free worker ID
+// 释放workerid
+func freeWorker(conn ziface.IConnection) {
+	mh, _ := conn.GetMsgHandler().(*MsgHandle)
+	if mh == nil {
+		zlog.Ins().ErrorF("useWorker failed, mh is nil")
+		return
+	}
+
+	if zconf.GlobalObject.WorkerMode == zconf.WorkerModeBind {
+		mh.freeWorkerMu.Lock()
+		defer mh.freeWorkerMu.Unlock()
+
+		mh.freeWorkers[conn.GetWorkerID()] = struct{}{}
+	}
 }
 
 // Data processing interceptor that is necessary by default in Zinx
@@ -91,20 +155,10 @@ func (mh *MsgHandle) AddInterceptor(interceptor ziface.IInterceptor) {
 	}
 }
 
-func (mh *MsgHandle) GetTaskQueueWorkerId(request ziface.IRequest) uint64 {
-	// Assign the worker responsible for processing the current connection based on the ConnID
-	// Using a round-robin average allocation rule to get the workerID that needs to process this connection
-	// (根据ConnID来分配当前的连接应该由哪个worker负责处理
-	// 轮询的平均分配法则
-	// 得到需要处理此条连接的workerID)
-	workerID := request.GetConnection().GetConnID() % uint64(mh.WorkerPoolSize)
-	return workerID
-}
-
 // SendMsgToTaskQueue sends the message to the TaskQueue for processing by the worker
 // (将消息交给TaskQueue,由worker进行处理)
 func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
-	workerID := mh.GetTaskQueueWorkerId(request)
+	workerID := request.GetConnection().GetWorkerID()
 	// zlog.Ins().DebugF("Add ConnID=%d request msgID=%d to workerID=%d", request.GetConnection().GetConnID(), request.GetMsgID(), workerID)
 	// Send the request message to the task queue
 	mh.TaskQueue[workerID] <- request
