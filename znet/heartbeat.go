@@ -61,16 +61,14 @@ func (h *HeartbeatChecker) Stop() {
 	h.quitChan <- true
 }
 
-func (h *HeartbeatChecker) check() (err error) {
+func (h *HeartbeatChecker) check() {
 	if h.conn == nil {
-		return nil
+		return
 	}
 
 	if !h.conn.IsAlive() {
 		h.onRemoteNotAlive(h.conn)
 	}
-
-	return err
 }
 
 func (h *HeartbeatChecker) BindConn(conn ziface.IConnection) {
