@@ -204,13 +204,26 @@ func (c *Client) Start() {
 func (c *Client) StartHeartBeat(interval time.Duration) {
 	checker := NewHeartbeatChecker(interval)
 
-	// Add the heartbeat checker's route to the client's message handler.
-	// (添加心跳检测的路由)
-	c.AddRouter(checker.MsgID(), checker.Router())
-
 	// Bind the heartbeat checker to the client's connection.
 	// (client绑定心跳检测器)
 	c.hc = checker
+}
+
+// StartHeartBeatWithCallback starts heartbeat detection with a custom callback function.
+// interval: the time interval between each heartbeat message.
+// alive: a callback function that is called when the remote server is not alive.
+// 启动心跳检测(自定义回调)
+func (c *Client) StartHeartBeatWithCallback(interval time.Duration, alive ziface.OnRemoteNotAlive) {
+	// Create a new heartbeat checker with the given interval.
+	checker := NewHeartbeatChecker(interval)
+
+	// Set the heartbeat checker's callback function and message ID based on the HeartBeatOption struct.
+	if alive != nil {
+		checker.SetOnRemoteNotAlive(alive)
+	}
+	// Bind the heartbeat checker to the client's connection.
+	c.hc = checker
+
 }
 
 // StartHeartBeatWithOption starts heartbeat detection with a custom callback function.

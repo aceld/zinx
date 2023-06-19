@@ -125,7 +125,6 @@ func (h *HeartbeatChecker) Stop() {
 }
 
 func (h *HeartbeatChecker) SendHeartBeatMsg() error {
-
 	msg := h.makeMsg(h.conn)
 
 	err := h.conn.SendMsg(h.msgID, msg)
@@ -148,8 +147,6 @@ func (h *HeartbeatChecker) check() (err error) {
 	} else {
 		if h.beatFunc != nil {
 			err = h.beatFunc(h.conn)
-		} else {
-			err = h.SendHeartBeatMsg()
 		}
 	}
 
