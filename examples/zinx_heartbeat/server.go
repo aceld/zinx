@@ -33,14 +33,11 @@ func (r *myHeartBeatRouter) Handle(request ziface.IRequest) {
 func main() {
 	s := znet.NewServer()
 
-	myHeartBeatMsgID := 88888
-
 	// Start heartbeating detection. (启动心跳检测)
-	s.StartHeartBeatWithOption(1*time.Second, &ziface.HeartBeatOption{
-		MakeMsg:          myHeartBeatMsg,
-		OnRemoteNotAlive: myOnRemoteNotAlive,
-		Router:           &myHeartBeatRouter{},
-		HeadBeatMsgID:    uint32(myHeartBeatMsgID),
+	s.StartHeartBeatWithOption(1*time.Second, func(connection ziface.IConnection) {
+		fmt.Println("myOnRemoteNotAlive is Called, connID=", connection.GetConnID(), "remoteAddr = ", connection.RemoteAddr())
+		//关闭链接
+		connection.Stop()
 	})
 
 	s.Serve()
