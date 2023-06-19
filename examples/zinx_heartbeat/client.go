@@ -34,7 +34,7 @@ func main() {
 	client := znet.NewClient("127.0.0.1", 8999)
 
 	// Start heartbeating detection. (启动心跳检测)
-	client.StartHeartBeatWithOption(3*time.Second, func(connection ziface.IConnection) {
+	client.StartHeartBeatWithCallback(3*time.Second, func(connection ziface.IConnection) {
 		fmt.Println("myClientOnRemoteNotAlive is Called, connID=", connection.GetConnID(), "remoteAddr = ", connection.RemoteAddr())
 		//关闭链接
 		connection.Stop()

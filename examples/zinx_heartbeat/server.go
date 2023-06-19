@@ -34,7 +34,7 @@ func main() {
 	s := znet.NewServer()
 
 	// Start heartbeating detection. (启动心跳检测)
-	s.StartHeartBeatWithOption(1*time.Second, func(connection ziface.IConnection) {
+	s.StartHeartBeatWithCallback(1*time.Second, func(connection ziface.IConnection) {
 		fmt.Println("myOnRemoteNotAlive is Called, connID=", connection.GetConnID(), "remoteAddr = ", connection.RemoteAddr())
 		//关闭链接
 		connection.Stop()

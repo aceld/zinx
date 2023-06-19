@@ -44,8 +44,11 @@ type IClient interface {
 	// StartHeartBeat Start heartbeat detection(启动心跳检测)
 	StartHeartBeat(time.Duration)
 
-	// StartHeartBeatWithOption Start heartbeat detection with custom callbacks 启动心跳检测(自定义回调)
+	//Deprecated: StartHeartBeatWithOption Start heartbeat detection with custom callbacks 启动心跳检测(自定义回调)
 	StartHeartBeatWithOption(time.Duration, *HeartBeatOption)
+
+	//StartHeartBeatWithCallback Start heartbeat detection with custom callbacks 启动心跳检测(自定义回调)
+	StartHeartBeatWithCallback(time.Duration, OnRemoteNotAlive)
 
 	// GetLengthField Get the length field of this Client
 	GetLengthField() *LengthField
