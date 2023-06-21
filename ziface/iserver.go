@@ -63,7 +63,7 @@ type IServer interface {
 
 	// Start the heartbeat check (custom callback)
 	// 启动心跳检测(自定义回调)
-	StartHeartBeatWithOption(time.Duration, *HeartBeatOption)
+	StartHeartBeatWithOption(time.Duration, OnRemoteNotAlive)
 
 	// Get the heartbeat checker
 	// (获取心跳检测器)
