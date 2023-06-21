@@ -421,6 +421,15 @@ func (s *Server) GetMsgHandler() ziface.IMsgHandle {
 // interval 每次发送心跳的时间间隔)
 func (s *Server) StartHeartBeat(interval time.Duration) {
 	checker := NewHeartbeatChecker(interval)
+
+	// Add the heartbeat check router. (添加心跳检测的路由)
+	//检测当前路由模式
+	if s.RouterSlicesMode {
+		s.AddRouterSlices(checker.MsgID(), checker.RouterSlices()...)
+	} else {
+		s.AddRouter(checker.MsgID(), checker.Router())
+	}
+
 	// Bind the heartbeat checker to the server. (server绑定心跳检测器)
 	s.hc = checker
 }
@@ -430,13 +439,29 @@ func (s *Server) StartHeartBeat(interval time.Duration) {
 // option is the configuration for heartbeat detection.
 // 启动心跳检测
 // (option 心跳检测的配置)
-func (s *Server) StartHeartBeatWithOption(interval time.Duration, onRemoteNotAlive ziface.OnRemoteNotAlive) {
+func (s *Server) StartHeartBeatWithOption(interval time.Duration, option *ziface.HeartBeatOption) {
 	checker := NewHeartbeatChecker(interval)
 
 	// Configure the heartbeat checker with the provided options
-	if onRemoteNotAlive != nil {
-		checker.SetOnRemoteNotAlive(onRemoteNotAlive)
+	if option != nil {
+		checker.SetHeartbeatMsgFunc(option.MakeMsg)
+		checker.SetOnRemoteNotAlive(option.OnRemoteNotAlive)
+		//检测当前路由模式
+		if s.RouterSlicesMode {
+			checker.BindRouterSlices(option.HeadBeatMsgID, option.RouterSlices...)
+		} else {
+			checker.BindRouter(option.HeadBeatMsgID, option.Router)
+		}
 	}
+
+	// Add the heartbeat checker's router to the server's router (添加心跳检测的路由)
+	//检测当前路由模式
+	if s.RouterSlicesMode {
+		s.AddRouterSlices(checker.MsgID(), checker.RouterSlices()...)
+	} else {
+		s.AddRouter(checker.MsgID(), checker.Router())
+	}
+
 	// Bind the server with the heartbeat checker (server绑定心跳检测器)
 	s.hc = checker
 }

@@ -204,6 +204,10 @@ func (c *Client) Start() {
 func (c *Client) StartHeartBeat(interval time.Duration) {
 	checker := NewHeartbeatChecker(interval)
 
+	// Add the heartbeat checker's route to the client's message handler.
+	// (添加心跳检测的路由)
+	c.AddRouter(checker.MsgID(), checker.Router())
+
 	// Bind the heartbeat checker to the client's connection.
 	// (client绑定心跳检测器)
 	c.hc = checker
@@ -213,14 +217,19 @@ func (c *Client) StartHeartBeat(interval time.Duration) {
 // interval: the time interval between each heartbeat message.
 // option: a HeartBeatOption struct that contains the custom callback function and message
 // 启动心跳检测(自定义回调)
-func (c *Client) StartHeartBeatWithOption(interval time.Duration, onTimeout ziface.OnRemoteNotAlive) {
+func (c *Client) StartHeartBeatWithOption(interval time.Duration, option *ziface.HeartBeatOption) {
 	// Create a new heartbeat checker with the given interval.
 	checker := NewHeartbeatChecker(interval)
 
 	// Set the heartbeat checker's callback function and message ID based on the HeartBeatOption struct.
-	if onTimeout != nil {
-		checker.SetOnRemoteNotAlive(onTimeout)
+	if option != nil {
+		checker.SetHeartbeatMsgFunc(option.MakeMsg)
+		checker.SetOnRemoteNotAlive(option.OnRemoteNotAlive)
+		checker.BindRouter(option.HeadBeatMsgID, option.Router)
 	}
+
+	// Add the heartbeat checker's route to the client's message handler.
+	c.AddRouter(checker.MsgID(), checker.Router())
 
 	// Bind the heartbeat checker to the client's connection.
 	c.hc = checker
