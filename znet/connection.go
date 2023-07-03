@@ -385,10 +385,9 @@ func (c *Connection) SendToQueue(data []byte) error {
 // SendMsg directly sends Message data to the remote TCP client.
 // (直接将Message数据发送数据给远程的TCP客户端)
 func (c *Connection) SendMsg(msgID uint32, data []byte) error {
-	//if c.isClosed == true {
-	//	return errors.New("connection closed when send msg")
-	//}
-
+	if c.isClosed == true {
+		return errors.New("connection closed when send msg")
+	}
 	// Pack data and send it
 	msg, err := c.packet.Pack(zpack.NewMsgPackage(msgID, data))
 	if err != nil {
@@ -406,6 +405,9 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 }
 
 func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
+	if c.isClosed == true {
+		return errors.New("connection closed when send buff msg")
+	}
 	if c.msgBuffChan == nil {
 		c.msgBuffChan = make(chan []byte, zconf.GlobalObject.MaxMsgChanLen)
 		// Start a Goroutine to write data back to the client
@@ -417,10 +419,6 @@ func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 
 	idleTimeout := time.NewTimer(5 * time.Millisecond)
 	defer idleTimeout.Stop()
-
-	//if c.isClosed == true {
-	//	return errors.New("Connection closed when send buff msg")
-	//}
 
 	msg, err := c.packet.Pack(zpack.NewMsgPackage(msgID, data))
 	if err != nil {
