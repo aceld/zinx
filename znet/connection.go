@@ -224,6 +224,7 @@ func (c *Connection) StartReader() {
 				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err)
 				return
 			}
+			fmt.Println("-------------------------------------------buffer----------------------------", n)
 			zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer[0:n]))
 
 			// If normal data is read from the peer, update the heartbeat detection Active state
@@ -235,14 +236,28 @@ func (c *Connection) StartReader() {
 			// Deal with the custom protocol fragmentation problem, added by uuxia 2023-03-21
 			// (处理自定义协议断粘包问题)
 			if c.frameDecoder != nil {
+				fmt.Println("----------------------------------------------------Came Here---------------------------------------------------")
 				// Decode the 0-n bytes of data read
 				// (为读取到的0-n个字节的数据进行解码)
-				bufArrays := c.frameDecoder.Decode(buffer[0:n])
+				data := hex.EncodeToString(buffer[0:n])
+				fmt.Println("before the data is", data)
+				contains := strings.HasPrefix(data, "00000001000000b1")
+				if !contains {
+					data = "00000001000000b1" + data
+				}
+				fmt.Println("after the data is", data)
+				byteDate, err := hex.DecodeString(data)
+				if err != nil {
+					fmt.Println("error while byte conversion", err)
+					continue
+				}
+				bufArrays := c.frameDecoder.Decode(byteDate)
 				if bufArrays == nil {
+					fmt.Println("----------------------------bufarray is empty--------------------------")
 					continue
 				}
 				for _, bytes := range bufArrays {
-					//zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(bytes))
+					zlog.Ins().DebugF("read buffer ------------------------------------>%s \n", hex.EncodeToString(bytes))
 					msg := zpack.NewMessage(uint32(len(bytes)), bytes)
 					// Get the current client's Request data
 					// (得到当前客户端请求的Request数据)
