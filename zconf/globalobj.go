@@ -8,7 +8,6 @@ package zconf
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
@@ -25,8 +24,8 @@ const (
 )
 
 const (
-	WorkerModeHash = "Hash" //By default, the round-robin average allocation rule is used.(默认使用取余的方式)
-	WorkerModeBind = "Bind" //Bind a worker to each connection.(为每个连接分配一个worker)
+	WorkerModeHash = "Hash" // By default, the round-robin average allocation rule is used.(默认使用取余的方式)
+	WorkerModeBind = "Bind" // Bind a worker to each connection.(为每个连接分配一个worker)
 )
 
 /*
@@ -39,35 +38,35 @@ type Config struct {
 	/*
 		Server
 	*/
-	Host    string //The IP address of the current server. (当前服务器主机IP)
-	TCPPort int    //The port number on which the server listens for TCP connections.(当前服务器主机监听端口号)
-	WsPort  int    //The port number on which the server listens for WebSocket connections.(当前服务器主机websocket监听端口)
-	Name    string //The name of the current server.(当前服务器名称)
+	Host    string // The IP address of the current server. (当前服务器主机IP)
+	TCPPort int    // The port number on which the server listens for TCP connections.(当前服务器主机监听端口号)
+	WsPort  int    // The port number on which the server listens for WebSocket connections.(当前服务器主机websocket监听端口)
+	Name    string // The name of the current server.(当前服务器名称)
 
 	/*
 		Zinx
 	*/
-	Version          string //The version of the Zinx framework.(当前Zinx版本号)
-	MaxPacketSize    uint32 //The maximum size of the packets that can be sent or received.(读写数据包的最大值)
-	MaxConn          int    //The maximum number of connections that the server can handle.(当前服务器主机允许的最大链接个数)
-	WorkerPoolSize   uint32 //The number of worker pools in the business logic.(业务工作Worker池的数量)
-	MaxWorkerTaskLen uint32 //The maximum number of tasks that a worker pool can handle.(业务工作Worker对应负责的任务队列最大任务存储数量)
-	WorkerMode       string //The way to assign workers to connections.(为链接分配worker的方式)
-	MaxMsgChanLen    uint32 //The maximum length of the send buffer message queue.(SendBuffMsg发送消息的缓冲最大长度)
-	IOReadBuffSize   uint32 //The maximum size of the read buffer for each IO operation.(每次IO最大的读取长度)
+	Version          string // The version of the Zinx framework.(当前Zinx版本号)
+	MaxPacketSize    uint32 // The maximum size of the packets that can be sent or received.(读写数据包的最大值)
+	MaxConn          int    // The maximum number of connections that the server can handle.(当前服务器主机允许的最大链接个数)
+	WorkerPoolSize   uint32 // The number of worker pools in the business logic.(业务工作Worker池的数量)
+	MaxWorkerTaskLen uint32 // The maximum number of tasks that a worker pool can handle.(业务工作Worker对应负责的任务队列最大任务存储数量)
+	WorkerMode       string // The way to assign workers to connections.(为链接分配worker的方式)
+	MaxMsgChanLen    uint32 // The maximum length of the send buffer message queue.(SendBuffMsg发送消息的缓冲最大长度)
+	IOReadBuffSize   uint32 // The maximum size of the read buffer for each IO operation.(每次IO最大的读取长度)
 
 	//The server mode, which can be "tcp" or "websocket". If it is empty, both modes are enabled.
 	//"tcp":tcp监听, "websocket":websocket 监听 为空时同时开启
 	Mode string
 
 	// A boolean value that indicates whether the new or old version of the router is used. The default value is false.
-	//路由模式 false为旧版本路由，true为启用新版本的路由 默认使用旧版本
+	// 路由模式 false为旧版本路由，true为启用新版本的路由 默认使用旧版本
 	RouterSlicesMode bool
 
 	/*
 		logger
 	*/
-	LogDir string //The directory where log files are stored. The default value is "./log".(日志所在文件夹 默认"./log")
+	LogDir string // The directory where log files are stored. The default value is "./log".(日志所在文件夹 默认"./log")
 
 	// The name of the log file. If it is empty, the log information will be printed to stderr.
 	// (日志文件名称   默认""  --如果没有设置日志文件，打印信息将打印至stderr)
@@ -78,7 +77,7 @@ type Config struct {
 	LogCons     bool  // 日志标准输出  默认 false
 
 	// The level of log isolation. The values can be 0 (all open), 1 (debug off), 2 (debug/info off), 3 (debug/info/warn off), and so on.
-	//日志隔离级别  -- 0：全开 1：关debug 2：关debug/info 3：关debug/info/warn ...
+	// 日志隔离级别  -- 0：全开 1：关debug 2：关debug/info 3：关debug/info/warn ...
 	LogIsolationLevel int
 
 	/*
@@ -130,7 +129,7 @@ func (g *Config) Reload() {
 		return
 	}
 
-	data, err := ioutil.ReadFile(confFilePath)
+	data, err := os.ReadFile(confFilePath)
 	if err != nil {
 		panic(err)
 	}
@@ -187,7 +186,10 @@ func init() {
 		pwd = "."
 	}
 
-	args.InitConfigFlag(pwd+"/conf/zinx.json", "The configuration file defaults to <exeDir>/conf/zinx.json if it is not set.")
+	args.InitConfigFlag(
+		pwd+"/conf/zinx.json",
+		"The configuration file defaults to <exeDir>/conf/zinx.json if it is not set.",
+	)
 
 	// Note: Prevent errors like "flag provided but not defined: -test.paniconexit0" from occurring in go test.
 	// (防止 go test 出现"flag provided but not defined: -test.paniconexit0"等错误)
@@ -212,9 +214,9 @@ func init() {
 		WorkerMode:        "",
 		MaxMsgChanLen:     1024,
 		LogDir:            pwd + "/log",
-		LogFile:           "", //if set "", print to Stderr(默认日志文件为空，打印到stderr)
+		LogFile:           "", // if set "", print to Stderr(默认日志文件为空，打印到stderr)
 		LogIsolationLevel: 0,
-		HeartbeatMax:      10, //The default maximum interval for heartbeat detection is 10 seconds. (默认心跳检测最长间隔为10秒)
+		HeartbeatMax:      10, // The default maximum interval for heartbeat detection is 10 seconds. (默认心跳检测最长间隔为10秒)
 		IOReadBuffSize:    1024,
 		CertFile:          "",
 		PrivateKeyFile:    "",
