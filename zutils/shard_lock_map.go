@@ -1,6 +1,9 @@
 package zutils
 
-import "sync"
+import (
+	"encoding/json"
+	"sync"
+)
 
 const (
 	ShardCount = 32
@@ -10,7 +13,7 @@ const (
 
 type ShardLockMaps struct {
 	shards       []*SingleShardMap
-	shardKeyFunc func(key interface{}) string
+	shardKeyFunc func(key string) uint32
 }
 
 type SingleShardMap struct {
@@ -18,16 +21,23 @@ type SingleShardMap struct {
 	sync.RWMutex
 }
 
-func NewShardLockMaps(shardKeyFunc func(key interface{}) string) ShardLockMaps {
+func createShardLockMaps(shardKeyFunc func(key string) uint32) ShardLockMaps {
 	slm := ShardLockMaps{
 		shards:       make([]*SingleShardMap, ShardCount),
 		shardKeyFunc: shardKeyFunc,
 	}
-
 	for i := 0; i < ShardCount; i++ {
 		slm.shards[i] = &SingleShardMap{items: make(map[string]interface{})}
 	}
 	return slm
+}
+
+func NewShardLockMaps() ShardLockMaps {
+	return createShardLockMaps(fnv32)
+}
+
+func NewWithCustomShardKeyFunc(shardKeyFunc func(key string) uint32) ShardLockMaps {
+	return createShardLockMaps(shardKeyFunc)
 }
 
 func fnv32(key string) uint32 {
@@ -71,6 +81,17 @@ func (slm ShardLockMaps) Set(key string, value interface{}) {
 	shard.Unlock()
 }
 
+func (slm ShardLockMaps) SetNX(key string, value interface{}) bool {
+	shard := slm.GetShard(key)
+	shard.Lock()
+	_, ok := shard.items[key]
+	if !ok {
+		shard.items[key] = value
+	}
+	shard.Unlock()
+	return !ok
+}
+
 func (slm ShardLockMaps) MSet(data map[string]interface{}) {
 	for key, value := range data {
 		shard := slm.GetShard(key)
@@ -93,4 +114,127 @@ func (slm ShardLockMaps) Remove(key string) {
 	shard.Lock()
 	delete(shard.items, key)
 	shard.Unlock()
+}
+
+func (slm ShardLockMaps) Pop(key string) (v interface{}, exists bool) {
+	shard := slm.GetShard(key)
+	shard.Lock()
+	v, exists = shard.items[key]
+	delete(shard.items, key)
+	shard.Unlock()
+	return v, exists
+}
+
+func (slm ShardLockMaps) IsEmpty() bool {
+	return slm.Count() == 0
+}
+
+type Tuple struct {
+	Key string
+	Val interface{}
+}
+
+func snapshot(slm ShardLockMaps) (chanList []chan Tuple) {
+	chanList = make([]chan Tuple, ShardCount)
+	wg := sync.WaitGroup{}
+	wg.Add(ShardCount)
+	for index, shard := range slm.shards {
+		go func(index int, shard *SingleShardMap) {
+			shard.RLock()
+			chanList[index] = make(chan Tuple, len(shard.items))
+			wg.Done()
+			for key, val := range shard.items {
+				chanList[index] <- Tuple{key, val}
+			}
+			shard.RUnlock()
+			close(chanList[index])
+		}(index, shard)
+	}
+	wg.Wait()
+	return chanList
+}
+
+func fanIn(chanList []chan Tuple, out chan Tuple) {
+	wg := sync.WaitGroup{}
+	wg.Add(len(chanList))
+	for _, ch := range chanList {
+		go func(ch chan Tuple) {
+			for t := range ch {
+				out <- t
+			}
+			wg.Done()
+		}(ch)
+	}
+	wg.Wait()
+	close(out)
+}
+
+func (slm ShardLockMaps) IterBuffered() <-chan Tuple {
+	chanList := snapshot(slm)
+	total := 0
+	for _, c := range chanList {
+		total += cap(c)
+	}
+	ch := make(chan Tuple, total)
+	go fanIn(chanList, ch)
+	return ch
+}
+
+func (slm ShardLockMaps) Items() map[string]interface{} {
+	tmp := make(map[string]interface{})
+
+	for item := range slm.IterBuffered() {
+		tmp[item.Key] = item.Val
+	}
+
+	return tmp
+}
+
+func (slm ShardLockMaps) Keys() []string {
+	count := slm.Count()
+	ch := make(chan string, count)
+	go func() {
+		wg := sync.WaitGroup{}
+		wg.Add(ShardCount)
+		for _, shard := range slm.shards {
+			go func(shard *SingleShardMap) {
+				shard.RLock()
+				for key := range shard.items {
+					ch <- key
+				}
+				shard.RUnlock()
+				wg.Done()
+			}(shard)
+		}
+		wg.Wait()
+		close(ch)
+	}()
+
+	keys := make([]string, 0, count)
+	for k := range ch {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+type IterCb func(key string, v interface{})
+
+func (slm ShardLockMaps) IterCb(fn IterCb) {
+	for idx := range slm.shards {
+		shard := (slm.shards)[idx]
+		shard.RLock()
+		for key, value := range shard.items {
+			fn(key, value)
+		}
+		shard.RUnlock()
+	}
+}
+
+func (slm ShardLockMaps) MarshalJSON() ([]byte, error) {
+	tmp := make(map[string]interface{})
+
+	for item := range slm.IterBuffered() {
+		tmp[item.Key] = item.Val
+	}
+	return json.Marshal(tmp)
 }
