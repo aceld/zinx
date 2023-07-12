@@ -106,7 +106,7 @@ func BenchmarkMultiInsertDifferent_32_Shard(b *testing.B) {
 	runWithShards(benchmarkMultiInsertDifferent, b, 32)
 }
 func BenchmarkMultiInsertDifferent_256_Shard(b *testing.B) {
-	runWithShards(benchmarkMultiGetSetDifferent, b, 256)
+	runWithShards(benchmarkMultiInsertDifferent, b, 256)
 }
 
 func BenchmarkMultiInsertSame(b *testing.B) {
@@ -268,15 +268,15 @@ func benchmarkMultiGetSetBlock(b *testing.B) {
 	}
 }
 
-func GetSet(m ShardLockMaps, finished chan struct{}) (set func(key, value string), get func(key, value string)) {
+func GetSet(slm ShardLockMaps, finished chan struct{}) (set func(key, value string), get func(key, value string)) {
 	return func(key, value string) {
 			for i := 0; i < 10; i++ {
-				m.Get(key)
+				slm.Get(key)
 			}
 			finished <- struct{}{}
 		}, func(key, value string) {
 			for i := 0; i < 10; i++ {
-				m.Set(key, value)
+				slm.Set(key, value)
 			}
 			finished <- struct{}{}
 		}

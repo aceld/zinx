@@ -12,16 +12,20 @@ const (
 	HashVal = 2166136261
 )
 
+// ShardLockMaps A "thread" safe map of type string:Anything.
+// To avoid lock bottlenecks this map is dived to several (ShardCount) map shards.
 type ShardLockMaps struct {
 	shards       []*SingleShardMap
 	shardKeyFunc func(key string) uint32
 }
 
+// SingleShardMap A "thread" safe string to anything map.
 type SingleShardMap struct {
 	items map[string]interface{}
 	sync.RWMutex
 }
 
+// createShardLockMaps Creates a new concurrent map.
 func createShardLockMaps(shardKeyFunc func(key string) uint32) ShardLockMaps {
 	slm := ShardLockMaps{
 		shards:       make([]*SingleShardMap, ShardCount),
@@ -33,6 +37,7 @@ func createShardLockMaps(shardKeyFunc func(key string) uint32) ShardLockMaps {
 	return slm
 }
 
+// NewShardLockMaps Creates a new ShardLockMaps.
 func NewShardLockMaps() ShardLockMaps {
 	return createShardLockMaps(fnv32)
 }
@@ -41,6 +46,7 @@ func NewWithCustomShardKeyFunc(shardKeyFunc func(key string) uint32) ShardLockMa
 	return createShardLockMaps(shardKeyFunc)
 }
 
+// fnv32 algorithm
 func fnv32(key string) uint32 {
 	hashVal := uint32(HashVal)
 	prime := uint32(Prime)
@@ -52,10 +58,12 @@ func fnv32(key string) uint32 {
 	return hashVal
 }
 
+// GetShard returns shard under given key
 func (slm ShardLockMaps) GetShard(key string) *SingleShardMap {
 	return slm.shards[fnv32(key)%uint32(ShardCount)]
 }
 
+// Count returns the number of elements within the map.
 func (slm ShardLockMaps) Count() int {
 	count := 0
 	for i := 0; i < ShardCount; i++ {
@@ -67,6 +75,7 @@ func (slm ShardLockMaps) Count() int {
 	return count
 }
 
+// Get retrieves an element from map under given key.
 func (slm ShardLockMaps) Get(key string) (interface{}, bool) {
 	shard := slm.GetShard(key)
 	shard.RLock()
@@ -75,6 +84,7 @@ func (slm ShardLockMaps) Get(key string) (interface{}, bool) {
 	return val, ok
 }
 
+// Set Sets the given value under the specified key.
 func (slm ShardLockMaps) Set(key string, value interface{}) {
 	shard := slm.GetShard(key)
 	shard.Lock()
@@ -82,6 +92,7 @@ func (slm ShardLockMaps) Set(key string, value interface{}) {
 	shard.Unlock()
 }
 
+// SetNX Sets the given value under the specified key if no value was associated with it.
 func (slm ShardLockMaps) SetNX(key string, value interface{}) bool {
 	shard := slm.GetShard(key)
 	shard.Lock()
@@ -93,6 +104,7 @@ func (slm ShardLockMaps) SetNX(key string, value interface{}) bool {
 	return !ok
 }
 
+// MSet Sets the given value under the specified key.
 func (slm ShardLockMaps) MSet(data map[string]interface{}) {
 	for key, value := range data {
 		shard := slm.GetShard(key)
@@ -102,6 +114,7 @@ func (slm ShardLockMaps) MSet(data map[string]interface{}) {
 	}
 }
 
+// Has Looks up an item under specified key
 func (slm ShardLockMaps) Has(key string) bool {
 	shard := slm.GetShard(key)
 	shard.RLock()
@@ -110,6 +123,7 @@ func (slm ShardLockMaps) Has(key string) bool {
 	return ok
 }
 
+// Remove removes an element from the map.
 func (slm ShardLockMaps) Remove(key string) {
 	shard := slm.GetShard(key)
 	shard.Lock()
@@ -117,6 +131,7 @@ func (slm ShardLockMaps) Remove(key string) {
 	shard.Unlock()
 }
 
+// Pop removes an element from the map and returns it
 func (slm ShardLockMaps) Pop(key string) (v interface{}, exists bool) {
 	shard := slm.GetShard(key)
 	shard.Lock()
@@ -126,21 +141,28 @@ func (slm ShardLockMaps) Pop(key string) (v interface{}, exists bool) {
 	return v, exists
 }
 
+// Clear removes all items from map.
 func (slm ShardLockMaps) Clear() {
 	for item := range slm.IterBuffered() {
 		slm.Remove(item.Key)
 	}
 }
 
+// IsEmpty checks if map is empty.
 func (slm ShardLockMaps) IsEmpty() bool {
 	return slm.Count() == 0
 }
 
+// Tuple Used by the IterBuffered functions to wrap two variables together over a channel,
 type Tuple struct {
 	Key string
 	Val interface{}
 }
 
+// Returns a array of channels that contains elements in each shard,
+// which likely takes a snapshot of `slm`.
+// It returns once the size of each buffered channel is determined,
+// before all the channels are populated using goroutines.
 func snapshot(slm ShardLockMaps) (chanList []chan Tuple) {
 	chanList = make([]chan Tuple, ShardCount)
 	wg := sync.WaitGroup{}
@@ -161,6 +183,7 @@ func snapshot(slm ShardLockMaps) (chanList []chan Tuple) {
 	return chanList
 }
 
+// fanIn reads elements from channels `chanList` into channel `out`
 func fanIn(chanList []chan Tuple, out chan Tuple) {
 	wg := sync.WaitGroup{}
 	wg.Add(len(chanList))
@@ -176,6 +199,7 @@ func fanIn(chanList []chan Tuple, out chan Tuple) {
 	close(out)
 }
 
+// IterBuffered returns a buffered iterator which could be used in a for range loop.
 func (slm ShardLockMaps) IterBuffered() <-chan Tuple {
 	chanList := snapshot(slm)
 	total := 0
@@ -187,6 +211,7 @@ func (slm ShardLockMaps) IterBuffered() <-chan Tuple {
 	return ch
 }
 
+// Items returns all items as map[string]interface{}
 func (slm ShardLockMaps) Items() map[string]interface{} {
 	tmp := make(map[string]interface{})
 
@@ -197,6 +222,7 @@ func (slm ShardLockMaps) Items() map[string]interface{} {
 	return tmp
 }
 
+// Keys returns all keys as []string
 func (slm ShardLockMaps) Keys() []string {
 	count := slm.Count()
 	ch := make(chan string, count)
@@ -224,8 +250,14 @@ func (slm ShardLockMaps) Keys() []string {
 	return keys
 }
 
+// IterCb Iterator callback,called for every key,value found in maps.
+// RLock is held for all calls for a given shard
+// therefore callback sess consistent view of a shard,
+// but not across the shards
 type IterCb func(key string, v interface{})
 
+// IterCb Callback based iterator, cheapest way to read
+// all elements in a map.
 func (slm ShardLockMaps) IterCb(fn IterCb) {
 	for idx := range slm.shards {
 		shard := (slm.shards)[idx]
@@ -237,6 +269,7 @@ func (slm ShardLockMaps) IterCb(fn IterCb) {
 	}
 }
 
+// MarshalJSON Reviles ConcurrentMap "private" variables to json marshal.
 func (slm ShardLockMaps) MarshalJSON() ([]byte, error) {
 	tmp := make(map[string]interface{})
 
