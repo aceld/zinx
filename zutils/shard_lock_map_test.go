@@ -1,6 +1,7 @@
 package zutils
 
 import (
+	"fmt"
 	"hash/fnv"
 	"sort"
 	"strconv"
@@ -130,6 +131,94 @@ func TestRemove(t *testing.T) {
 
 }
 
+func TestRemoveCb(t *testing.T) {
+	slm := NewShardLockMaps()
+
+	tony := TestUser{"tony"}
+	slm.Set("tony", tony)
+	david := TestUser{"david"}
+	slm.Set("david", david)
+
+	var (
+		mapKey   string
+		mapVal   interface{}
+		wasFound bool
+	)
+	cb := func(key string, val interface{}, exists bool) bool {
+		mapKey = key
+		mapVal = val
+		wasFound = exists
+
+		if user, ok := val.(TestUser); ok {
+			return user.name == "tony"
+		}
+		return false
+	}
+
+	result := slm.RemoveCb("tony", cb)
+	if !result {
+		t.Errorf("Result was not true")
+	}
+
+	if mapKey != "tony" {
+		t.Error("Wrong key was provided to the callback")
+	}
+
+	if mapVal != tony {
+		t.Errorf("Wrong value was provided to the value")
+	}
+
+	if !wasFound {
+		t.Errorf("Key was not found")
+	}
+
+	if slm.Has("tony") {
+		t.Errorf("Key was not removed")
+	}
+
+	result = slm.RemoveCb("david", cb)
+	if result {
+		t.Errorf("Result was true")
+	}
+
+	if mapKey != "david" {
+		t.Error("Wrong key was provided to the callback")
+	}
+
+	if mapVal != david {
+		t.Errorf("Wrong value was provided to the value")
+	}
+
+	if !wasFound {
+		t.Errorf("Key was not found")
+	}
+
+	if !slm.Has("david") {
+		t.Errorf("Key was removed")
+	}
+
+	result = slm.RemoveCb("danny", cb)
+	if result {
+		t.Errorf("Result was true")
+	}
+
+	if mapKey != "danny" {
+		t.Error("Wrong key was provided to the callback")
+	}
+
+	if mapVal != nil {
+		t.Errorf("Wrong value was provided to the value")
+	}
+
+	if wasFound {
+		t.Errorf("Key was found")
+	}
+
+	if slm.Has("danny") {
+		t.Errorf("Key was created")
+	}
+}
+
 func TestPop(t *testing.T) {
 	slm := NewShardLockMaps()
 
@@ -221,6 +310,10 @@ func TestItems(t *testing.T) {
 }
 
 func TestJsonMarshal(t *testing.T) {
+	ShardCount = 2
+	defer func() {
+		ShardCount = 32
+	}()
 	expected := "{\"a\":1,\"b\":2}"
 	slm := NewShardLockMaps()
 	slm.Set("a", 1)
@@ -234,6 +327,25 @@ func TestJsonMarshal(t *testing.T) {
 		t.Error("json", string(j), "differ from expected", expected)
 		return
 	}
+}
+
+func TestUnmarshalJSON(t *testing.T) {
+	slm := NewShardLockMaps()
+	bytes := []byte("{\"ccc\":1,\"ddd\":2}")
+
+	err := slm.UnmarshalJSON(bytes)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if slm.Count() != 2 {
+		t.Error("Expecting count to be 2 once item was removed.")
+	}
+
+	for _, shard := range slm.shards {
+		fmt.Printf("%+v \n", shard.items)
+	}
+
 }
 
 func TestKeys(t *testing.T) {
