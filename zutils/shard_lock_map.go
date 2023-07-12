@@ -5,10 +5,11 @@ import (
 	"sync"
 )
 
+var ShardCount = 32
+
 const (
-	ShardCount = 32
-	Prime      = 16777619
-	HashVal    = 2166136261
+	Prime   = 16777619
+	HashVal = 2166136261
 )
 
 type ShardLockMaps struct {
@@ -52,7 +53,7 @@ func fnv32(key string) uint32 {
 }
 
 func (slm ShardLockMaps) GetShard(key string) *SingleShardMap {
-	return slm.shards[fnv32(key)%ShardCount]
+	return slm.shards[fnv32(key)%uint32(ShardCount)]
 }
 
 func (slm ShardLockMaps) Count() int {
@@ -123,6 +124,12 @@ func (slm ShardLockMaps) Pop(key string) (v interface{}, exists bool) {
 	delete(shard.items, key)
 	shard.Unlock()
 	return v, exists
+}
+
+func (slm ShardLockMaps) Clear() {
+	for item := range slm.IterBuffered() {
+		slm.Remove(item.Key)
+	}
 }
 
 func (slm ShardLockMaps) IsEmpty() bool {
