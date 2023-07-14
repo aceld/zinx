@@ -87,20 +87,6 @@ func (n *notify) NotifyAll(MsgId uint32, data []byte) error {
 	return nil
 }
 
-func (n *notify) notifyAll(MsgId uint32, data []byte) error {
-
-	var err error
-	n.connIdMap.IterCb(func(key string, v interface{}) {
-		conn, _ := v.(ziface.IConnection)
-		er := conn.SendMsg(MsgId, data)
-		if er != nil {
-			zlog.Ins().ErrorF("Notify to %s err:%s \n", key, err)
-			err = er
-		}
-	})
-	return err
-}
-
 func (n *notify) NotifyBuffToConnByID(Id uint64, MsgId uint32, data []byte) error {
 	Conn, err := n.GetNotifyByID(Id)
 	if err != nil {
