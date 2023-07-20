@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
-	"github.com/aceld/zinx/ziface"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/aceld/zinx/ziface"
 
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zinterceptor"

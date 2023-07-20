@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"time"
+
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zpack"
 	"github.com/xtaci/kcp-go"
-	"io"
-	"time"
 )
 
 //模拟客户端
