@@ -22,7 +22,7 @@ import (
 // (用于处理KCP连接的读写业务 一个连接对应一个Connection)
 type KcpConnection struct {
 	// The socket KCP socket of the current connection(当前连接的socket KCP套接字)
-	conn net.Conn
+	conn *kcp.UDPSession
 
 	// The ID of the current connection, also known as SessionID, globally unique, used by server Connection
 	// uint64 range: 0~18,446,744,073,709,551,615
@@ -108,7 +108,7 @@ type KcpConnection struct {
 
 // newKcpServerConn :for Server, method to create a Server-side connection with Server-specific properties
 // (创建一个Server服务端特性的连接的方法)
-func newKcpServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.IConnection {
+func newKcpServerConn(server ziface.IServer, conn *kcp.UDPSession, connID uint64) ziface.IConnection {
 	// Initialize Conn properties
 	c := &KcpConnection{
 		conn:        conn,

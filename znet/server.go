@@ -343,7 +343,7 @@ func (s *Server) ListenKcpConn() {
 			// 3.4 Handle the business method for this new connection request. At this time, the handler and conn should be bound.
 			// (处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn 是绑定的)
 			newCid := atomic.AddUint64(&s.cID, 1)
-			dealConn := newKcpServerConn(s, conn, newCid)
+			dealConn := newKcpServerConn(s, conn.(*kcp.UDPSession), newCid)
 
 			go s.StartConn(dealConn)
 		}
