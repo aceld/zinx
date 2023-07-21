@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"net"
+	"strconv"
 	"sync"
 	"time"
 
@@ -31,6 +32,10 @@ type Connection struct {
 	// uint64 取值范围：0 ~ 18,446,744,073,709,551,615
 	// 这个是理论支持的进程connID的最大数量)
 	connID uint64
+
+	// connection id for string
+	// (字符串的连接id)
+	connIdStr string
 
 	// The workerid responsible for handling the link
 	// 负责处理该链接的workerid
@@ -114,6 +119,7 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 	c := &Connection{
 		conn:        conn,
 		connID:      connID,
+		connIdStr:   strconv.FormatUint(connID, 10),
 		isClosed:    false,
 		msgBuffChan: nil,
 		property:    nil,
@@ -149,7 +155,8 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 func newClientConn(client ziface.IClient, conn net.Conn) ziface.IConnection {
 	c := &Connection{
 		conn:        conn,
-		connID:      0, // client ignore
+		connID:      0,  // client ignore
+		connIdStr:   "", // client ignore
 		isClosed:    false,
 		msgBuffChan: nil,
 		property:    nil,
@@ -242,7 +249,7 @@ func (c *Connection) StartReader() {
 					continue
 				}
 				for _, bytes := range bufArrays {
-					//zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(bytes))
+					// zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(bytes))
 					msg := zpack.NewMessage(uint32(len(bytes)), bytes)
 					// Get the current client's Request data
 					// (得到当前客户端请求的Request数据)
@@ -318,6 +325,10 @@ func (c *Connection) GetTCPConnection() net.Conn {
 
 func (c *Connection) GetConnID() uint64 {
 	return c.connID
+}
+
+func (c *Connection) GetConnIdStr() string {
+	return c.connIdStr
 }
 
 func (c *Connection) GetWorkerID() uint32 {
