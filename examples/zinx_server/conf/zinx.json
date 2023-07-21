@@ -7,5 +7,6 @@
   "WorkerPoolSize":10,
   "LogDir": "./mylog",
   "LogFile":"zinx.log",
-  "LogIsolationLevel": 0
+  "LogIsolationLevel": 0,
+  "Mode":"kcp"
 }

@@ -21,6 +21,7 @@ import (
 
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zpack"
+	"github.com/xtaci/kcp-go"
 )
 
 // Server interface implementation, defines a Server service class
@@ -36,6 +37,8 @@ type Server struct {
 	Port int
 	// 服务绑定的websocket 端口 (Websocket port the server is bound to)
 	WsPort int
+	// 服务绑定的kcp 端口 (kcp port the server is bound to)
+	KcpPort int
 
 	// Current server's message handler module, used to bind MsgID to corresponding processing methods
 	// (当前Server的消息管理模块，用来绑定MsgID和对应的处理方法)
@@ -92,6 +95,7 @@ func newServerWithConfig(config *zconf.Config, ipVersion string, opts ...Option)
 		IP:               config.Host,
 		Port:             config.TCPPort,
 		WsPort:           config.WsPort,
+		KcpPort:          config.KcpPort,
 		msgHandler:       newMsgHandle(),
 		RouterSlicesMode: config.RouterSlicesMode,
 		ConnMgr:          newConnManager(),
@@ -304,6 +308,55 @@ func (s *Server) ListenWebsocketConn() {
 	}
 }
 
+func (s *Server) ListenKcpConn() {
+
+	// 1. Listen to the server address
+	listener, err := kcp.Listen(fmt.Sprintf("%s:%d", s.IP, s.KcpPort))
+	if err != nil {
+		zlog.Ins().ErrorF("[START] resolve KCP addr err: %v\n", err)
+		return
+	}
+
+	zlog.Ins().InfoF("[START] KCP server listening at IP: %s, Port %d, Addr %s", s.IP, s.KcpPort, listener.Addr().String())
+
+	// 2. Start server network connection business
+	go func() {
+		for {
+			// 2.1 Set the maximum connection control for the server. If it exceeds the maximum connection, wait.
+			// (设置服务器最大连接控制,如果超过最大连接，则等待)
+			if s.ConnMgr.Len() >= zconf.GlobalObject.MaxConn {
+				zlog.Ins().InfoF("Exceeded the maxConnNum:%d, Wait:%d", zconf.GlobalObject.MaxConn, AcceptDelay.duration)
+				AcceptDelay.Delay()
+				continue
+			}
+			// 2.2 Block and wait for a client to establish a connection request.
+			// (阻塞等待客户端建立连接请求)
+			conn, err := listener.Accept()
+			if err != nil {
+				zlog.Ins().ErrorF("Accept KCP err: %v", err)
+				AcceptDelay.Delay()
+				continue
+			}
+
+			AcceptDelay.Reset()
+
+			// 3.4 Handle the business method for this new connection request. At this time, the handler and conn should be bound.
+			// (处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn 是绑定的)
+			newCid := atomic.AddUint64(&s.cID, 1)
+			dealConn := newKcpServerConn(s, conn.(*kcp.UDPSession), newCid)
+
+			go s.StartConn(dealConn)
+		}
+	}()
+	select {
+	case <-s.exitChan:
+		err := listener.Close()
+		if err != nil {
+			zlog.Ins().ErrorF("KCP listener close err: %v", err)
+		}
+	}
+}
+
 // Start the network service
 // (开启网络服务)
 func (s *Server) Start() {
@@ -326,6 +379,8 @@ func (s *Server) Start() {
 		go s.ListenTcpConn()
 	case zconf.ServerModeWebsocket:
 		go s.ListenWebsocketConn()
+	case zconf.ServerModeKcp:
+		go s.ListenKcpConn()
 	default:
 		go s.ListenTcpConn()
 		go s.ListenWebsocketConn()
