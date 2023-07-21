@@ -40,7 +40,7 @@ func main() {
 		MakeMsg:          myClientHeartBeatMsg,
 		OnRemoteNotAlive: myClientOnRemoteNotAlive,
 		Router:           &myClientHeartBeatRouter{},
-		HeadBeatMsgID:    uint32(myHeartBeatMsgID),
+		HeartBeatMsgID:   uint32(myHeartBeatMsgID),
 	})
 
 	client.Start()
