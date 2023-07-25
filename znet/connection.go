@@ -216,13 +216,15 @@ func (c *Connection) StartReader() {
 		}
 	}()
 
+	//Reduce buffer allocation times to improve efficiency
+	// add by ray 2023-02-03
+	buffer := make([]byte, zconf.GlobalObject.IOReadBuffSize)
+
 	for {
 		select {
 		case <-c.ctx.Done():
 			return
 		default:
-			// add by uuxia 2023-02-03
-			buffer := make([]byte, zconf.GlobalObject.IOReadBuffSize)
 
 			// read data from the connection's IO into the memory buffer
 			// (从conn的IO中读取数据到内存缓冲buffer中)
