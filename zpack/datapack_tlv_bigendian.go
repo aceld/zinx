@@ -33,12 +33,12 @@ func (dp *DataPack) Pack(msg ziface.IMessage) ([]byte, error) {
 	// (创建一个存放bytes字节的缓冲)
 	dataBuff := bytes.NewBuffer([]byte{})
 
-	// Write the data length
+	// Write the message ID
 	if err := binary.Write(dataBuff, binary.BigEndian, msg.GetMsgID()); err != nil {
 		return nil, err
 	}
 
-	// Write the message ID
+	// Write the data length
 	if err := binary.Write(dataBuff, binary.BigEndian, msg.GetDataLen()); err != nil {
 		return nil, err
 	}
