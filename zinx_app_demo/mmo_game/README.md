@@ -8,7 +8,7 @@ English | [简体中文](README-CN.md)
 
   The game scenario is an MMO (Massively Multiplayer Online) game with a Unity3D client. The server-side demo implements essential modules of an MMO game, including AOI (Area Of Interest) based broadcasting and global chat.
 
-![13-Zinx游戏-示例图.png](https://upload-images.jianshu.io/upload_images/11093205-593bb6246327e900.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![mmo-game01](https://github.com/aceld/zinx/assets/7778936/b9576a95-d33f-4ffd-bf89-94a551af1977)
 
 ## 2.Server Application Basic Protocols
 
