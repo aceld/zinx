@@ -2,7 +2,7 @@
 
 ## 一、应用案例介绍
 
-​	好了，以上Zinx的框架的一些核心功能我们已经完成了，那么接下来我们就要基于Zinx完成一个服务端的应用程序了，整理用一个游戏应用服务器作为Zinx的一个应用案例。
+​	“ 好了，以上Zinx的框架的一些核心功能我们已经完成了，那么接下来我们就要基于Zinx完成一个服务端的应用程序了，整理用一个游戏应用服务器作为Zinx的一个应用案例。”
 
 ​	游戏场景是一款MMO大型多人在线游戏，带unity3d 客户端的服务器端demo，该demo实现了mmo游戏的基础模块aoi(基于兴趣范围的广播), 世界聊天等。
 
@@ -20,11 +20,14 @@
 | 202   | -           | SyncPlayers | 同步周围的人位置信息(包括自己)                               |
 
 
-## 三、Zinx详细教程(代码教程同步更新)
-[《Zinx框架教程-基于Golang的轻量级并发服务器》](https://www.jianshu.com/p/23d07c0a28e5)
+## 三、Zinx详细教程
+
+[ < Zinx Wiki : English > ](https://github.com/aceld/zinx/wiki)
+
+[ < Zinx 文档 : 简体中文> ](https://www.yuque.com/aceld/tsgooa/sbvzgczh3hqz8q3l)
 
 ---
-###关于作者：
+### 关于作者：
 
 作者：`Aceld(刘丹冰)`
 简书号：`IT无崖子`
@@ -36,10 +39,11 @@
 `原创书籍gitbook`:
 [http://legacy.gitbook.com/@aceld](http://legacy.gitbook.com/@aceld)
 
-###Zinx技术讨论社区
+### Zinx技术讨论社区
 
-QQ技术讨论群:
-
-![gopool5.jpeg](https://upload-images.jianshu.io/upload_images/11093205-6cdfd381e8ffa127.jpeg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
-欢迎大家加入，获取更多相关学习资料
+| platform | Entry | 
+| ---- | ---- | 
+| <img src="https://user-images.githubusercontent.com/7778936/236775008-6bd488e3-249a-4d43-8885-7e3889e11e2d.png" width = "100" height = "100" alt="" align=center />| https://discord.gg/xQ8Xxfyfcz| 
+| <img src="https://user-images.githubusercontent.com/7778936/236775137-5381f8a6-f534-49c4-8628-e52bf245c3bc.jpeg" width = "100" height = "100" alt="" align=center />  | 加微信: `ace_ld`  或扫二维码，备注`zinx`即可。</br><img src="https://user-images.githubusercontent.com/7778936/236781258-2f0371bd-5797-49e8-a74c-680e9f15843d.png" width = "150" height = "150" alt="" align=center /> |
+|<img src="https://user-images.githubusercontent.com/7778936/236778547-9cdadfb6-0f62-48ac-851a-b940389038d0.jpeg" width = "100" height = "100" alt="" align=center />|<img src="https://s1.ax1x.com/2020/07/07/UFyUdx.th.jpg" height = "150"  alt="" align=center /> **WeChat Public Account** |
+|<img src="https://user-images.githubusercontent.com/7778936/236779000-70f16c8f-0eec-4b5f-9faa-e1d5229a43e0.png" width = "100" height = "100" alt="" align=center />|<img src="https://s1.ax1x.com/2020/07/07/UF6Y9S.th.png" width = "150" height = "150" alt="" align=center /> **QQ Group** |
