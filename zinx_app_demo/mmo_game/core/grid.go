@@ -6,19 +6,20 @@ import (
 )
 
 /*
-GrID 一个地图中的格子类
+	GrID A grid class in a map
+ 		 一个地图中的格子类
 */
 type GrID struct {
-	GID       int          //格子ID
-	MinX      int          //格子左边界坐标
-	MaxX      int          //格子右边界坐标
-	MinY      int          //格子上边界坐标
-	MaxY      int          //格子下边界坐标
-	playerIDs map[int]bool //当前格子内的玩家或者物体成员ID
-	pIDLock   sync.RWMutex //playerIDs的保护map的锁
+	GID       int          // Grid ID
+	MinX      int          // Left boundary coordinate of the grid
+	MaxX      int          // Right boundary coordinate of the grid
+	MinY      int          // Upper boundary coordinate of the grid
+	MaxY      int          // Lower boundary coordinate of the grid
+	playerIDs map[int]bool // IDs of players or objects in the current grid
+	pIDLock   sync.RWMutex // Lock for protecting the playerIDs map
 }
 
-// 初始化一个格子
+// NewGrID Initialize a grid
 func NewGrID(gID, minX, maxX, minY, maxY int) *GrID {
 	return &GrID{
 		GID:       gID,
@@ -30,7 +31,7 @@ func NewGrID(gID, minX, maxX, minY, maxY int) *GrID {
 	}
 }
 
-// 向当前格子中添加一个玩家
+// Add a player to the current grid
 func (g *GrID) Add(playerID int) {
 	g.pIDLock.Lock()
 	defer g.pIDLock.Unlock()
@@ -38,7 +39,7 @@ func (g *GrID) Add(playerID int) {
 	g.playerIDs[playerID] = true
 }
 
-// 从格子中删除一个玩家
+// Remove a player from the grid
 func (g *GrID) Remove(playerID int) {
 	g.pIDLock.Lock()
 	defer g.pIDLock.Unlock()
@@ -46,7 +47,7 @@ func (g *GrID) Remove(playerID int) {
 	delete(g.playerIDs, playerID)
 }
 
-// 得到当前格子中所有的玩家
+// GetPlyerIDs Get all players in the current grid
 func (g *GrID) GetPlyerIDs() (playerIDs []int) {
 	g.pIDLock.RLock()
 	defer g.pIDLock.RUnlock()
@@ -58,7 +59,7 @@ func (g *GrID) GetPlyerIDs() (playerIDs []int) {
 	return
 }
 
-// 打印信息方法
+// String Print information method
 func (g *GrID) String() string {
 	return fmt.Sprintf("GrID ID: %d, minX:%d, maxX:%d, minY:%d, maxY:%d, playerIDs:%v",
 		g.GID, g.MinX, g.MaxX, g.MinY, g.MaxY, g.playerIDs)
