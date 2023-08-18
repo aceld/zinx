@@ -4,10 +4,7 @@ import (
 	"sync"
 )
 
-/*
-	WorldManager The overall management module of the current game world
-                  当前游戏世界的总管理模块
-*/
+// WorldManager The overall management module of the current game world 当前游戏世界的总管理模块
 type WorldManager struct {
 	AoiMgr  *AOIManager       // AOI planning manager for the current world map(当前世界地图的AOI规划管理器)
 	Players map[int32]*Player // Collection of currently online players(当前在线的玩家集合)

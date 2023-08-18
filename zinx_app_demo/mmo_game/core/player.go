@@ -21,9 +21,7 @@ type Player struct {
 	V    float32            //  Rotation 0-360 degrees(旋转0-360度)
 }
 
-/*
-	Player ID Generator
-*/
+// Player ID Generator
 var PIDGen int32 = 1  // Counter for generating player IDs(用来生成玩家ID的计数器)
 var IDLock sync.Mutex // Mutex for protecting PIDGen(保护PIDGen的互斥机制)
 
