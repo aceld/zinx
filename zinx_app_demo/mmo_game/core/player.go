@@ -152,7 +152,7 @@ func (p *Player) SyncSurrounding() {
 // Talk Broadcast player chat
 // 广播玩家聊天
 func (p *Player) Talk(content string) {
-	//1. Assemble MsgID200 proto data
+	// 1. Assemble MsgID200 proto data
 	msg := &pb.BroadCast{
 		PID: p.PID,
 		Tp:  1, // TP: 1 represents chat broadcast (代表聊天广播)
@@ -161,11 +161,11 @@ func (p *Player) Talk(content string) {
 		},
 	}
 
-	//2. Get all online players in the current world
+	// 2. Get all online players in the current world
 	// 得到当前世界所有的在线玩家
 	players := WorldMgrObj.GetAllPlayers()
 
-	//3. Send MsgID:200 message to all players
+	// 3. Send MsgID:200 message to all players
 	// 向所有的玩家发送MsgID:200消息
 	for _, player := range players {
 		player.SendMsg(200, msg)
@@ -289,7 +289,7 @@ func (p *Player) OnExchangeAoiGrID(oldGID, newGID int) error {
 		}
 	}
 
-	//------ > Handle visibility appearance(处理视野出现) <-------
+	// ------ > Handle visibility appearance(处理视野出现) <-------
 
 	// Find the grid IDs that appear in the new nine-grid but not in the old nine-grid
 	// 找到在新的九宫格内出现,但是没有在就的九宫格内出现的格子
@@ -370,37 +370,33 @@ func (p *Player) LostConnection() {
 	// 获取周围AOI九宫格内的玩家
 	players := p.GetSurroundingPlayers()
 
-	//2 Assemble MsgID:201 message
+	// 2 Assemble MsgID:201 message
 	// 封装MsgID:201消息
 	msg := &pb.SyncPID{
 		PID: p.PID,
 	}
 
-	//3 Send messages to surrounding players
+	// 3 Send messages to surrounding players
 	// 向周围玩家发送消息
 	for _, player := range players {
 		player.SendMsg(201, msg)
 	}
 
-	//4 Remove the current player from AOI in the world manager
+	// 4 Remove the current player from AOI in the world manager
 	// 世界管理器将当前玩家从AOI中摘除
 	WorldMgrObj.AoiMgr.RemoveFromGrIDByPos(int(p.PID), p.X, p.Z)
 	WorldMgrObj.RemovePlayerByPID(p.PID)
 }
 
-/*
-	Send messages to the client,
-	mainly serializing and sending the protobuf data of the pb Message
-	(发送消息给客户端，
-	主要是将pb的protobuf数据序列化之后发送)
-*/
+// SendMsg Send messages to the client, mainly serializing and sending the protobuf data of the pb Message
+//	(发送消息给客户端，主要是将pb的protobuf数据序列化之后发送)
 func (p *Player) SendMsg(msgID uint32, data proto.Message) {
 	if p.Conn == nil {
 		fmt.Println("connection in player is nil")
 		return
 	}
 
-	//fmt.Printf("before Marshal data = %+v\n", data)
+	// fmt.Printf("before Marshal data = %+v\n", data)
 
 	// Serialize the proto Message structure
 	// 将proto Message结构体序列化
@@ -410,7 +406,7 @@ func (p *Player) SendMsg(msgID uint32, data proto.Message) {
 		return
 	}
 
-	//fmt.Printf("after Marshal data = %+v\n", msg)
+	// fmt.Printf("after Marshal data = %+v\n", msg)
 
 	// Call the Zinx framework's SendMsg to send the packet
 	// 调用Zinx框架的SendMsg发包

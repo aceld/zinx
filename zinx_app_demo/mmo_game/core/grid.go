@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-//GrID A grid class in a map 一个地图中的格子类
+// GrID A grid class in a map 一个地图中的格子类
 type GrID struct {
 	GID       int          // Grid ID
 	MinX      int          // Left boundary coordinate of the grid
