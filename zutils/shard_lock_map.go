@@ -60,7 +60,7 @@ func fnv32(key string) uint32 {
 
 // GetShard returns shard under given key
 func (slm ShardLockMaps) GetShard(key string) *SingleShardMap {
-	return slm.shards[fnv32(key)%uint32(ShardCount)]
+	return slm.shards[slm.shardKeyFunc(key)%uint32(ShardCount)]
 }
 
 // Count returns the number of elements within the map.
