@@ -63,16 +63,13 @@ func (connMgr *ConnManager) Len() int {
 func (connMgr *ConnManager) ClearConn() {
 
 	// Stop and delete all connection information
-	cb := func(key string, val interface{}, exists bool) bool {
-		if conn, ok := val.(ziface.IConnection); ok {
-			conn.Stop()
-			return true
-		}
-		return false
-	}
-
 	for item := range connMgr.connections.IterBuffered() {
-		connMgr.connections.RemoveCb(item.Key, cb)
+		val := item.Val
+		if conn, ok := val.(ziface.IConnection); ok {
+			// stop will eventually trigger the deletion of the connection,
+			// no additional deletion is required
+			conn.Stop()
+		}
 	}
 
 	zlog.Ins().InfoF("Clear All Connections successfully: conn num = %d", connMgr.Len())

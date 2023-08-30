@@ -389,7 +389,8 @@ func (p *Player) LostConnection() {
 }
 
 // SendMsg Send messages to the client, mainly serializing and sending the protobuf data of the pb Message
-//      (发送消息给客户端，主要是将pb的protobuf数据序列化之后发送)
+//
+//	(发送消息给客户端，主要是将pb的protobuf数据序列化之后发送)
 func (p *Player) SendMsg(msgID uint32, data proto.Message) {
 	if p.Conn == nil {
 		fmt.Println("connection in player is nil")
