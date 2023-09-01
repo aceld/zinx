@@ -228,7 +228,7 @@ func (s *Server) ListenTcpConn() {
 			// (阻塞等待客户端建立连接请求)
 			conn, err := listener.Accept()
 			if err != nil {
-				//Go 1.16+
+				//Go 1.17+
 				if errors.Is(err, net.ErrClosed) {
 					zlog.Ins().ErrorF("Listener closed")
 					return
