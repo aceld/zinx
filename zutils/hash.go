@@ -1,5 +1,10 @@
 package zutils
 
+const (
+	Prime   = 16777619
+	HashVal = 2166136261
+)
+
 type IHash interface {
 	Sum(string) uint32
 }

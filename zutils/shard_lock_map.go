@@ -7,11 +7,6 @@ import (
 
 var ShardCount = 32
 
-const (
-	Prime   = 16777619
-	HashVal = 2166136261
-)
-
 // ShardLockMaps A "thread" safe map of type string:Anything.
 // To avoid lock bottlenecks this map is dived to several (ShardCount) map shards.
 type ShardLockMaps struct {
@@ -42,7 +37,7 @@ func NewShardLockMaps() ShardLockMaps {
 	return createShardLockMaps(DefaultHash())
 }
 
-func NewWithCustomShardKeyFunc(hash IHash) ShardLockMaps {
+func NewWithCustomHash(hash IHash) ShardLockMaps {
 	return createShardLockMaps(hash)
 }
 
