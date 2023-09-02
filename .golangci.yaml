@@ -19,10 +19,10 @@ linters:
 
 linters-settings:
   staticcheck:
-    go: "1.16"
+    go: "1.17"
     checks:
     - "all"
     - "-SA1019"
 
   unused:
-    go: "1.16"
+    go: "1.17"
