@@ -52,18 +52,11 @@ type WsConnection struct {
 	// (有缓冲管道，用于读、写两个goroutine之间的消息通信)
 	msgBuffChan chan []byte
 
-	// msgLock is used for locking when users send and receive messages.
-	// (用户收发消息的Lock)
-	msgLock sync.RWMutex
-
 	// property is the connection attribute. (链接属性)
 	property map[string]interface{}
 
 	// propertyLock protects the current property lock. (保护当前property的锁)
 	propertyLock sync.Mutex
-
-	// isClosed is the current connection's closed state. (当前连接的关闭状态)
-	isClosed bool
 
 	// connManager is the Connection Manager to which the current connection belongs. (当前链接是属于哪个Connection Manager的)
 	connManager ziface.IConnManager
@@ -112,7 +105,6 @@ func newWebsocketConn(server ziface.IServer, conn *websocket.Conn, connID uint64
 		conn:        conn,
 		connID:      connID,
 		connIdStr:   strconv.FormatUint(connID, 10),
-		isClosed:    false,
 		msgBuffChan: nil,
 		property:    nil,
 		name:        server.ServerName(),
@@ -147,7 +139,6 @@ func newWsClientConn(client ziface.IClient, conn *websocket.Conn) ziface.IConnec
 		conn:        conn,
 		connID:      0,  // client ignore
 		connIdStr:   "", // client ignore
-		isClosed:    false,
 		msgBuffChan: nil,
 		property:    nil,
 		name:        client.GetName(),
@@ -332,10 +323,10 @@ func (c *WsConnection) LocalAddr() net.Addr {
 }
 
 func (c *WsConnection) Send(data []byte) error {
-	c.msgLock.RLock()
-	defer c.msgLock.RUnlock()
-	if c.isClosed == true {
+	select {
+	case <-c.ctx.Done():
 		return errors.New("WsConnection closed when send msg")
+	default:
 	}
 
 	err := c.conn.WriteMessage(websocket.BinaryMessage, data)
@@ -348,8 +339,11 @@ func (c *WsConnection) Send(data []byte) error {
 }
 
 func (c *WsConnection) SendToQueue(data []byte) error {
-	c.msgLock.RLock()
-	defer c.msgLock.RUnlock()
+	select {
+	case <-c.ctx.Done():
+		return errors.New("WsConnection closed when send msg")
+	default:
+	}
 
 	if c.msgBuffChan == nil {
 		c.msgBuffChan = make(chan []byte, zconf.GlobalObject.MaxMsgChanLen)
@@ -360,33 +354,23 @@ func (c *WsConnection) SendToQueue(data []byte) error {
 		go c.StartWriter()
 	}
 
-	idleTimeout := time.NewTimer(5 * time.Millisecond)
-	defer idleTimeout.Stop()
-
-	if c.isClosed == true {
-		return errors.New("WsConnection closed when send buff msg")
-	}
-
 	if data == nil {
 		zlog.Ins().ErrorF("Pack data is nil")
 		return errors.New("Pack data is nil ")
 	}
 
-	select {
-	case <-idleTimeout.C:
-		return errors.New("send buff msg timeout")
-	case c.msgBuffChan <- data:
-		return nil
-	}
+	c.msgBuffChan <- data
+	return nil
+
 }
 
 // SendMsg directly sends the Message data to the remote TCP client.
 // (直接将Message数据发送数据给远程的TCP客户端)
 func (c *WsConnection) SendMsg(msgID uint32, data []byte) error {
-	c.msgLock.RLock()
-	defer c.msgLock.RUnlock()
-	if c.isClosed == true {
+	select {
+	case <-c.ctx.Done():
 		return errors.New("WsConnection closed when send msg")
+	default:
 	}
 
 	// Package data and send
@@ -409,9 +393,11 @@ func (c *WsConnection) SendMsg(msgID uint32, data []byte) error {
 
 // SendBuffMsg sends BuffMsg
 func (c *WsConnection) SendBuffMsg(msgID uint32, data []byte) error {
-	c.msgLock.RLock()
-	defer c.msgLock.RUnlock()
-
+	select {
+	case <-c.ctx.Done():
+		return errors.New("WsConnection closed when send msg")
+	default:
+	}
 	if c.msgBuffChan == nil {
 		c.msgBuffChan = make(chan []byte, zconf.GlobalObject.MaxMsgChanLen)
 		// Start the Goroutine for writing back to the client data stream
@@ -419,13 +405,6 @@ func (c *WsConnection) SendBuffMsg(msgID uint32, data []byte) error {
 		// (开启用于写回客户端数据流程的Goroutine
 		// 此方法只读取MsgBuffChan中的数据没调用SendBuffMsg可以分配内存和启用协程)
 		go c.StartWriter()
-	}
-
-	idleTimeout := time.NewTimer(5 * time.Millisecond)
-	defer idleTimeout.Stop()
-
-	if c.isClosed == true {
-		return errors.New("WsConnection closed when send buff msg")
 	}
 
 	// Package data and send
@@ -436,13 +415,9 @@ func (c *WsConnection) SendBuffMsg(msgID uint32, data []byte) error {
 		return errors.New("Pack error msg ")
 	}
 
-	// Send timeout
-	select {
-	case <-idleTimeout.C:
-		return errors.New("send buff msg timeout")
-	case c.msgBuffChan <- msg:
-		return nil
-	}
+	c.msgBuffChan <- msg
+	return nil
+
 }
 
 func (c *WsConnection) SetProperty(key string, value interface{}) {
@@ -484,15 +459,6 @@ func (c *WsConnection) finalizer() {
 	// (如果用户注册了该链接的	关闭回调业务，那么在此刻应该显示调用)
 	c.callOnConnStop()
 
-	c.msgLock.Lock()
-	defer c.msgLock.Unlock()
-
-	// If the current connection is already closed.
-	// (如果当前链接已经关闭)
-	if c.isClosed == true {
-		return
-	}
-
 	// Stop the heartbeat detector bound to the connection.
 	// (关闭链接绑定的心跳检测器)
 	if c.hc != nil {
@@ -515,9 +481,6 @@ func (c *WsConnection) finalizer() {
 		close(c.msgBuffChan)
 	}
 
-	// Set the flag to indicate that the connection is closed. (设置标志位)
-	c.isClosed = true
-
 	zlog.Ins().InfoF("Conn Stop()...ConnID = %d", c.connID)
 }
 
@@ -536,8 +499,10 @@ func (c *WsConnection) callOnConnStop() {
 }
 
 func (c *WsConnection) IsAlive() bool {
-	if c.isClosed {
+	select {
+	case <-c.ctx.Done():
 		return false
+	default:
 	}
 	// Check the time duration since the last activity of the connection, if it exceeds the maximum heartbeat interval,
 	// then the connection is considered dead
