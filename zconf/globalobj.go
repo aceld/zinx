@@ -8,7 +8,6 @@ package zconf
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/aceld/zinx/zutils"
 	"os"
 	"reflect"
 	"testing"
@@ -118,7 +117,7 @@ func PathExists(path string) (bool, error) {
 // and updates the fields of the "Config" structure accordingly.
 // If the configuration file does not exist, it prints an error message to the log and returns.
 func (g *Config) Reload() {
-	confFilePath := zutils.GetConfigFilePath()
+	confFilePath := GetConfigFilePath()
 	if confFileExists, _ := PathExists(confFilePath); confFileExists != true {
 
 		// The configuration file may not exist,
@@ -126,7 +125,7 @@ func (g *Config) Reload() {
 		// (配置文件不存在也需要用默认参数初始化日志模块配置)
 		g.InitLogConfig()
 
-		zlog.Ins().ErrorF("Config File %s is not exist!! \n You can set configFile by setting the environment variable %s, like export %s = xxx/xxx/zinx.conf ", confFilePath, zutils.EnvConfigFilePathKey, zutils.EnvConfigFilePathKey)
+		zlog.Ins().ErrorF("Config File %s is not exist!! \n You can set configFile by setting the environment variable %s, like export %s = xxx/xxx/zinx.conf ", confFilePath, EnvConfigFilePathKey, EnvConfigFilePathKey)
 		return
 	}
 
