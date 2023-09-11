@@ -299,7 +299,10 @@ func (c *Connection) Start() {
 // Stop stops the connection and ends the current connection state.
 // (停止连接，结束当前连接状态)
 func (c *Connection) Stop() {
-	c.cancel()
+	if c.cancel != nil {
+		c.cancel()
+	}
+
 }
 
 func (c *Connection) GetConnection() net.Conn {
@@ -336,6 +339,9 @@ func (c *Connection) LocalAddr() net.Addr {
 }
 
 func (c *Connection) Send(data []byte) error {
+	if c.ctx == nil {
+		return errors.New("connection not start when send msg")
+	}
 	select {
 	case <-c.ctx.Done():
 		return errors.New("Send error data = %+v, ctx is done")
@@ -352,6 +358,9 @@ func (c *Connection) Send(data []byte) error {
 }
 
 func (c *Connection) SendToQueue(data []byte) error {
+	if c.ctx == nil {
+		return errors.New("connection not start when send msg")
+	}
 	select {
 	case <-c.ctx.Done():
 		return errors.New("Connection closed when send buff msg")
@@ -379,6 +388,9 @@ func (c *Connection) SendToQueue(data []byte) error {
 // SendMsg directly sends Message data to the remote TCP client.
 // (直接将Message数据发送数据给远程的TCP客户端)
 func (c *Connection) SendMsg(msgID uint32, data []byte) error {
+	if c.ctx == nil {
+		return errors.New("connection not start when send msg")
+	}
 	select {
 	case <-c.ctx.Done():
 		return errors.New("connection closed when send msg")
@@ -402,6 +414,9 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 }
 
 func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
+	if c.ctx == nil {
+		return errors.New("connection not start when send msg")
+	}
 	select {
 	case <-c.ctx.Done():
 		return errors.New("connection closed when send buff msg")
@@ -499,6 +514,9 @@ func (c *Connection) callOnConnStop() {
 }
 
 func (c *Connection) IsAlive() bool {
+	if c.ctx == nil {
+		return false
+	}
 	select {
 	case <-c.ctx.Done():
 		return false

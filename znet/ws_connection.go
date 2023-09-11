@@ -286,7 +286,10 @@ func (c *WsConnection) Start() {
 // Stop stops the connection and ends its current state.
 // (停止连接，结束当前连接状态)
 func (c *WsConnection) Stop() {
-	c.cancel()
+	if c.cancel != nil {
+		c.cancel()
+	}
+
 }
 
 func (c *WsConnection) GetConnection() net.Conn {
@@ -323,6 +326,9 @@ func (c *WsConnection) LocalAddr() net.Addr {
 }
 
 func (c *WsConnection) Send(data []byte) error {
+	if c.ctx == nil {
+		return errors.New("connection not start when send msg")
+	}
 	select {
 	case <-c.ctx.Done():
 		return errors.New("WsConnection closed when send msg")
@@ -339,6 +345,9 @@ func (c *WsConnection) Send(data []byte) error {
 }
 
 func (c *WsConnection) SendToQueue(data []byte) error {
+	if c.ctx == nil {
+		return errors.New("connection not start when send msg")
+	}
 	select {
 	case <-c.ctx.Done():
 		return errors.New("WsConnection closed when send msg")
@@ -367,6 +376,9 @@ func (c *WsConnection) SendToQueue(data []byte) error {
 // SendMsg directly sends the Message data to the remote TCP client.
 // (直接将Message数据发送数据给远程的TCP客户端)
 func (c *WsConnection) SendMsg(msgID uint32, data []byte) error {
+	if c.ctx == nil {
+		return errors.New("connection not start when send msg")
+	}
 	select {
 	case <-c.ctx.Done():
 		return errors.New("WsConnection closed when send msg")
@@ -393,6 +405,9 @@ func (c *WsConnection) SendMsg(msgID uint32, data []byte) error {
 
 // SendBuffMsg sends BuffMsg
 func (c *WsConnection) SendBuffMsg(msgID uint32, data []byte) error {
+	if c.ctx == nil {
+		return errors.New("connection not start when send msg")
+	}
 	select {
 	case <-c.ctx.Done():
 		return errors.New("WsConnection closed when send msg")
@@ -499,6 +514,9 @@ func (c *WsConnection) callOnConnStop() {
 }
 
 func (c *WsConnection) IsAlive() bool {
+	if c.ctx == nil {
+		return false
+	}
 	select {
 	case <-c.ctx.Done():
 		return false
