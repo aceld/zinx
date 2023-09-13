@@ -14,8 +14,6 @@ import (
 	"time"
 
 	"github.com/aceld/zinx/zlog"
-	"github.com/aceld/zinx/zutils/commandline/args"
-	"github.com/aceld/zinx/zutils/commandline/uflag"
 )
 
 const (
@@ -119,7 +117,7 @@ func PathExists(path string) (bool, error) {
 // and updates the fields of the "Config" structure accordingly.
 // If the configuration file does not exist, it prints an error message to the log and returns.
 func (g *Config) Reload() {
-	confFilePath := args.Args.ConfigFile
+	confFilePath := GetConfigFilePath()
 	if confFileExists, _ := PathExists(confFilePath); confFileExists != true {
 
 		// The configuration file may not exist,
@@ -127,7 +125,7 @@ func (g *Config) Reload() {
 		// (配置文件不存在也需要用默认参数初始化日志模块配置)
 		g.InitLogConfig()
 
-		zlog.Ins().ErrorF("Config File %s is not exist!!", confFilePath)
+		zlog.Ins().ErrorF("Config File %s is not exist!! \n You can set configFile by setting the environment variable %s, like export %s = xxx/xxx/zinx.conf ", confFilePath, EnvConfigFilePathKey, EnvConfigFilePathKey)
 		return
 	}
 
@@ -188,18 +186,9 @@ func init() {
 		pwd = "."
 	}
 
-	args.InitConfigFlag(
-		pwd+"/conf/zinx.json",
-		"The configuration file defaults to <exeDir>/conf/zinx.json if it is not set.",
-	)
-
 	// Note: Prevent errors like "flag provided but not defined: -test.paniconexit0" from occurring in go test.
 	// (防止 go test 出现"flag provided but not defined: -test.paniconexit0"等错误)
 	testing.Init()
-	uflag.Parse()
-
-	// after parsing
-	args.FlagHandle()
 
 	// Initialize the GlobalObject variable and set some default values.
 	// (初始化GlobalObject变量，设置一些默认值)
