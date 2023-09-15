@@ -179,7 +179,7 @@ func (c *WsConnection) StartWriter() {
 		select {
 		case data, ok := <-c.msgBuffChan:
 			if ok {
-				if err := c.conn.WriteMessage(websocket.BinaryMessage, data); err != nil {
+				if err := c.Send(data); err != nil {
 					zlog.Ins().ErrorF("Send Buff Data error:, %s Conn Writer exit", err)
 					break
 				}
