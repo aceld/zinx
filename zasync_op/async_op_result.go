@@ -16,7 +16,7 @@ import (
 type AsyncOpResult struct {
 	// Player connection (玩家链接)
 	conn ziface.IConnection
-	//Returned object (已返回对象)
+	// Returned object (已返回对象)
 	returnedObj interface{}
 	// Completion callback function(完成回调函数)
 	completeFunc func()
@@ -55,7 +55,7 @@ func (aor *AsyncOpResult) OnComplete(val func()) {
 		// **** Prevent the problem of not calling the completion callback function:
 		// If a processing result already exists when setting the callback function,
 		// call the callback function directly. ****
-		if aor.hasReturnedObj == 1 {
+		if atomic.LoadInt32(&aor.hasReturnedObj) == 1 {
 			aor.doComplete()
 		}
 	}
