@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/znet"
+	"github.com/gstones/zinx/ziface"
+	"github.com/gstones/zinx/znet"
 )
 
 type TestRouter struct {

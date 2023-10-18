@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/aceld/zinx/examples/zinx_interceptor/interceptors"
-	"github.com/aceld/zinx/examples/zinx_interceptor/router"
-	"github.com/aceld/zinx/znet"
+	"github.com/gstones/zinx/examples/zinx_interceptor/interceptors"
+	"github.com/gstones/zinx/examples/zinx_interceptor/router"
+	"github.com/gstones/zinx/znet"
 )
 
 func main() {

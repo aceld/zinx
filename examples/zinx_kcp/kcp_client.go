@@ -5,12 +5,13 @@ import (
 	"io"
 	"time"
 
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/zpack"
 	"github.com/xtaci/kcp-go"
+
+	"github.com/gstones/zinx/ziface"
+	"github.com/gstones/zinx/zpack"
 )
 
-//模拟客户端
+// 模拟客户端
 func main() {
 	fmt.Println("Client Test ... start")
 	// Send a test request after 3 seconds to give the server a chance to start the service. (3秒之后发起测试请求，给服务端开启服务的机会)

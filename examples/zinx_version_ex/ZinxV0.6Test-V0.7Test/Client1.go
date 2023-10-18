@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/aceld/zinx/zpack"
 	"io"
 	"net"
 	"time"
+
+	"github.com/gstones/zinx/zpack"
 )
 
 /*
-	模拟客户端
+模拟客户端
 */
 func main() {
 

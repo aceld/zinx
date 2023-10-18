@@ -5,8 +5,8 @@ import (
 	"encoding/binary"
 	"errors"
 
-	"github.com/aceld/zinx/zconf"
-	"github.com/aceld/zinx/ziface"
+	"github.com/gstones/zinx/zconf"
+	"github.com/gstones/zinx/ziface"
 )
 
 // DataPackLtv

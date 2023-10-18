@@ -3,7 +3,7 @@ package logo
 import (
 	"fmt"
 
-	"github.com/aceld/zinx/zconf"
+	"github.com/gstones/zinx/zconf"
 )
 
 var zinxLogo = `                                        

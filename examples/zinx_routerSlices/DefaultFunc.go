@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/znet"
 	"time"
+
+	"github.com/gstones/zinx/ziface"
+	"github.com/gstones/zinx/znet"
 )
 
 func DefaultTest1(request ziface.IRequest) {

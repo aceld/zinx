@@ -54,7 +54,7 @@ import (
 	"encoding/binary"
 	"math"
 
-	"github.com/aceld/zinx/ziface"
+	"github.com/gstones/zinx/ziface"
 )
 
 const TLV_HEADER_SIZE = 8 //表示TLV空包长度

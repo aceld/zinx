@@ -1,9 +1,9 @@
 package c_router
 
 import (
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/zlog"
-	"github.com/aceld/zinx/znet"
+	"github.com/gstones/zinx/ziface"
+	"github.com/gstones/zinx/zlog"
+	"github.com/gstones/zinx/znet"
 )
 
 // Ping test custom routing.

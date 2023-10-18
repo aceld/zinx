@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aceld/zinx/zutils"
+	"github.com/gstones/zinx/zutils"
 )
 
 const (

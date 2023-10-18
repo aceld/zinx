@@ -15,14 +15,14 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/aceld/zinx/zconf"
-	"github.com/aceld/zinx/zdecoder"
-	"github.com/aceld/zinx/zlog"
+	"github.com/gstones/zinx/zconf"
+	"github.com/gstones/zinx/zdecoder"
+	"github.com/gstones/zinx/zlog"
 
 	"github.com/xtaci/kcp-go"
 
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/zpack"
+	"github.com/gstones/zinx/ziface"
+	"github.com/gstones/zinx/zpack"
 )
 
 // Server interface implementation, defines a Server service class

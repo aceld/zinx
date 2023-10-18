@@ -3,9 +3,10 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/znet"
 	"time"
+
+	"github.com/gstones/zinx/ziface"
+	"github.com/gstones/zinx/znet"
 )
 
 type TestRouter struct {

@@ -4,9 +4,9 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/zlog"
-	"github.com/aceld/zinx/zutils"
+	"github.com/gstones/zinx/ziface"
+	"github.com/gstones/zinx/zlog"
+	"github.com/gstones/zinx/zutils"
 )
 
 type ConnManager struct {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/aceld/zinx/znet"
+	"github.com/gstones/zinx/znet"
 )
 
 //Server 模块的测试函数

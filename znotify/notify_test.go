@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aceld/zinx/zconf"
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/znet"
-	"github.com/aceld/zinx/zpack"
+	"github.com/gstones/zinx/zconf"
+	"github.com/gstones/zinx/ziface"
+	"github.com/gstones/zinx/znet"
+	"github.com/gstones/zinx/zpack"
 )
 
 var nt = NewZNotify()

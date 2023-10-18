@@ -1,8 +1,8 @@
 package interceptors
 
 import (
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/zlog"
+	"github.com/gstones/zinx/ziface"
+	"github.com/gstones/zinx/zlog"
 )
 
 // Custom Interceptor 1

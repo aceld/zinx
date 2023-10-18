@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/aceld/zinx/examples/zinx_decoder/bili/router"
-	"github.com/aceld/zinx/zdecoder"
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/znet"
+	"github.com/gstones/zinx/examples/zinx_decoder/bili/router"
+	"github.com/gstones/zinx/zdecoder"
+	"github.com/gstones/zinx/ziface"
+	"github.com/gstones/zinx/znet"
 )
 
 func DoConnectionBegin(conn ziface.IConnection) {

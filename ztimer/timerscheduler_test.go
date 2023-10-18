@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aceld/zinx/zlog"
+	"github.com/gstones/zinx/zlog"
 )
 
 // 触发函数

@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/zinx_app_demo/mmo_game/pb"
-	"github.com/aceld/zinx/znet"
-	"github.com/golang/protobuf/proto"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/golang/protobuf/proto"
+
+	"github.com/gstones/zinx/ziface"
+	"github.com/gstones/zinx/zinx_app_demo/mmo_game/pb"
+	"github.com/gstones/zinx/znet"
 )
 
 type PositionClientRouter struct {
