@@ -52,5 +52,4 @@ type IConnection interface {
 	GetProperty(key string) (interface{}, error) // Get connection property
 	RemoveProperty(key string)                   // Remove connection property
 	IsAlive() bool                               // Check if the current connection is alive(判断当前连接是否存活)
-	SetHeartBeat(checker IHeartbeatChecker)      // Set the heartbeat detector (设置心跳检测器)
 }

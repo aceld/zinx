@@ -9,7 +9,6 @@ type IHeartbeatChecker interface {
 	Start()
 	Stop()
 	SendHeartBeatMsg() error
-	BindConn(IConnection)
 	Clone() IHeartbeatChecker
 	MsgID() uint32
 	Router() IRouter

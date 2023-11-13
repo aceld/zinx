@@ -173,7 +173,9 @@ func newClientConn(client ziface.IClient, conn net.Conn) ziface.IConnection {
 	c.onConnStart = client.GetOnConnStart()
 	c.onConnStop = client.GetOnConnStop()
 	c.msgHandler = client.GetMsgHandler()
-
+	if zconf.GlobalObject.HeartbeatMax > 0 {
+		c.hc = NewHeartbeatChecker(zconf.GlobalObject.HeartbeatMaxDuration()-time.Millisecond*100, c)
+	}
 	return c
 }
 
@@ -533,10 +535,6 @@ func (c *Connection) IsAlive() bool {
 
 func (c *Connection) updateActivity() {
 	c.lastActivityTime.Store(time.Now().Unix())
-}
-
-func (c *Connection) SetHeartBeat(checker ziface.IHeartbeatChecker) {
-	c.hc = checker
 }
 
 func (c *Connection) LocalAddrString() string {

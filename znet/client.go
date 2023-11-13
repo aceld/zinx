@@ -203,7 +203,7 @@ func (c *Client) Start() {
 // interval: the time interval between each heartbeat message.
 // (启动心跳检测, interval: 每次发送心跳的时间间隔)
 func (c *Client) StartHeartBeat(interval time.Duration) {
-	checker := NewHeartbeatChecker(interval)
+	checker := NewHeartbeatChecker(interval, c.conn)
 
 	// Add the heartbeat checker's route to the client's message handler.
 	// (添加心跳检测的路由)
@@ -220,7 +220,7 @@ func (c *Client) StartHeartBeat(interval time.Duration) {
 // 启动心跳检测(自定义回调)
 func (c *Client) StartHeartBeatWithOption(interval time.Duration, option *ziface.HeartBeatOption) {
 	// Create a new heartbeat checker with the given interval.
-	checker := NewHeartbeatChecker(interval)
+	checker := NewHeartbeatChecker(interval, c.conn)
 
 	// Set the heartbeat checker's callback function and message ID based on the HeartBeatOption struct.
 	if option != nil {

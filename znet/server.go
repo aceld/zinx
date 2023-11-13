@@ -168,15 +168,6 @@ func NewUserConfDefaultRouterSlicesServer(config *zconf.Config, opts ...Option) 
 }
 
 func (s *Server) StartConn(conn ziface.IConnection) {
-	// HeartBeat check
-	if s.hc != nil {
-		// Clone a heart-beat checker from the server side
-		heartBeatChecker := s.hc.Clone()
-
-		// Bind current connection
-		heartBeatChecker.BindConn(conn)
-	}
-
 	// Start processing business for the current connection
 	conn.Start()
 }
@@ -468,52 +459,6 @@ func (s *Server) SetPacket(packet ziface.IDataPack) {
 
 func (s *Server) GetMsgHandler() ziface.IMsgHandle {
 	return s.msgHandler
-}
-
-// StartHeartBeat starts the heartbeat check.
-// interval is the time interval between each heartbeat.
-// (启动心跳检测
-// interval 每次发送心跳的时间间隔)
-func (s *Server) StartHeartBeat(interval time.Duration) {
-	checker := NewHeartbeatChecker(interval)
-	// Bind the heartbeat checker to the server. (server绑定心跳检测器)
-	s.hc = checker
-}
-
-// StartHeartBeatWithOption starts the heartbeat detection with the given configuration.
-// interval is the time interval for sending heartbeat messages.
-// option is the configuration for heartbeat detection.
-// 启动心跳检测
-// (option 心跳检测的配置)
-func (s *Server) StartHeartBeatWithOption(interval time.Duration, option *ziface.HeartBeatOption) {
-	checker := NewHeartbeatChecker(interval)
-
-	// Configure the heartbeat checker with the provided options
-	if option != nil {
-		checker.SetHeartbeatMsgFunc(option.MakeMsg)
-		checker.SetOnRemoteNotAlive(option.OnRemoteNotAlive)
-		//检测当前路由模式
-		if s.RouterSlicesMode {
-			checker.BindRouterSlices(option.HeartBeatMsgID, option.RouterSlices...)
-		} else {
-			checker.BindRouter(option.HeartBeatMsgID, option.Router)
-		}
-	}
-
-	// Add the heartbeat checker's router to the server's router (添加心跳检测的路由)
-	//检测当前路由模式
-	if s.RouterSlicesMode {
-		s.AddRouterSlices(checker.MsgID(), checker.RouterSlices()...)
-	} else {
-		s.AddRouter(checker.MsgID(), checker.Router())
-	}
-
-	// Bind the server with the heartbeat checker (server绑定心跳检测器)
-	s.hc = checker
-}
-
-func (s *Server) GetHeartBeat() ziface.IHeartbeatChecker {
-	return s.hc
 }
 
 func (s *Server) SetDecoder(decoder ziface.IDecoder) {

@@ -52,7 +52,7 @@ func notAliveDefaultFunc(conn ziface.IConnection) {
 	conn.Stop()
 }
 
-func NewHeartbeatChecker(interval time.Duration) ziface.IHeartbeatChecker {
+func NewHeartbeatChecker(interval time.Duration, conn ziface.IConnection) ziface.IHeartbeatChecker {
 	heartbeat := &HeartbeatChecker{
 		interval: interval,
 		quitChan: make(chan bool),
@@ -65,6 +65,7 @@ func NewHeartbeatChecker(interval time.Duration) ziface.IHeartbeatChecker {
 		router:           &HeatBeatDefaultRouter{},
 		routerSlices:     []ziface.RouterHandler{HeatBeatDefaultHandle},
 		beatFunc:         nil,
+		conn:             conn,
 	}
 
 	return heartbeat
@@ -157,7 +158,6 @@ func (h *HeartbeatChecker) check() (err error) {
 
 func (h *HeartbeatChecker) BindConn(conn ziface.IConnection) {
 	h.conn = conn
-	conn.SetHeartBeat(h)
 }
 
 // Clone clones to a specified connection
