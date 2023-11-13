@@ -170,13 +170,6 @@ func (c *Client) Restart() {
 		}
 
 		zlog.Ins().InfoF("[START] Zinx Client LocalAddr: %s, RemoteAddr: %s\n", c.conn.LocalAddr(), c.conn.RemoteAddr())
-		// HeartBeat detection
-		if c.hc != nil {
-			// Bind connection and heartbeat detector after connection is successfully established
-			// (创建链接成功，绑定链接与心跳检测器)
-			c.hc.BindConn(c.conn)
-		}
-
 		// Start connection
 		go c.conn.Start()
 
