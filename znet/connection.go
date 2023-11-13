@@ -144,6 +144,9 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 	// Add the newly created Conn to the connection manager
 	// (将新创建的Conn添加到链接管理中)
 	server.GetConnMgr().Add(c)
+	if zconf.GlobalObject.HeartbeatMax > 0 {
+		c.hc = NewHeartbeatChecker(zconf.GlobalObject.HeartbeatMaxDuration()-time.Millisecond*100, c)
+	}
 
 	return c
 }
