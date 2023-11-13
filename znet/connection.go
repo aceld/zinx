@@ -7,6 +7,7 @@ import (
 	"net"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -61,11 +62,7 @@ type Connection struct {
 
 	// Connection properties
 	// (链接属性)
-	property map[string]interface{}
-
-	// Lock to protect the current property
-	// (保护当前property的锁)
-	propertyLock sync.Mutex
+	property *sync.Map
 
 	// The current connection's close state
 	// (当前连接的关闭状态)
@@ -89,7 +86,7 @@ type Connection struct {
 
 	// Last activity time
 	// (最后一次活动时间)
-	lastActivityTime time.Time
+	lastActivityTime atomic.Int64
 
 	// Framedecoder for solving fragmentation and packet sticking problems
 	// (断粘包解码器)
@@ -123,7 +120,7 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 		connIdStr:   strconv.FormatUint(connID, 10),
 		isClosed:    false,
 		msgBuffChan: nil,
-		property:    nil,
+		property:    &sync.Map{},
 		name:        server.ServerName(),
 		localAddr:   conn.LocalAddr().String(),
 		remoteAddr:  conn.RemoteAddr().String(),
@@ -160,7 +157,7 @@ func newClientConn(client ziface.IClient, conn net.Conn) ziface.IConnection {
 		connIdStr:   "", // client ignore
 		isClosed:    false,
 		msgBuffChan: nil,
-		property:    nil,
+		property:    &sync.Map{},
 		name:        client.GetName(),
 		localAddr:   conn.LocalAddr().String(),
 		remoteAddr:  conn.RemoteAddr().String(),
@@ -450,20 +447,15 @@ func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
 }
 
 func (c *Connection) SetProperty(key string, value interface{}) {
-	c.propertyLock.Lock()
-	defer c.propertyLock.Unlock()
 	if c.property == nil {
-		c.property = make(map[string]interface{})
+		c.property = &sync.Map{}
 	}
 
-	c.property[key] = value
+	c.property.Store(key, value)
 }
 
 func (c *Connection) GetProperty(key string) (interface{}, error) {
-	c.propertyLock.Lock()
-	defer c.propertyLock.Unlock()
-
-	if value, ok := c.property[key]; ok {
+	if value, ok := c.property.Load(key); ok {
 		return value, nil
 	}
 
@@ -471,10 +463,7 @@ func (c *Connection) GetProperty(key string) (interface{}, error) {
 }
 
 func (c *Connection) RemoveProperty(key string) {
-	c.propertyLock.Lock()
-	defer c.propertyLock.Unlock()
-
-	delete(c.property, key)
+	c.property.Delete(key)
 }
 
 func (c *Connection) Context() context.Context {
@@ -538,11 +527,12 @@ func (c *Connection) IsAlive() bool {
 	// Check the last activity time of the connection. If it's beyond the heartbeat interval,
 	// then the connection is considered dead.
 	// (检查连接最后一次活动时间，如果超过心跳间隔，则认为连接已经死亡)
-	return time.Now().Sub(c.lastActivityTime) < zconf.GlobalObject.HeartbeatMaxDuration()
+	now := time.Now().Unix()
+	return float64(now-c.lastActivityTime.Load()) < zconf.GlobalObject.HeartbeatMaxDuration().Seconds()
 }
 
 func (c *Connection) updateActivity() {
-	c.lastActivityTime = time.Now()
+	c.lastActivityTime.Store(time.Now().Unix())
 }
 
 func (c *Connection) SetHeartBeat(checker ziface.IHeartbeatChecker) {

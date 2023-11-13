@@ -138,7 +138,6 @@ func (h *HeartbeatChecker) SendHeartBeatMsg() error {
 }
 
 func (h *HeartbeatChecker) check() (err error) {
-
 	if h.conn == nil {
 		return nil
 	}

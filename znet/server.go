@@ -476,15 +476,6 @@ func (s *Server) GetMsgHandler() ziface.IMsgHandle {
 // interval 每次发送心跳的时间间隔)
 func (s *Server) StartHeartBeat(interval time.Duration) {
 	checker := NewHeartbeatChecker(interval)
-
-	// Add the heartbeat check router. (添加心跳检测的路由)
-	//检测当前路由模式
-	if s.RouterSlicesMode {
-		s.AddRouterSlices(checker.MsgID(), checker.RouterSlices()...)
-	} else {
-		s.AddRouter(checker.MsgID(), checker.Router())
-	}
-
 	// Bind the heartbeat checker to the server. (server绑定心跳检测器)
 	s.hc = checker
 }
