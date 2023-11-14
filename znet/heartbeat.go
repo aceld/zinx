@@ -145,12 +145,6 @@ func (h *HeartbeatChecker) check() (err error) {
 
 	if !h.conn.IsAlive() {
 		h.onRemoteNotAlive(h.conn)
-	} else {
-		if h.beatFunc != nil {
-			err = h.beatFunc(h.conn)
-		} else {
-			err = h.SendHeartBeatMsg()
-		}
 	}
 
 	return err
