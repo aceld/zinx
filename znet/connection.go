@@ -507,11 +507,6 @@ func (c *Connection) finalizer() {
 		c.connManager.Remove(c)
 	}
 
-	// Close all channels associated with the connection
-	if c.msgBuffChan != nil {
-		close(c.msgBuffChan)
-	}
-
 	zlog.Ins().InfoF("Conn Stop()...ConnID = %d", c.connID)
 }
 
@@ -568,15 +563,9 @@ func (c *Connection) isClosed() bool {
 }
 
 func (c *Connection) setClose() bool {
-	if atomic.CompareAndSwapInt32(&c.closed, 0, 1) {
-		return true
-	}
-	return false
+	return atomic.CompareAndSwapInt32(&c.closed, 0, 1)
 }
 
 func (c *Connection) setStartWriterFlag() bool {
-	if atomic.CompareAndSwapInt32(&c.startWriterFlag, 0, 1) {
-		return true
-	}
-	return false
+	return atomic.CompareAndSwapInt32(&c.startWriterFlag, 0, 1)
 }
