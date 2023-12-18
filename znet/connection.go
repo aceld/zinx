@@ -397,6 +397,7 @@ func (c *Connection) SendToQueue(data []byte) error {
 // SendMsg directly sends Message data to the remote TCP client.
 // (直接将Message数据发送数据给远程的TCP客户端)
 func (c *Connection) SendMsg(msgID uint32, data []byte) error {
+
 	if c.isClosed() == true {
 		return errors.New("connection closed when send msg")
 	}
@@ -417,34 +418,13 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 }
 
 func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
-	if c.isClosed() == true {
-		return errors.New("connection closed when send buff msg")
-	}
-	if c.msgBuffChan == nil && c.setStartWriterFlag() {
-		c.msgBuffChan = make(chan []byte, zconf.GlobalObject.MaxMsgChanLen)
-		// Start a Goroutine to write data back to the client
-		// This method only reads data from the MsgBuffChan without allocating memory or starting a Goroutine
-		// (开启用于写回客户端数据流程的Goroutine
-		// 此方法只读取MsgBuffChan中的数据没调用SendBuffMsg可以分配内存和启用协程)
-		go c.StartWriter()
-	}
-
-	idleTimeout := time.NewTimer(5 * time.Millisecond)
-	defer idleTimeout.Stop()
-
 	msg, err := c.packet.Pack(zpack.NewMsgPackage(msgID, data))
 	if err != nil {
 		zlog.Ins().ErrorF("Pack error msg ID = %d", msgID)
 		return errors.New("Pack error msg ")
 	}
+	return c.SendToQueue(msg)
 
-	// send timeout
-	select {
-	case <-idleTimeout.C:
-		return errors.New("send buff msg timeout")
-	case c.msgBuffChan <- msg:
-		return nil
-	}
 }
 
 func (c *Connection) SetProperty(key string, value interface{}) {
