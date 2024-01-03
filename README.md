@@ -75,10 +75,6 @@ Of course, we hope that more people will join Zinx and provide us with valuable 
 
 
 
-#### Stargazers over time
-
-[![Stargazers over time](https://api.star-history.com/svg?repos=aceld/zinx&type=Date)](#zinx)
-
 
 ## II. Zinx architecture
 ![Zinx框架](https://user-images.githubusercontent.com/7778936/220058446-0ad45112-2225-4b71-b0d8-69a7f3cee5ca.jpg)
