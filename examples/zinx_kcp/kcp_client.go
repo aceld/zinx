@@ -2,22 +2,17 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"time"
-
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zpack"
 	"github.com/xtaci/kcp-go"
+	"io"
 )
 
-//模拟客户端
+// 模拟客户端
 func main() {
 	fmt.Println("Client Test ... start")
-	// Send a test request after 3 seconds to give the server a chance to start the service. (3秒之后发起测试请求，给服务端开启服务的机会)
-	time.Sleep(3 * time.Second)
-
 	// Replace net.Dial with kcp.DialWithOptions
-	conn, err := kcp.DialWithOptions("127.0.0.1:7777", nil, 0, 0)
+	conn, err := kcp.Dial("127.0.0.1:7777")
 	if err != nil {
 		fmt.Println("client start err, exit!")
 		return

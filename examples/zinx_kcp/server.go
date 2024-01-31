@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/aceld/zinx/zconf"
 	"time"
 
 	"github.com/aceld/zinx/ziface"
@@ -67,7 +68,16 @@ func Err() error {
 }
 
 func main() {
-	s := znet.NewServer()
+	s := znet.NewUserConfServer(&zconf.Config{
+		Mode:          "kcp",
+		KcpPort:       7777,
+		KcpRecvWindow: 128,
+		KcpSendWindow: 128,
+		KcpStreamMode: true,
+		KcpACKNoDelay: false,
+		LogDir:        "./",
+		LogFile:       "test.log",
+	})
 	s.AddRouter(1, &TestRouter{})
 	s.Serve()
 }

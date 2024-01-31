@@ -176,7 +176,7 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 	// (刷新用户配置到全局配置变量)
 	zconf.UserConfToGlobal(config)
 
-	s := newServerWithConfig(config, "tcp4", opts...)
+	s := newServerWithConfig(zconf.GlobalObject, "tcp4", opts...)
 	return s
 }
 
@@ -357,7 +357,6 @@ func (s *Server) ListenKcpConn() {
 	}
 
 	zlog.Ins().InfoF("[START] KCP server listening at IP: %s, Port %d, Addr %s", s.IP, s.KcpPort, listener.Addr().String())
-
 	// 2. Start server network connection business
 	go func() {
 		for {
