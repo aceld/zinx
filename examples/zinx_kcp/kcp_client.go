@@ -6,6 +6,7 @@ import (
 	"github.com/aceld/zinx/zpack"
 	"github.com/xtaci/kcp-go"
 	"io"
+	"time"
 )
 
 // 模拟客户端
@@ -19,8 +20,8 @@ func main() {
 	}
 
 	dp := zpack.Factory().NewPack(ziface.ZinxDataPack)
-	msg, _ := dp.Pack(zpack.NewMsgPackage(1, []byte("client test message")))
-	_, err = conn.Write(msg)
+	sendMsg, _ := dp.Pack(zpack.NewMsgPackage(1, []byte("client test message")))
+	_, err = conn.Write(sendMsg)
 	if err != nil {
 		fmt.Println("client write err: ", err)
 		return
@@ -55,6 +56,13 @@ func main() {
 			}
 
 			fmt.Printf("==> Client receive Msg: ID = %d, len = %d , data = %s\n", msg.ID, msg.DataLen, msg.Data)
+
+			time.Sleep(1 * time.Second)
+			_, err = conn.Write(sendMsg)
+			if err != nil {
+				fmt.Println("client write err: ", err)
+				return
+			}
 		}
 	}
 }

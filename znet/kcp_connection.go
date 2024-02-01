@@ -105,6 +105,12 @@ type KcpConnection struct {
 	// Remote address of the current connection
 	// (当前链接的远程地址)
 	remoteAddr string
+
+	// Close callback
+	closeCallback callbacks
+
+	// Close callback mutex
+	closeCallbackMutex sync.RWMutex
 }
 
 // newKcpServerConn :for Server, method to create a Server-side connection with Server-specific properties
@@ -469,7 +475,8 @@ func (c *KcpConnection) Context() context.Context {
 
 func (c *KcpConnection) finalizer() {
 	// Call the callback function registered by the user when closing the connection if it exists
-	// (如果用户注册了该链接的	关闭回调业务，那么在此刻应该显示调用)
+	//
+	//(如果用户注册了该链接的	关闭回调业务，那么在此刻应该显示调用)
 	c.callOnConnStop()
 
 	c.msgLock.Lock()
@@ -499,6 +506,16 @@ func (c *KcpConnection) finalizer() {
 	}
 
 	c.isClosed = true
+
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				zlog.Ins().ErrorF("Conn finalizer panic: %v", err)
+			}
+		}()
+
+		c.InvokeCloseCallbacks()
+	}()
 
 	zlog.Ins().InfoF("Conn Stop()...ConnID = %d", c.connID)
 }
@@ -549,6 +566,31 @@ func (c *KcpConnection) GetName() string {
 
 func (c *KcpConnection) GetMsgHandler() ziface.IMsgHandle {
 	return c.msgHandler
+}
+
+func (s *KcpConnection) AddCloseCallback(handler, key interface{}, f func()) {
+	if s.isClosed {
+		return
+	}
+	s.closeCallbackMutex.Lock()
+	defer s.closeCallbackMutex.Unlock()
+	s.closeCallback.Add(handler, key, f)
+}
+
+func (s *KcpConnection) RemoveCloseCallback(handler, key interface{}) {
+	if s.isClosed {
+		return
+	}
+	s.closeCallbackMutex.Lock()
+	defer s.closeCallbackMutex.Unlock()
+	s.closeCallback.Remove(handler, key)
+}
+
+// invokeCloseCallbacks 触发 close callback, 在独立协程完成
+func (s *KcpConnection) InvokeCloseCallbacks() {
+	s.closeCallbackMutex.RLock()
+	defer s.closeCallbackMutex.RUnlock()
+	s.closeCallback.Invoke()
 }
 
 // Implement other KCP specific methods here...
