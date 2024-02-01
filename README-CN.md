@@ -71,11 +71,6 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 ![GVP-zinx](https://s2.ax1x.com/2019/10/13/uvYVBV.jpg)
 
 
-#### Stargazers over time
-
-[![Stargazers over time](https://api.star-history.com/svg?repos=aceld/zinx&type=Date)](#zinx)
-
-
 
 ## 二、初探Zinx架构
 
@@ -93,7 +88,7 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 [<Zinx的Tcp调试工具>](https://github.com/xxl6097/tcptest)
 
 **版本**
-Golang 1.16+
+Golang 1.17+
 
 DownLoad zinx Source
 
@@ -101,7 +96,7 @@ DownLoad zinx Source
 $go get github.com/aceld/zinx
 ```
 
-> note: Golang Version 1.16+
+> note: Golang Version 1.17+
 
 #### Zinx-Server
 ```go

@@ -29,6 +29,7 @@ type IConnection interface {
 	// Deprecated: use GetConnection instead
 	GetTCPConnection() net.Conn // Get the original socket TCPConn from the current connection (从当前连接获取原始的socket TCPConn)
 	GetConnID() uint64          // Get the current connection ID (获取当前连接ID)
+	GetConnIdStr() string       // Get the current connection ID for string (获取当前字符串连接ID)
 	GetMsgHandler() IMsgHandle  // Get the message handler (获取消息处理器)
 	GetWorkerID() uint32        // Get Worker ID（获取workerid）
 	RemoteAddr() net.Addr       // Get the remote address information of the connection (获取链接远程地址信息)

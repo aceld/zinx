@@ -79,6 +79,8 @@ func newMsgHandle() *MsgHandle {
 // Use worker ID
 // 占用workerID
 func useWorker(conn ziface.IConnection) uint32 {
+	var workerId uint32
+
 	mh, _ := conn.GetMsgHandler().(*MsgHandle)
 	if mh == nil {
 		zlog.Ins().ErrorF("useWorker failed, mh is nil")
@@ -95,12 +97,20 @@ func useWorker(conn ziface.IConnection) uint32 {
 		}
 	}
 
-	// Assign the worker responsible for processing the current connection based on the ConnID
-	// Using a round-robin average allocation rule to get the workerID that needs to process this connection
-	// (根据ConnID来分配当前的连接应该由哪个worker负责处理
-	// 轮询的平均分配法则
-	// 得到需要处理此条连接的workerID)
-	return uint32(conn.GetConnID() % uint64(mh.WorkerPoolSize))
+	//Compatible with the situation where the client has no worker, and solve the situation divide 0
+	//(兼容client没有worker情况，解决除0的情况)
+	if mh.WorkerPoolSize == 0 {
+		workerId = 0
+	} else {
+		// Assign the worker responsible for processing the current connection based on the ConnID
+		// Using a round-robin average allocation rule to get the workerID that needs to process this connection
+		// (根据ConnID来分配当前的连接应该由哪个worker负责处理
+		// 轮询的平均分配法则
+		// 得到需要处理此条连接的workerID)
+		workerId = uint32(conn.GetConnID() % uint64(mh.WorkerPoolSize))
+	}
+
+	return workerId
 }
 
 // Free worker ID

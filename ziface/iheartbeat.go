@@ -31,7 +31,7 @@ type OnRemoteNotAlive func(IConnection)
 type HeartBeatOption struct {
 	MakeMsg          HeartBeatMsgFunc // User-defined method for handling heartbeat detection messages(用户自定义的心跳检测消息处理方法)
 	OnRemoteNotAlive OnRemoteNotAlive // User-defined method for handling remote connections that are not alive(用户自定义的远程连接不存活时的处理方法)
-	HeadBeatMsgID    uint32           // User-defined ID for heartbeat detection messages(用户自定义的心跳检测消息ID)
+	HeartBeatMsgID   uint32           // User-defined ID for heartbeat detection messages(用户自定义的心跳检测消息ID)
 	Router           IRouter          // User-defined business processing route for heartbeat detection messages(用户自定义的心跳检测消息业务处理路由)
 	RouterSlices     []RouterHandler  //新版本的路由处理函数的集合
 }

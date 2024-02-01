@@ -1,35 +1,36 @@
-# Zinx Application - MMO Game Case Study
+# Zinx应用-MMO游戏案例
 
-English | [简体中文](README-CN.md)
+[English](README.md) | 简体中文
 
-## 1.Introduction to the Application Case
+## 一、应用案例介绍
 
- "In the previous chapters, we have completed some of the core functionalities of the Zinx framework. Now, we are going to build a server-side application based on Zinx. To illustrate this, we will use a game application server as an example of Zinx's practical application."
+​	“ 好了，以上Zinx的框架的一些核心功能我们已经完成了，那么接下来我们就要基于Zinx完成一个服务端的应用程序了，整理用一个游戏应用服务器作为Zinx的一个应用案例。”
 
-  The game scenario is an MMO (Massively Multiplayer Online) game with a Unity3D client. The server-side demo implements essential modules of an MMO game, including AOI (Area Of Interest) based broadcasting and global chat.
+​	游戏场景是一款MMO大型多人在线游戏，带unity3d 客户端的服务器端demo，该demo实现了mmo游戏的基础模块aoi(基于兴趣范围的广播), 世界聊天等。
 
-![mmo-game01](https://github.com/aceld/zinx/assets/7778936/b9576a95-d33f-4ffd-bf89-94a551af1977)
+![13-Zinx游戏-示例图.png](https://upload-images.jianshu.io/upload_images/11093205-593bb6246327e900.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-## 2.Server Application Basic Protocols
+## 二、服务器应用基础协议
 
-| MsgID | Client      | Server      | 描述                                                       |
-| ----- | ----------- | ----------- | ---------------------------------------------------------- |
-| 1     | -           | SyncPid     | Synchronize the player's login ID (used for player ID).|
-| 2     | Talk        | -           | World chat.                                                   |
-| 3     | MovePackege | -           | Movement.                                                       |
-| 200   | -           | BroadCast   | Broadcast messages (Tp 1: world chat, 2: coordinates synchronization (spawn point sync), 3: action, 4: updated coordinates after movement). |
-| 201   | -           | SyncPid     | Broadcast messages for disconnect/aoi disappearance.|
-| 202   | -           | SyncPlayers | Synchronize the position information of nearby players (including oneself).                               |
+| MsgID | Client      | Server      | 描述                                                         |
+| ----- | ----------- | ----------- | ------------------------------------------------------------ |
+| 1     | -           | SyncPid     | 同步玩家本次登录的ID(用来标识玩家)                           |
+| 2     | Talk        | -           | 世界聊天                                                     |
+| 3     | MovePackege | -           | 移动                                                         |
+| 200   | -           | BroadCast   | 广播消息(Tp 1 世界聊天 2 坐标(出生点同步) 3 动作 4 移动之后坐标信息更新) |
+| 201   | -           | SyncPid     | 广播消息 掉线/aoi消失在视野                                  |
+| 202   | -           | SyncPlayers | 同步周围的人位置信息(包括自己)                               |
 
 
-## 3. Zinx Documentation
+## 三、Zinx 开发文档
 
 [ < Zinx Wiki : English > ](https://github.com/aceld/zinx/wiki)
 
 [ < Zinx 文档 : 简体中文> ](https://www.yuque.com/aceld/tsgooa/sbvzgczh3hqz8q3l)
 
-## 4.Tutorial 
-### 4.1 Online Tutorial
+## 四、Zinx 在线开发教程
+
+### 文字教程
 
 | platform | Entry | 
 | ---- | ---- | 
@@ -37,13 +38,14 @@ English | [简体中文](README-CN.md)
 |<img src="https://user-images.githubusercontent.com/7778936/236784168-6528a9b8-d37b-4b02-a37c-b9988d7508d8.jpeg" width = "100" height = "100" alt="" align=center />|[《Golang轻量级并发服务器框架zinx》](https://www.yuque.com/aceld)|
 
 
-### 4.2 Online Tutorial Video
+### 视频教程
 
 | platform | online video | 
 | ---- | ---- | 
 | <img src="https://s1.ax1x.com/2022/09/22/xFePUK.png" width = "100" height = "100" alt="" align=center />| [![zinx-BiliBili](https://s2.ax1x.com/2019/10/13/uv340S.jpg)](https://www.bilibili.com/video/av71067087)| 
-| <img src="https://s1.ax1x.com/2022/09/22/xFeRVx.png" width = "100" height = "100" alt="" align=center />  | [![zinx-BiliBili](https://s2.ax1x.com/2019/10/13/uv340S.jpg)](https://www.douyin.com/video/6983301202939333891) |
+| <img src="https://s1.ax1x.com/2022/09/22/xFesxJ.png" width = "100" height = "80" alt="" align=center />  | [![zinx-BiliBili](https://s2.ax1x.com/2019/10/13/uv340S.jpg)](https://www.douyin.com/video/6983301202939333891) |
 | <img src="https://s1.ax1x.com/2022/09/23/xkQcng.png" width = "100" height = "100" alt="" align=center />| [![zinx-youtube](https://s2.ax1x.com/2019/10/14/KSurCR.jpg)](https://www.youtube.com/watch?v=U95iF-HMWsU&list=PL_GrAPKmuajzeNI8HBTi-k5NQO1g0rM-A)| 
+
 
 
 ---

@@ -267,7 +267,7 @@ func (s *Server) ListenTcpConn() {
 			// (阻塞等待客户端建立连接请求)
 			conn, err := listener.Accept()
 			if err != nil {
-				//Go 1.16+
+				//Go 1.17+
 				if errors.Is(err, net.ErrClosed) {
 					zlog.Ins().ErrorF("Listener closed")
 					return
@@ -548,9 +548,9 @@ func (s *Server) StartHeartBeatWithOption(interval time.Duration, option *ziface
 		checker.SetOnRemoteNotAlive(option.OnRemoteNotAlive)
 		//检测当前路由模式
 		if s.RouterSlicesMode {
-			checker.BindRouterSlices(option.HeadBeatMsgID, option.RouterSlices...)
+			checker.BindRouterSlices(option.HeartBeatMsgID, option.RouterSlices...)
 		} else {
-			checker.BindRouter(option.HeadBeatMsgID, option.Router)
+			checker.BindRouter(option.HeartBeatMsgID, option.Router)
 		}
 	}
 

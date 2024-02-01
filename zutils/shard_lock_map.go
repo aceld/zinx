@@ -7,16 +7,11 @@ import (
 
 var ShardCount = 32
 
-const (
-	Prime   = 16777619
-	HashVal = 2166136261
-)
-
 // ShardLockMaps A "thread" safe map of type string:Anything.
 // To avoid lock bottlenecks this map is dived to several (ShardCount) map shards.
 type ShardLockMaps struct {
-	shards       []*SingleShardMap
-	shardKeyFunc func(key string) uint32
+	shards []*SingleShardMap
+	hash   IHash
 }
 
 // SingleShardMap A "thread" safe string to anything map.
@@ -26,10 +21,10 @@ type SingleShardMap struct {
 }
 
 // createShardLockMaps Creates a new concurrent map.
-func createShardLockMaps(shardKeyFunc func(key string) uint32) ShardLockMaps {
+func createShardLockMaps(hash IHash) ShardLockMaps {
 	slm := ShardLockMaps{
-		shards:       make([]*SingleShardMap, ShardCount),
-		shardKeyFunc: shardKeyFunc,
+		shards: make([]*SingleShardMap, ShardCount),
+		hash:   hash,
 	}
 	for i := 0; i < ShardCount; i++ {
 		slm.shards[i] = &SingleShardMap{items: make(map[string]interface{})}
@@ -39,28 +34,16 @@ func createShardLockMaps(shardKeyFunc func(key string) uint32) ShardLockMaps {
 
 // NewShardLockMaps Creates a new ShardLockMaps.
 func NewShardLockMaps() ShardLockMaps {
-	return createShardLockMaps(fnv32)
+	return createShardLockMaps(DefaultHash())
 }
 
-func NewWithCustomShardKeyFunc(shardKeyFunc func(key string) uint32) ShardLockMaps {
-	return createShardLockMaps(shardKeyFunc)
-}
-
-// fnv32 algorithm
-func fnv32(key string) uint32 {
-	hashVal := uint32(HashVal)
-	prime := uint32(Prime)
-	keyLength := len(key)
-	for i := 0; i < keyLength; i++ {
-		hashVal *= prime
-		hashVal ^= uint32(key[i])
-	}
-	return hashVal
+func NewWithCustomHash(hash IHash) ShardLockMaps {
+	return createShardLockMaps(hash)
 }
 
 // GetShard returns shard under given key
 func (slm ShardLockMaps) GetShard(key string) *SingleShardMap {
-	return slm.shards[fnv32(key)%uint32(ShardCount)]
+	return slm.shards[slm.hash.Sum(key)%uint32(ShardCount)]
 }
 
 // Count returns the number of elements within the map.

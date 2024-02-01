@@ -225,7 +225,7 @@ func (c *Client) StartHeartBeatWithOption(interval time.Duration, option *ziface
 	if option != nil {
 		checker.SetHeartbeatMsgFunc(option.MakeMsg)
 		checker.SetOnRemoteNotAlive(option.OnRemoteNotAlive)
-		checker.BindRouter(option.HeadBeatMsgID, option.Router)
+		checker.BindRouter(option.HeartBeatMsgID, option.Router)
 	}
 
 	// Add the heartbeat checker's route to the client's message handler.

@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"net"
+	"strconv"
 	"sync"
 	"time"
 
@@ -29,6 +30,10 @@ type WsConnection struct {
 	//  uint64 取值范围：0 ~ 18,446,744,073,709,551,615
 	//  这个是理论支持的进程connID的最大数量)
 	connID uint64
+
+	// connection id for string
+	// (字符串的连接id)
+	connIdStr string
 
 	// The workerid responsible for handling the link
 	// 负责处理该链接的workerid
@@ -112,6 +117,7 @@ func newWebsocketConn(server ziface.IServer, conn *websocket.Conn, connID uint64
 	c := &WsConnection{
 		conn:        conn,
 		connID:      connID,
+		connIdStr:   strconv.FormatUint(connID, 10),
 		isClosed:    false,
 		msgBuffChan: nil,
 		property:    nil,
@@ -145,7 +151,8 @@ func newWebsocketConn(server ziface.IServer, conn *websocket.Conn, connID uint64
 func newWsClientConn(client ziface.IClient, conn *websocket.Conn) ziface.IConnection {
 	c := &WsConnection{
 		conn:        conn,
-		connID:      0, //client ignore
+		connID:      0,  // client ignore
+		connIdStr:   "", // client ignore
 		isClosed:    false,
 		msgBuffChan: nil,
 		property:    nil,
@@ -178,7 +185,7 @@ func (c *WsConnection) StartWriter() {
 		select {
 		case data, ok := <-c.msgBuffChan:
 			if ok {
-				if err := c.conn.WriteMessage(websocket.BinaryMessage, data); err != nil {
+				if err := c.Send(data); err != nil {
 					zlog.Ins().ErrorF("Send Buff Data error:, %s Conn Writer exit", err)
 					break
 				}
@@ -206,8 +213,8 @@ func (c *WsConnection) StartReader() {
 		case <-c.ctx.Done():
 			return
 		default:
-			//add by uuxia 2023-02-03
-			//Read data from the conn's IO to the memory buffer.
+			// add by uuxia 2023-02-03
+			// Read data from the conn's IO to the memory buffer.
 			// (从conn的IO中读取数据到内存缓冲buffer中)
 			messageType, buffer, err := c.conn.ReadMessage()
 			if err != nil {
@@ -312,6 +319,10 @@ func (c *WsConnection) GetTCPConnection() net.Conn {
 
 func (c *WsConnection) GetConnID() uint64 {
 	return c.connID
+}
+
+func (c *WsConnection) GetConnIdStr() string {
+	return c.connIdStr
 }
 
 func (c *WsConnection) GetWorkerID() uint32 {

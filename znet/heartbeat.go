@@ -173,8 +173,12 @@ func (h *HeartbeatChecker) Clone() ziface.IHeartbeatChecker {
 		onRemoteNotAlive: h.onRemoteNotAlive,
 		msgID:            h.msgID,
 		router:           h.router,
-		routerSlices:     h.routerSlices,
 		conn:             nil, // The bound connection needs to be reassigned
+	}
+
+	// deep copy routerSlices
+	for _, handler := range h.routerSlices {
+		heartbeat.routerSlices = append(heartbeat.routerSlices, handler)
 	}
 
 	return heartbeat

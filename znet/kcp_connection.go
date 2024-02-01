@@ -5,7 +5,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"net"
+	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/aceld/zinx/ziface"
@@ -32,6 +34,10 @@ type KcpConnection struct {
 	// uint64 取值范围：0 ~ 18,446,744,073,709,551,615
 	// 这个是理论支持的进程connID的最大数量)
 	connID uint64
+
+	// connection id for string
+	// (字符串的连接id)
+	connIdStr string
 
 	// The workerid responsible for handling the link
 	// 负责处理该链接的workerid
@@ -64,7 +70,7 @@ type KcpConnection struct {
 
 	// The current connection's close state
 	// (当前连接的关闭状态)
-	isClosed bool
+	closed int32
 
 	// Which Connection Manager the current connection belongs to
 	// (当前链接是属于哪个Connection Manager的)
@@ -120,7 +126,7 @@ func newKcpServerConn(server ziface.IServer, conn *kcp.UDPSession, connID uint64
 	c := &KcpConnection{
 		conn:        conn,
 		connID:      connID,
-		isClosed:    false,
+		connIdStr:   strconv.FormatUint(connID, 10),
 		msgBuffChan: nil,
 		property:    nil,
 		name:        server.ServerName(),
@@ -155,8 +161,8 @@ func newKcpServerConn(server ziface.IServer, conn *kcp.UDPSession, connID uint64
 func newKcpClientConn(client ziface.IClient, conn *kcp.UDPSession) ziface.IConnection {
 	c := &KcpConnection{
 		conn:        conn,
-		connID:      0, // client ignore
-		isClosed:    false,
+		connID:      0,  // client ignore
+		connIdStr:   "", // client ignore
 		msgBuffChan: nil,
 		property:    nil,
 		name:        client.GetName(),
@@ -248,7 +254,7 @@ func (c *KcpConnection) StartReader() {
 					continue
 				}
 				for _, bytes := range bufArrays {
-					//zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(bytes))
+					// zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(bytes))
 					msg := zpack.NewMessage(uint32(len(bytes)), bytes)
 					// Get the current client's Request data
 					// (得到当前客户端请求的Request数据)
@@ -326,6 +332,10 @@ func (c *KcpConnection) GetConnID() uint64 {
 	return c.connID
 }
 
+func (c *KcpConnection) GetConnIdStr() string {
+	return c.connIdStr
+}
+
 func (c *KcpConnection) GetWorkerID() uint32 {
 	return c.workerID
 }
@@ -341,7 +351,7 @@ func (c *KcpConnection) LocalAddr() net.Addr {
 func (c *KcpConnection) Send(data []byte) error {
 	c.msgLock.RLock()
 	defer c.msgLock.RUnlock()
-	if c.isClosed == true {
+	if c.isClosed() {
 		return errors.New("connection closed when send msg")
 	}
 
@@ -370,7 +380,7 @@ func (c *KcpConnection) SendToQueue(data []byte) error {
 	idleTimeout := time.NewTimer(5 * time.Millisecond)
 	defer idleTimeout.Stop()
 
-	if c.isClosed == true {
+	if c.isClosed() {
 		return errors.New("Connection closed when send buff msg")
 	}
 
@@ -391,7 +401,7 @@ func (c *KcpConnection) SendToQueue(data []byte) error {
 // SendMsg directly sends Message data to the remote KCP client.
 // (直接将Message数据发送数据给远程的KCP客户端)
 func (c *KcpConnection) SendMsg(msgID uint32, data []byte) error {
-	if c.isClosed == true {
+	if c.isClosed() {
 		return errors.New("connection closed when send msg")
 	}
 	// Pack data and send it
@@ -411,7 +421,7 @@ func (c *KcpConnection) SendMsg(msgID uint32, data []byte) error {
 }
 
 func (c *KcpConnection) SendBuffMsg(msgID uint32, data []byte) error {
-	if c.isClosed == true {
+	if c.isClosed() {
 		return errors.New("connection closed when send buff msg")
 	}
 	if c.msgBuffChan == nil {
@@ -474,18 +484,22 @@ func (c *KcpConnection) Context() context.Context {
 }
 
 func (c *KcpConnection) finalizer() {
+	// If the connection has already been closed
+	if c.isClosed() == true {
+		return
+	}
+
+	//set closed
+	if !c.setClose() {
+		return
+	}
+
 	// Call the callback function registered by the user when closing the connection if it exists
-	//
 	//(如果用户注册了该链接的	关闭回调业务，那么在此刻应该显示调用)
 	c.callOnConnStop()
 
 	c.msgLock.Lock()
 	defer c.msgLock.Unlock()
-
-	// If the connection has already been closed
-	if c.isClosed == true {
-		return
-	}
 
 	// Stop the heartbeat detector associated with the connection
 	if c.hc != nil {
@@ -504,8 +518,6 @@ func (c *KcpConnection) finalizer() {
 	if c.msgBuffChan != nil {
 		close(c.msgBuffChan)
 	}
-
-	c.isClosed = true
 
 	go func() {
 		defer func() {
@@ -535,7 +547,7 @@ func (c *KcpConnection) callOnConnStop() {
 }
 
 func (c *KcpConnection) IsAlive() bool {
-	if c.isClosed {
+	if c.isClosed() {
 		return false
 	}
 	// Check the last activity time of the connection. If it's beyond the heartbeat interval,
@@ -568,8 +580,16 @@ func (c *KcpConnection) GetMsgHandler() ziface.IMsgHandle {
 	return c.msgHandler
 }
 
+func (c *KcpConnection) isClosed() bool {
+	return atomic.LoadInt32(&c.closed) != 0
+}
+
+func (c *KcpConnection) setClose() bool {
+	return atomic.CompareAndSwapInt32(&c.closed, 0, 1)
+}
+
 func (s *KcpConnection) AddCloseCallback(handler, key interface{}, f func()) {
-	if s.isClosed {
+	if s.isClosed() {
 		return
 	}
 	s.closeCallbackMutex.Lock()
@@ -578,7 +598,7 @@ func (s *KcpConnection) AddCloseCallback(handler, key interface{}, f func()) {
 }
 
 func (s *KcpConnection) RemoveCloseCallback(handler, key interface{}) {
-	if s.isClosed {
+	if s.isClosed() {
 		return
 	}
 	s.closeCallbackMutex.Lock()
