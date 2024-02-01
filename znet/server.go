@@ -80,8 +80,37 @@ type Server struct {
 	// websocket connection authentication
 	websocketAuth func(r *http.Request) error
 
+	kcpConfig *KcpConfig
+
 	// connection id
 	cID uint64
+}
+
+type KcpConfig struct {
+	// changes ack flush option, set true to flush ack immediately,
+	// (改变ack刷新选项，设置为true立即刷新ack)
+	KcpACKNoDelay bool
+	// toggles the stream mode on/off
+	// (切换流模式开/关)
+	KcpStreamMode bool
+	// Whether nodelay mode is enabled, 0 is not enabled; 1 enabled.
+	// (是否启用nodelay模式，0不启用；1启用)
+	KcpNoDelay int
+	// Protocol internal work interval, in milliseconds, such as 10 ms or 20 ms.
+	// (协议内部工作的间隔，单位毫秒，比如10ms或者20ms)
+	KcpInterval int
+	// Fast retransmission mode, 0 represents off by default, 2 can be set (2 ACK spans will result in direct retransmission)
+	// (快速重传模式，默认为0关闭，可以设置2（2次ACK跨越将会直接重传）
+	KcpResend int
+	// Whether to turn off flow control, 0 represents “Do not turn off” by default, 1 represents “Turn off”.
+	// (是否关闭流控，默认是0代表不关闭，1代表关闭)
+	KcpNc int
+	// SND_BUF, this unit is the packet, default 32.
+	// (SND_BUF发送缓冲区大小，单位是包，默认是32)
+	KcpSendWindow int
+	// RCV_BUF, this unit is the packet, default 32.
+	// (RCV_BUF接收缓冲区大小，单位是包，默认是32)
+	KcpRecvWindow int
 }
 
 // newServerWithConfig creates a server handle based on config
@@ -110,6 +139,16 @@ func newServerWithConfig(config *zconf.Config, ipVersion string, opts ...Option)
 				return true
 			},
 		},
+		kcpConfig: &KcpConfig{
+			KcpACKNoDelay: config.KcpACKNoDelay,
+			KcpStreamMode: config.KcpStreamMode,
+			KcpNoDelay:    config.KcpNoDelay,
+			KcpInterval:   config.KcpInterval,
+			KcpResend:     config.KcpResend,
+			KcpNc:         config.KcpNc,
+			KcpSendWindow: config.KcpSendWindow,
+			KcpRecvWindow: config.KcpRecvWindow,
+		},
 	}
 
 	for _, opt := range opts {
@@ -137,7 +176,7 @@ func NewUserConfServer(config *zconf.Config, opts ...Option) ziface.IServer {
 	// (刷新用户配置到全局配置变量)
 	zconf.UserConfToGlobal(config)
 
-	s := newServerWithConfig(config, "tcp4", opts...)
+	s := newServerWithConfig(zconf.GlobalObject, "tcp4", opts...)
 	return s
 }
 
@@ -318,7 +357,6 @@ func (s *Server) ListenKcpConn() {
 	}
 
 	zlog.Ins().InfoF("[START] KCP server listening at IP: %s, Port %d, Addr %s", s.IP, s.KcpPort, listener.Addr().String())
-
 	// 2. Start server network connection business
 	go func() {
 		for {
@@ -343,7 +381,14 @@ func (s *Server) ListenKcpConn() {
 			// 3.4 Handle the business method for this new connection request. At this time, the handler and conn should be bound.
 			// (处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn 是绑定的)
 			newCid := atomic.AddUint64(&s.cID, 1)
-			dealConn := newKcpServerConn(s, conn.(*kcp.UDPSession), newCid)
+
+			kcpConn := conn.(*kcp.UDPSession)
+			kcpConn.SetACKNoDelay(s.kcpConfig.KcpACKNoDelay)
+			kcpConn.SetStreamMode(s.kcpConfig.KcpStreamMode)
+			kcpConn.SetNoDelay(s.kcpConfig.KcpNoDelay, s.kcpConfig.KcpInterval, s.kcpConfig.KcpResend, s.kcpConfig.KcpNc)
+			kcpConn.SetWindowSize(s.kcpConfig.KcpSendWindow, s.kcpConfig.KcpRecvWindow)
+
+			dealConn := newKcpServerConn(s, kcpConn, newCid)
 
 			go s.StartConn(dealConn)
 		}
