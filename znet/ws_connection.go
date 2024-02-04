@@ -100,6 +100,12 @@ type WsConnection struct {
 
 	// remoteAddr is the remote address of the current connection. (当前链接的远程地址)
 	remoteAddr string
+
+	// Close callback
+	closeCallback callbacks
+
+	// Close callback mutex
+	closeCallbackMutex sync.RWMutex
 }
 
 // newServerConn: for Server, a method to create a connection with Server characteristics
@@ -518,6 +524,16 @@ func (c *WsConnection) finalizer() {
 	// Set the flag to indicate that the connection is closed. (设置标志位)
 	c.isClosed = true
 
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				zlog.Ins().ErrorF("Conn finalizer panic: %v", err)
+			}
+		}()
+
+		c.InvokeCloseCallbacks()
+	}()
+
 	zlog.Ins().InfoF("Conn Stop()...ConnID = %d", c.connID)
 }
 
@@ -567,4 +583,28 @@ func (c *WsConnection) GetName() string {
 
 func (c *WsConnection) GetMsgHandler() ziface.IMsgHandle {
 	return c.msgHandler
+}
+
+func (s *WsConnection) AddCloseCallback(handler, key interface{}, f func()) {
+	if s.isClosed {
+		return
+	}
+	s.closeCallbackMutex.Lock()
+	defer s.closeCallbackMutex.Unlock()
+	s.closeCallback.Add(handler, key, f)
+}
+
+func (s *WsConnection) RemoveCloseCallback(handler, key interface{}) {
+	if s.isClosed {
+		return
+	}
+	s.closeCallbackMutex.Lock()
+	defer s.closeCallbackMutex.Unlock()
+	s.closeCallback.Remove(handler, key)
+}
+
+func (s *WsConnection) InvokeCloseCallbacks() {
+	s.closeCallbackMutex.RLock()
+	defer s.closeCallbackMutex.RUnlock()
+	s.closeCallback.Invoke()
 }

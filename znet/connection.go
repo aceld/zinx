@@ -110,6 +110,12 @@ type Connection struct {
 	// Remote address of the current connection
 	// (当前链接的远程地址)
 	remoteAddr string
+
+	// Close callback
+	closeCallback callbacks
+
+	// Close callback mutex
+	closeCallbackMutex sync.RWMutex
 }
 
 // newServerConn :for Server, method to create a Server-side connection with Server-specific properties
@@ -487,6 +493,21 @@ func (c *Connection) finalizer() {
 		c.connManager.Remove(c)
 	}
 
+	// Close all channels associated with the connection
+	if c.msgBuffChan != nil {
+		close(c.msgBuffChan)
+	}
+
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				zlog.Ins().ErrorF("Conn finalizer panic: %v", err)
+			}
+		}()
+
+		c.InvokeCloseCallbacks()
+	}()
+
 	zlog.Ins().InfoF("Conn Stop()...ConnID = %d", c.connID)
 }
 
@@ -548,4 +569,28 @@ func (c *Connection) setClose() bool {
 
 func (c *Connection) setStartWriterFlag() bool {
 	return atomic.CompareAndSwapInt32(&c.startWriterFlag, 0, 1)
+}
+
+func (s *Connection) AddCloseCallback(handler, key interface{}, f func()) {
+	if s.isClosed() {
+		return
+	}
+	s.closeCallbackMutex.Lock()
+	defer s.closeCallbackMutex.Unlock()
+	s.closeCallback.Add(handler, key, f)
+}
+
+func (s *Connection) RemoveCloseCallback(handler, key interface{}) {
+	if s.isClosed() {
+		return
+	}
+	s.closeCallbackMutex.Lock()
+	defer s.closeCallbackMutex.Unlock()
+	s.closeCallback.Remove(handler, key)
+}
+
+func (s *Connection) InvokeCloseCallbacks() {
+	s.closeCallbackMutex.RLock()
+	defer s.closeCallbackMutex.RUnlock()
+	s.closeCallback.Invoke()
 }
