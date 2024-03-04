@@ -177,9 +177,7 @@ func (h *HeartbeatChecker) Clone() ziface.IHeartbeatChecker {
 	}
 
 	// deep copy routerSlices
-	for _, handler := range h.routerSlices {
-		heartbeat.routerSlices = append(heartbeat.routerSlices, handler)
-	}
+	heartbeat.routerSlices = append(heartbeat.routerSlices, h.routerSlices...)
 
 	return heartbeat
 }
