@@ -48,16 +48,16 @@ func (r *Request) SetResponse(response ziface.IcResp) {
 	r.icResp = response
 }
 
-//func NewRequest(conn ziface.IConnection, msg ziface.IMessage) ziface.IRequest {
-//	req := new(Request)
-//	req.steps = PRE_HANDLE
-//	req.conn = conn
-//	req.msg = msg
-//	req.stepLock = new(sync.RWMutex)
-//	req.needNext = true
-//	req.index = -1
-//	return req
-//}
+func NewRequest(conn ziface.IConnection, msg ziface.IMessage) ziface.IRequest {
+	req := new(Request)
+	req.steps = PRE_HANDLE
+	req.conn = conn
+	req.msg = msg
+	req.stepLock = new(sync.RWMutex)
+	req.needNext = true
+	req.index = -1
+	return req
+}
 
 func GetRequest(conn ziface.IConnection, msg ziface.IMessage) ziface.IRequest {
 	// 从对象池中取得一个 Request 对象,如果池子中没有可用的 Request 对象则会调用 allocateRequest 函数构造一个新的对象分配
@@ -118,7 +118,7 @@ func (r *Request) Copy() ziface.IRequest {
 	return newRequest
 }
 
-// 在 Request 中存放一个上下文，如果 keys 为空会实例化一个
+// Set 在 Request 中存放一个上下文，如果 keys 为空会实例化一个
 func (r *Request) Set(key string, value interface{}) {
 	r.stepLock.Lock()
 	if r.keys == nil {
@@ -129,11 +129,11 @@ func (r *Request) Set(key string, value interface{}) {
 	r.stepLock.Unlock()
 }
 
-// 在 Request 中取出一个上下文信息
-func (c *Request) Get(key string) (value interface{}, exists bool) {
-	c.stepLock.RLock()
-	value, exists = c.keys[key]
-	c.stepLock.RUnlock()
+// Get 在 Request 中取出一个上下文信息
+func (r *Request) Get(key string) (value interface{}, exists bool) {
+	r.stepLock.RLock()
+	value, exists = r.keys[key]
+	r.stepLock.RUnlock()
 	return
 }
 
@@ -207,7 +207,7 @@ func (r *Request) Abort() {
 	}
 }
 
-// New version
+// BindRouterSlices New version
 func (r *Request) BindRouterSlices(handlers []ziface.RouterHandler) {
 	r.handlers = handlers
 }
