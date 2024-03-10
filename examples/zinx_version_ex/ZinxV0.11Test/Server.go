@@ -12,12 +12,12 @@ import (
 	"github.com/aceld/zinx/znet"
 )
 
-//ping test 自定义路由
+// ping test 自定义路由
 type PingRouter struct {
 	znet.BaseRouter
 }
 
-//Ping Handle
+// Ping Handle
 func (this *PingRouter) Handle(request ziface.IRequest) {
 
 	zlog.Debug("Call PingRouter Handle")
@@ -34,7 +34,7 @@ type HelloZinxRouter struct {
 	znet.BaseRouter
 }
 
-//HelloZinxRouter Handle
+// HelloZinxRouter Handle
 func (this *HelloZinxRouter) Handle(request ziface.IRequest) {
 	zlog.Debug("Call HelloZinxRouter Handle")
 	//先读取客户端的数据，再回写ping...ping...ping
@@ -46,7 +46,7 @@ func (this *HelloZinxRouter) Handle(request ziface.IRequest) {
 	}
 }
 
-//创建连接的时候执行
+// 创建连接的时候执行
 func DoConnectionBegin(conn ziface.IConnection) {
 	zlog.Debug("DoConnecionBegin is Called ... ")
 
@@ -61,7 +61,7 @@ func DoConnectionBegin(conn ziface.IConnection) {
 	}
 }
 
-//连接断开的时候执行
+// 连接断开的时候执行
 func DoConnectionLost(conn ziface.IConnection) {
 	//在连接销毁之前，查询conn的Name，Home属性
 	if name, err := conn.GetProperty("Name"); err == nil {

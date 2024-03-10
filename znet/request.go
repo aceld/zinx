@@ -1,12 +1,12 @@
 package znet
 
 import (
-	"github.com/aceld/zinx/zpack"
 	"math"
 	"sync"
 
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/zpack"
 )
 
 const (

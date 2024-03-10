@@ -20,7 +20,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-//enum为关键字，作用为定义一种枚举类型
+// enum为关键字，作用为定义一种枚举类型
 type PhoneType int32
 
 const (
@@ -49,7 +49,7 @@ func (PhoneType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_841ab6396175eaf3, []int{0}
 }
 
-//message为关键字，作用为定义一种消息类型
+// message为关键字，作用为定义一种消息类型
 type Person struct {
 	Name                 string         `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Age                  int32          `protobuf:"varint,2,opt,name=age,proto3" json:"age,omitempty"`
@@ -113,7 +113,7 @@ func (m *Person) GetPhones() []*PhoneNumber {
 	return nil
 }
 
-//message为关键字，作用为定义一种消息类型可以被另外的消息类型嵌套使用
+// message为关键字，作用为定义一种消息类型可以被另外的消息类型嵌套使用
 type PhoneNumber struct {
 	Number               string    `protobuf:"bytes,1,opt,name=number,proto3" json:"number,omitempty"`
 	Type                 PhoneType `protobuf:"varint,2,opt,name=type,proto3,enum=pb.PhoneType" json:"type,omitempty"`

@@ -7,12 +7,12 @@ import (
 	"github.com/aceld/zinx/znet"
 )
 
-//ping test 自定义路由
+// ping test 自定义路由
 type PingRouter struct {
 	znet.BaseRouter
 }
 
-//Test PreHandle
+// Test PreHandle
 func (this *PingRouter) PreHandle(request ziface.IRequest) {
 	fmt.Println("Call Router PreHandle")
 	_, err := request.GetConnection().GetTCPConnection().Write([]byte("before ping ....\n"))
@@ -21,7 +21,7 @@ func (this *PingRouter) PreHandle(request ziface.IRequest) {
 	}
 }
 
-//Test Handle
+// Test Handle
 func (this *PingRouter) Handle(request ziface.IRequest) {
 	fmt.Println("Call PingRouter Handle")
 	_, err := request.GetConnection().GetTCPConnection().Write([]byte("ping...ping...ping\n"))
@@ -30,7 +30,7 @@ func (this *PingRouter) Handle(request ziface.IRequest) {
 	}
 }
 
-//Test PostHandle
+// Test PostHandle
 func (this *PingRouter) PostHandle(request ziface.IRequest) {
 	fmt.Println("Call Router PostHandle")
 	_, err := request.GetConnection().GetTCPConnection().Write([]byte("After ping .....\n"))
