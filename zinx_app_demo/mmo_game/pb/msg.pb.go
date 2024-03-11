@@ -20,7 +20,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-//同步客户端玩家ID
+// 同步客户端玩家ID
 type SyncPID struct {
 	PID                  int32    `protobuf:"varint,1,opt,name=PID,proto3" json:"PID,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -60,7 +60,7 @@ func (m *SyncPID) GetPID() int32 {
 	return 0
 }
 
-//玩家位置
+// 玩家位置
 type Position struct {
 	X                    float32  `protobuf:"fixed32,1,opt,name=X,proto3" json:"X,omitempty"`
 	Y                    float32  `protobuf:"fixed32,2,opt,name=Y,proto3" json:"Y,omitempty"`
@@ -124,7 +124,7 @@ func (m *Position) GetV() float32 {
 	return 0
 }
 
-//玩家广播数据
+// 玩家广播数据
 type BroadCast struct {
 	PID int32 `protobuf:"varint,1,opt,name=PID,proto3" json:"PID,omitempty"`
 	Tp  int32 `protobuf:"varint,2,opt,name=Tp,proto3" json:"Tp,omitempty"`
@@ -236,7 +236,7 @@ func (*BroadCast) XXX_OneofWrappers() []interface{} {
 	}
 }
 
-//玩家聊天数据
+// 玩家聊天数据
 type Talk struct {
 	Content              string   `protobuf:"bytes,1,opt,name=Content,proto3" json:"Content,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -276,7 +276,7 @@ func (m *Talk) GetContent() string {
 	return ""
 }
 
-//玩家信息
+// 玩家信息
 type Player struct {
 	PID                  int32     `protobuf:"varint,1,opt,name=PID,proto3" json:"PID,omitempty"`
 	P                    *Position `protobuf:"bytes,2,opt,name=P,proto3" json:"P,omitempty"`
@@ -324,7 +324,7 @@ func (m *Player) GetP() *Position {
 	return nil
 }
 
-//同步玩家显示数据
+// 同步玩家显示数据
 type SyncPlayers struct {
 	Ps                   []*Player `protobuf:"bytes,1,rep,name=ps,proto3" json:"ps,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}  `json:"-"`

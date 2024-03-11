@@ -13,7 +13,7 @@ type PositionServerRouter struct {
 	znet.BaseRouter
 }
 
-//Ping Handle
+// Ping Handle
 func (this *PositionServerRouter) Handle(request ziface.IRequest) {
 
 	msg := &pb.Position{}
