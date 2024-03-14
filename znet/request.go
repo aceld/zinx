@@ -32,7 +32,7 @@ type Request struct {
 	msg      ziface.IMessage        // the request data sent by the client(客户端请求的数据)
 	router   ziface.IRouter         // the router that handles this request(请求处理的函数)
 	steps    ziface.HandleStep      // used to control the execution of router functions(用来控制路由函数执行)
-	stepLock *sync.RWMutex          // concurrency lock(并发互斥)
+	stepLock sync.RWMutex           // concurrency lock(并发互斥)
 	needNext bool                   // whether to execute the next router function(是否需要执行下一个路由函数)
 	icResp   ziface.IcResp          // response data returned by the interceptors (拦截器返回数据)
 	handlers []ziface.RouterHandler // router function slice(路由函数切片)
@@ -53,7 +53,7 @@ func NewRequest(conn ziface.IConnection, msg ziface.IMessage) ziface.IRequest {
 	req.steps = PRE_HANDLE
 	req.conn = conn
 	req.msg = msg
-	req.stepLock = new(sync.RWMutex)
+	req.stepLock = sync.RWMutex{}
 	req.needNext = true
 	req.index = -1
 	return req
@@ -74,7 +74,6 @@ func PutRequest(request ziface.IRequest) {
 func allocateRequest() ziface.IRequest {
 	req := new(Request)
 	req.steps = PRE_HANDLE
-	req.stepLock = new(sync.RWMutex)
 	req.needNext = true
 	req.index = -1
 	return req
@@ -99,7 +98,6 @@ func (r *Request) Copy() ziface.IRequest {
 		conn:     nil,
 		router:   nil,
 		steps:    r.steps,
-		stepLock: new(sync.RWMutex),
 		needNext: false,
 		icResp:   nil,
 		handlers: nil,
