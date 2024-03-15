@@ -5,40 +5,39 @@ import (
 	"testing"
 
 	"github.com/gstones/zinx/ziface"
+	"github.com/gstones/zinx/zconf"
 )
 
 func A1(request ziface.IRequest) {
-	fmt.Println("test A1")
+	fmt.Println("我要写入一些上下文到 Request 中了")
+	request.Set("Hey", "zinx!")
+	request.Set("Age", 2)
 }
 func A2(request ziface.IRequest) {
-	fmt.Println("test A2")
+	name, _ := request.Get("Hey")
+	age, _ := request.Get("Age")
+
+	fmt.Printf("我是练习时长%v年半的%v \n", age, name)
+
+	//如果需要开新协程操作应该 copy
+	cp := request.Copy()
+	go A4(cp)
+	request.Abort()
 }
+
 func A3(request ziface.IRequest) {
-	fmt.Println("test A3")
+	fmt.Println("No! 不带我玩")
 }
+
 func A4(request ziface.IRequest) {
-	fmt.Println("test A4")
-}
-func A5(request ziface.IRequest) {
-	fmt.Println("test A5")
+	// 需要新线程同时也需要上下文的情况
+	fmt.Println(request)
 }
 
 func TestRouterAdd(t *testing.T) {
-	router := NewRouterSlices()
-	router.Use(A3)
-	router.AddHandler(1, A1, A2)
 
-	testgroup := router.Group(2, 5, A5)
-	{
-		testgroup.AddHandler(2, A4)
+	server := NewUserConfServer(&zconf.Config{RouterSlicesMode: true, TCPPort: 8999, Host: "127.0.0.1"})
+	server.AddRouterSlices(1, A1, A2, A3)
+	server.Serve()
 
-		//正确panic
-		//testgroup.AddHandler(6, A4)
-	}
-
-	for _, v := range router.Apis[2] {
-		v(&Request{
-			index: -1,
-		})
-	}
 }

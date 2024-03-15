@@ -88,4 +88,41 @@ func UserConfToGlobal(config *Config) {
 	if config.RouterSlicesMode {
 		GlobalObject.RouterSlicesMode = config.RouterSlicesMode
 	}
+
+	if config.KcpPort != 0 {
+		GlobalObject.KcpPort = config.KcpPort
+	}
+
+	if config.KcpACKNoDelay {
+		GlobalObject.KcpACKNoDelay = config.KcpACKNoDelay
+	}
+
+	if !config.KcpStreamMode {
+		GlobalObject.KcpStreamMode = config.KcpStreamMode
+	}
+
+	if config.KcpNoDelay != 0 {
+		GlobalObject.KcpNoDelay = config.KcpNoDelay
+	}
+
+	if config.KcpInterval != 0 {
+		GlobalObject.KcpInterval = config.KcpInterval
+	}
+
+	if config.KcpResend != 0 {
+		GlobalObject.KcpResend = config.KcpResend
+	}
+
+	if config.KcpNc != 0 {
+		GlobalObject.KcpNc = config.KcpNc
+	}
+
+	if config.KcpSendWindow != 0 {
+		GlobalObject.KcpSendWindow = config.KcpSendWindow
+	}
+
+	if config.KcpRecvWindow != 0 {
+		GlobalObject.KcpRecvWindow = config.KcpRecvWindow
+	}
+
 }
