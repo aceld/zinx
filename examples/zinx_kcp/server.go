@@ -3,9 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/aceld/zinx/zconf"
 	"time"
 
+	"github.com/gstones/zinx/zconf"
 	"github.com/gstones/zinx/ziface"
 	"github.com/gstones/zinx/znet"
 )
