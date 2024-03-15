@@ -10,7 +10,7 @@ type HelloZinxRouter struct {
 	znet.BaseRouter
 }
 
-//HelloZinxRouter Handle
+// HelloZinxRouter Handle
 func (this *HelloZinxRouter) Handle(request ziface.IRequest) {
 	zlog.Ins().DebugF("Call HelloZinxRouter Handle")
 	// Read the data from the client first, then send back "ping...ping...ping"

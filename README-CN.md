@@ -71,11 +71,6 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 ![GVP-zinx](https://s2.ax1x.com/2019/10/13/uvYVBV.jpg)
 
 
-#### Stargazers over time
-
-[![Stargazers over time](https://api.star-history.com/svg?repos=aceld/zinx&type=Date)](#zinx)
-
-
 
 ## 二、初探Zinx架构
 
@@ -297,7 +292,7 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
 #### 开发者
 |  **Zinx**   | **开发者**  |
 |  ----  | ----  | 
-|[zinx](https://github.com/aceld/zinx)|刘丹冰([@aceld](https://github.com/aceld)) 张超([@zhngcho](https://github.com/zhngcho)) 高智辉Roger([@adsian](https://github.com/adsian)) 胡贵建([@huguijian](https://github.com/huguijian)) 张继瑀([@kstwoak](https://github.com/kstwoak)) 夏小力([@xxl6097](https://github.com/xxl6097)) 李志成([@clukboy](https://github.com/clukboy)）姚承政([@hcraM41](https://github.com/hcraM41)）李国杰([@LI-GUOJIE](https://github.com/LI-GUOJIE)）|
+|[zinx](https://github.com/aceld/zinx)|刘丹冰([@aceld](https://github.com/aceld)) 张超([@zhngcho](https://github.com/zhngcho)) 高智辉Roger([@adsian](https://github.com/adsian)) 胡贵建([@huguijian](https://github.com/huguijian)) 张继瑀([@kstwoak](https://github.com/kstwoak)) 夏小力([@xxl6097](https://github.com/xxl6097)) 李志成([@clukboy](https://github.com/clukboy)）姚承政([@hcraM41](https://github.com/hcraM41)）李国杰([@LI-GUOJIE](https://github.com/LI-GUOJIE)）余喆宁([@YanHeDoki](https://github.com/YanHeDoki)）|
 |[zinx(Lua)](https://github.com/huqitt/zinx-lua)|胡琪([@huqitt](https://github.com/huqitt))|
 |[ginx(Java)](https://github.com/ModuleCode/ginx)|ModuleCode([@ModuleCode](https://github.com/ModuleCode))|
 

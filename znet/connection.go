@@ -13,11 +13,10 @@ import (
 	"github.com/gorilla/websocket"
 
 	"github.com/gstones/zinx/zconf"
+	"github.com/gstones/zinx/ziface"
 	"github.com/gstones/zinx/zinterceptor"
 	"github.com/gstones/zinx/zlog"
 	"github.com/gstones/zinx/zpack"
-
-	"github.com/gstones/zinx/ziface"
 )
 
 // Connection TCP connection module
@@ -56,17 +55,21 @@ type Connection struct {
 	// (有缓冲管道，用于读、写两个goroutine之间的消息通信)
 	msgBuffChan chan []byte
 
-	// Lock for user message reception and transmission
-	// (用户收发消息的Lock)
-	msgLock sync.RWMutex
+	// Go StartWriter Flag
+	// (开始初始化写协程标志)
+	startWriterFlag int32
 
 	// Connection properties
 	// (链接属性)
-	property *sync.Map
+	property map[string]interface{}
+
+	// Lock to protect the current property
+	// (保护当前property的锁)
+	propertyLock sync.Mutex
 
 	// The current connection's close state
 	// (当前连接的关闭状态)
-	isClosed bool
+	closed int32
 
 	// Which Connection Manager the current connection belongs to
 	// (当前链接是属于哪个Connection Manager的)
@@ -86,7 +89,7 @@ type Connection struct {
 
 	// Last activity time
 	// (最后一次活动时间)
-	lastActivityTime atomic.Int64
+	lastActivityTime time.Time
 
 	// Framedecoder for solving fragmentation and packet sticking problems
 	// (断粘包解码器)
@@ -107,6 +110,12 @@ type Connection struct {
 	// Remote address of the current connection
 	// (当前链接的远程地址)
 	remoteAddr string
+
+	// Close callback
+	closeCallback callbacks
+
+	// Close callback mutex
+	closeCallbackMutex sync.RWMutex
 }
 
 // newServerConn :for Server, method to create a Server-side connection with Server-specific properties
@@ -115,15 +124,16 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 
 	// Initialize Conn properties
 	c := &Connection{
-		conn:        conn,
-		connID:      connID,
-		connIdStr:   strconv.FormatUint(connID, 10),
-		isClosed:    false,
-		msgBuffChan: nil,
-		property:    &sync.Map{},
-		name:        server.ServerName(),
-		localAddr:   conn.LocalAddr().String(),
-		remoteAddr:  conn.RemoteAddr().String(),
+		conn:            conn,
+		connID:          connID,
+		connIdStr:       strconv.FormatUint(connID, 10),
+		closed:          0,
+		startWriterFlag: 0,
+		msgBuffChan:     nil,
+		property:        nil,
+		name:            server.ServerName(),
+		localAddr:       conn.LocalAddr().String(),
+		remoteAddr:      conn.RemoteAddr().String(),
 	}
 
 	lengthField := server.GetLengthField()
@@ -144,9 +154,6 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 	// Add the newly created Conn to the connection manager
 	// (将新创建的Conn添加到链接管理中)
 	server.GetConnMgr().Add(c)
-	if zconf.GlobalObject.HeartbeatMax > 0 {
-		c.hc = NewHeartbeatChecker(zconf.GlobalObject.HeartbeatMaxDuration()-time.Millisecond*100, c)
-	}
 
 	return c
 }
@@ -155,15 +162,16 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 // (创建一个Client服务端特性的连接的方法)
 func newClientConn(client ziface.IClient, conn net.Conn) ziface.IConnection {
 	c := &Connection{
-		conn:        conn,
-		connID:      0,  // client ignore
-		connIdStr:   "", // client ignore
-		isClosed:    false,
-		msgBuffChan: nil,
-		property:    &sync.Map{},
-		name:        client.GetName(),
-		localAddr:   conn.LocalAddr().String(),
-		remoteAddr:  conn.RemoteAddr().String(),
+		conn:            conn,
+		connID:          0,  // client ignore
+		connIdStr:       "", // client ignore
+		closed:          0,
+		startWriterFlag: 0,
+		msgBuffChan:     nil,
+		property:        nil,
+		name:            client.GetName(),
+		localAddr:       conn.LocalAddr().String(),
+		remoteAddr:      conn.RemoteAddr().String(),
 	}
 
 	lengthField := client.GetLengthField()
@@ -176,9 +184,7 @@ func newClientConn(client ziface.IClient, conn net.Conn) ziface.IConnection {
 	c.onConnStart = client.GetOnConnStart()
 	c.onConnStop = client.GetOnConnStop()
 	c.msgHandler = client.GetMsgHandler()
-	if zconf.GlobalObject.HeartbeatMax > 0 {
-		c.hc = NewHeartbeatChecker(zconf.GlobalObject.HeartbeatMaxDuration()-time.Millisecond*100, c)
-	}
+
 	return c
 }
 
@@ -258,14 +264,14 @@ func (c *Connection) StartReader() {
 					msg := zpack.NewMessage(uint32(len(bytes)), bytes)
 					// Get the current client's Request data
 					// (得到当前客户端请求的Request数据)
-					req := NewRequest(c, msg)
+					req := GetRequest(c, msg)
 					c.msgHandler.Execute(req)
 				}
 			} else {
 				msg := zpack.NewMessage(uint32(n), buffer[0:n])
 				// Get the current client's Request data
 				// (得到当前客户端请求的Request数据)
-				req := NewRequest(c, msg)
+				req := GetRequest(c, msg)
 				c.msgHandler.Execute(req)
 			}
 		}
@@ -349,9 +355,7 @@ func (c *Connection) LocalAddr() net.Addr {
 }
 
 func (c *Connection) Send(data []byte) error {
-	c.msgLock.RLock()
-	defer c.msgLock.RUnlock()
-	if c.isClosed == true {
+	if c.isClosed() == true {
 		return errors.New("connection closed when send msg")
 	}
 
@@ -365,10 +369,8 @@ func (c *Connection) Send(data []byte) error {
 }
 
 func (c *Connection) SendToQueue(data []byte) error {
-	c.msgLock.RLock()
-	defer c.msgLock.RUnlock()
 
-	if c.msgBuffChan == nil {
+	if c.msgBuffChan == nil && c.setStartWriterFlag() {
 		c.msgBuffChan = make(chan []byte, zconf.GlobalObject.MaxMsgChanLen)
 		// Start a Goroutine to write data back to the client
 		// This method only reads data from the MsgBuffChan without allocating memory or starting a Goroutine
@@ -380,7 +382,7 @@ func (c *Connection) SendToQueue(data []byte) error {
 	idleTimeout := time.NewTimer(5 * time.Millisecond)
 	defer idleTimeout.Stop()
 
-	if c.isClosed == true {
+	if c.isClosed() == true {
 		return errors.New("Connection closed when send buff msg")
 	}
 
@@ -401,7 +403,8 @@ func (c *Connection) SendToQueue(data []byte) error {
 // SendMsg directly sends Message data to the remote TCP client.
 // (直接将Message数据发送数据给远程的TCP客户端)
 func (c *Connection) SendMsg(msgID uint32, data []byte) error {
-	if c.isClosed == true {
+
+	if c.isClosed() == true {
 		return errors.New("connection closed when send msg")
 	}
 	// Pack data and send it
@@ -421,46 +424,30 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 }
 
 func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
-	if c.isClosed == true {
-		return errors.New("connection closed when send buff msg")
-	}
-	if c.msgBuffChan == nil {
-		c.msgBuffChan = make(chan []byte, zconf.GlobalObject.MaxMsgChanLen)
-		// Start a Goroutine to write data back to the client
-		// This method only reads data from the MsgBuffChan without allocating memory or starting a Goroutine
-		// (开启用于写回客户端数据流程的Goroutine
-		// 此方法只读取MsgBuffChan中的数据没调用SendBuffMsg可以分配内存和启用协程)
-		go c.StartWriter()
-	}
-
-	idleTimeout := time.NewTimer(5 * time.Millisecond)
-	defer idleTimeout.Stop()
-
 	msg, err := c.packet.Pack(zpack.NewMsgPackage(msgID, data))
 	if err != nil {
 		zlog.Ins().ErrorF("Pack error msg ID = %d", msgID)
 		return errors.New("Pack error msg ")
 	}
+	return c.SendToQueue(msg)
 
-	// send timeout
-	select {
-	case <-idleTimeout.C:
-		return errors.New("send buff msg timeout")
-	case c.msgBuffChan <- msg:
-		return nil
-	}
 }
 
 func (c *Connection) SetProperty(key string, value interface{}) {
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
 	if c.property == nil {
-		c.property = &sync.Map{}
+		c.property = make(map[string]interface{})
 	}
 
-	c.property.Store(key, value)
+	c.property[key] = value
 }
 
 func (c *Connection) GetProperty(key string) (interface{}, error) {
-	if value, ok := c.property.Load(key); ok {
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+
+	if value, ok := c.property[key]; ok {
 		return value, nil
 	}
 
@@ -468,7 +455,10 @@ func (c *Connection) GetProperty(key string) (interface{}, error) {
 }
 
 func (c *Connection) RemoveProperty(key string) {
-	c.property.Delete(key)
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+
+	delete(c.property, key)
 }
 
 func (c *Connection) Context() context.Context {
@@ -476,17 +466,19 @@ func (c *Connection) Context() context.Context {
 }
 
 func (c *Connection) finalizer() {
+	// If the connection has already been closed
+	if c.isClosed() == true {
+		return
+	}
+
+	//set closed
+	if !c.setClose() {
+		return
+	}
+
 	// Call the callback function registered by the user when closing the connection if it exists
 	// (如果用户注册了该链接的	关闭回调业务，那么在此刻应该显示调用)
 	c.callOnConnStop()
-
-	c.msgLock.Lock()
-	defer c.msgLock.Unlock()
-
-	// If the connection has already been closed
-	if c.isClosed == true {
-		return
-	}
 
 	// Stop the heartbeat detector associated with the connection
 	if c.hc != nil {
@@ -506,7 +498,15 @@ func (c *Connection) finalizer() {
 		close(c.msgBuffChan)
 	}
 
-	c.isClosed = true
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				zlog.Ins().ErrorF("Conn finalizer panic: %v", err)
+			}
+		}()
+
+		c.InvokeCloseCallbacks()
+	}()
 
 	zlog.Ins().InfoF("Conn Stop()...ConnID = %d", c.connID)
 }
@@ -526,18 +526,21 @@ func (c *Connection) callOnConnStop() {
 }
 
 func (c *Connection) IsAlive() bool {
-	if c.isClosed {
+	if c.isClosed() {
 		return false
 	}
 	// Check the last activity time of the connection. If it's beyond the heartbeat interval,
 	// then the connection is considered dead.
 	// (检查连接最后一次活动时间，如果超过心跳间隔，则认为连接已经死亡)
-	now := time.Now().Unix()
-	return float64(now-c.lastActivityTime.Load()) < zconf.GlobalObject.HeartbeatMaxDuration().Seconds()
+	return time.Now().Sub(c.lastActivityTime) < zconf.GlobalObject.HeartbeatMaxDuration()
 }
 
 func (c *Connection) updateActivity() {
-	c.lastActivityTime.Store(time.Now().Unix())
+	c.lastActivityTime = time.Now()
+}
+
+func (c *Connection) SetHeartBeat(checker ziface.IHeartbeatChecker) {
+	c.hc = checker
 }
 
 func (c *Connection) LocalAddrString() string {
@@ -554,4 +557,40 @@ func (c *Connection) GetName() string {
 
 func (c *Connection) GetMsgHandler() ziface.IMsgHandle {
 	return c.msgHandler
+}
+
+func (c *Connection) isClosed() bool {
+	return atomic.LoadInt32(&c.closed) != 0
+}
+
+func (c *Connection) setClose() bool {
+	return atomic.CompareAndSwapInt32(&c.closed, 0, 1)
+}
+
+func (c *Connection) setStartWriterFlag() bool {
+	return atomic.CompareAndSwapInt32(&c.startWriterFlag, 0, 1)
+}
+
+func (s *Connection) AddCloseCallback(handler, key interface{}, f func()) {
+	if s.isClosed() {
+		return
+	}
+	s.closeCallbackMutex.Lock()
+	defer s.closeCallbackMutex.Unlock()
+	s.closeCallback.Add(handler, key, f)
+}
+
+func (s *Connection) RemoveCloseCallback(handler, key interface{}) {
+	if s.isClosed() {
+		return
+	}
+	s.closeCallbackMutex.Lock()
+	defer s.closeCallbackMutex.Unlock()
+	s.closeCallback.Remove(handler, key)
+}
+
+func (s *Connection) InvokeCloseCallbacks() {
+	s.closeCallbackMutex.RLock()
+	defer s.closeCallbackMutex.RUnlock()
+	s.closeCallback.Invoke()
 }
