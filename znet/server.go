@@ -1,7 +1,6 @@
 package znet
 
 import (
-	"crypto/rand"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -11,13 +10,13 @@ import (
 	"os/signal"
 	"sync/atomic"
 	"syscall"
-	"time"
 
 	"github.com/gorilla/websocket"
 
 	"github.com/gstones/zinx/zconf"
 	"github.com/gstones/zinx/zdecoder"
 	"github.com/gstones/zinx/zlog"
+	"github.com/gstones/zinx/zutils"
 
 	"github.com/xtaci/kcp-go"
 
@@ -183,19 +182,17 @@ func (s *Server) ListenTcpConn() {
 	// 2. Listen to the server address
 	var listener net.Listener
 	if zconf.GlobalObject.CertFile != "" && zconf.GlobalObject.PrivateKeyFile != "" {
-		// Read certificate and private key
-		crt, err := tls.LoadX509KeyPair(zconf.GlobalObject.CertFile, zconf.GlobalObject.PrivateKeyFile)
-		if err != nil {
+		if tlsConf, err := zutils.MakeTLSConfig(
+			zconf.GlobalObject.CertFile,
+			zconf.GlobalObject.PrivateKeyFile,
+			"",
+		); err != nil {
 			panic(err)
-		}
-
-		// TLS connection
-		tlsConfig := &tls.Config{}
-		tlsConfig.Certificates = []tls.Certificate{crt}
-		tlsConfig.Time = time.Now
-		tlsConfig.Rand = rand.Reader
-		listener, err = tls.Listen(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port), tlsConfig)
-		if err != nil {
+		} else if listener, err = tls.Listen(
+			s.IPVersion,
+			fmt.Sprintf("%s:%d", s.IP, s.Port),
+			tlsConf,
+		); err != nil {
 			panic(err)
 		}
 	} else {
