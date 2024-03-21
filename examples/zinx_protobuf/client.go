@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"time"
 
-	"google.golang.org/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 
 	"github.com/gstones/zinx/ziface"
 	"github.com/gstones/zinx/zinx_app_demo/mmo_game/pb"

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gstones/zinx/zconf"
 	"github.com/gstones/zinx/ziface"
 	"github.com/gstones/zinx/znet"
 )
@@ -13,8 +12,6 @@ import (
 type TestRouter struct {
 	znet.BaseRouter
 }
-
-var dealTimes = 0
 
 // PreHandle -
 func (t *TestRouter) PreHandle(req ziface.IRequest) {
@@ -32,22 +29,25 @@ func (t *TestRouter) PreHandle(req ziface.IRequest) {
 func (t *TestRouter) Handle(req ziface.IRequest) {
 	fmt.Println("--> Call Handle")
 
+	// Simulated scenario - In the event of an expected error such as incorrect permissions or incorrect information,
+	// subsequent function execution will be stopped, but this function will be fully executed.
+	// 模拟场景- 出现意料之中的错误 如权限不对或者信息错误 则停止后续函数执行，但是次函数会执行完毕
 	if err := Err(); err != nil {
 		req.Abort()
 		fmt.Println("Insufficient permission")
 	}
 
-	dealTimes++
-	req.GetConnection().AddCloseCallback(nil, nil, func() {
-		fmt.Println("run close callback")
-	})
+	// Simulation scenario - In case of a certain situation, repeat the above operation.
+	// 模拟场景- 出现某种情况，重复上面的操作
+	/*
+		if err := Err(); err != nil {
+			req.Goto(znet.PRE_HANDLE)
+			fmt.Println("repeat")
+		}
+	*/
 
 	if err := req.GetConnection().SendMsg(0, []byte("test2")); err != nil {
 		fmt.Println(err)
-	}
-
-	if dealTimes == 5 {
-		req.GetConnection().Stop()
 	}
 
 	time.Sleep(1 * time.Millisecond)
@@ -67,22 +67,7 @@ func Err() error {
 }
 
 func main() {
-	s := znet.NewUserConfServer(&zconf.Config{
-		Mode:          "kcp",
-		KcpPort:       7777,
-		KcpRecvWindow: 128,
-		KcpSendWindow: 128,
-		KcpStreamMode: true,
-		KcpACKNoDelay: false,
-		LogDir:        "./",
-		LogFile:       "test.log",
-	})
+	s := znet.NewServer()
 	s.AddRouter(1, &TestRouter{})
-	s.SetOnConnStart(func(conn ziface.IConnection) {
-		fmt.Println("--> OnConnStart")
-	})
-	s.SetOnConnStop(func(conn ziface.IConnection) {
-		fmt.Println("--> OnConnStop")
-	})
 	s.Serve()
 }
