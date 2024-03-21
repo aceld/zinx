@@ -11,7 +11,7 @@ type PingRouter struct {
 	znet.BaseRouter
 }
 
-// Ping Handle
+//Ping Handle
 func (this *PingRouter) Handle(request ziface.IRequest) {
 	zlog.Debug("Call PingRouter Handle")
 	zlog.Debug("recv from server : msgId=", request.GetMsgID(), ", data=", string(request.GetData()))

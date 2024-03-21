@@ -14,16 +14,19 @@ import (
 // 模拟客户端
 func main() {
 	fmt.Println("Client Test ... start")
+	// Send a test request after 3 seconds to give the server a chance to start the service. (3秒之后发起测试请求，给服务端开启服务的机会)
+	time.Sleep(3 * time.Second)
+
 	// Replace net.Dial with kcp.DialWithOptions
-	conn, err := kcp.Dial("127.0.0.1:7777")
+	conn, err := kcp.DialWithOptions("127.0.0.1:7777", nil, 0, 0)
 	if err != nil {
 		fmt.Println("client start err, exit!")
 		return
 	}
 
 	dp := zpack.Factory().NewPack(ziface.ZinxDataPack)
-	sendMsg, _ := dp.Pack(zpack.NewMsgPackage(1, []byte("client test message")))
-	_, err = conn.Write(sendMsg)
+	msg, _ := dp.Pack(zpack.NewMsgPackage(1, []byte("client test message")))
+	_, err = conn.Write(msg)
 	if err != nil {
 		fmt.Println("client write err: ", err)
 		return
@@ -58,13 +61,6 @@ func main() {
 			}
 
 			fmt.Printf("==> Client receive Msg: ID = %d, len = %d , data = %s\n", msg.ID, msg.DataLen, msg.Data)
-
-			time.Sleep(1 * time.Second)
-			_, err = conn.Write(sendMsg)
-			if err != nil {
-				fmt.Println("client write err: ", err)
-				return
-			}
 		}
 	}
 }

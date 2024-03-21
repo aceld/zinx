@@ -4,7 +4,7 @@ import (
 	"github.com/gstones/zinx/znet"
 )
 
-// Server 模块的测试函数
+//Server 模块的测试函数
 func main() {
 
 	/*

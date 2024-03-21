@@ -197,9 +197,6 @@ func (mh *MsgHandle) doMsgHandler(request ziface.IRequest, workerID int) {
 
 	// Execute the corresponding processing method
 	request.Call()
-
-	// 执行完成后回收 Request 对象回对象池
-	PutRequest(request)
 }
 
 func (mh *MsgHandle) Execute(request ziface.IRequest) {
@@ -249,8 +246,6 @@ func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest, workerID int) {
 
 	request.BindRouterSlices(handlers)
 	request.RouterSlicesNext()
-	// 执行完成后回收 Request 对象回对象池
-	PutRequest(request)
 }
 
 // StartOneWorker starts a worker workflow
