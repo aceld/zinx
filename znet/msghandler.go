@@ -1,7 +1,6 @@
 package znet
 
 import (
-	"encoding/hex"
 	"fmt"
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
@@ -107,7 +106,7 @@ func (mh *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
 	// zlog.Ins().DebugF("Add ConnID=%d request msgID=%d to workerID=%d", request.GetConnection().GetConnID(), request.GetMsgID(), workerID)
 	// Send the request message to the task queue
 	mh.TaskQueue[workerID] <- request
-	zlog.Ins().DebugF("SendMsgToTaskQueue-->%s", hex.EncodeToString(request.GetData()))
+	//zlog.Ins().DebugF("SendMsgToTaskQueue-->%s", hex.EncodeToString(request.GetData()))
 }
 
 // doFuncHandler handles functional requests (执行函数式请求)

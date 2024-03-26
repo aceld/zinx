@@ -493,7 +493,7 @@ func (c *Connection) finalizer() {
 
 	c.isClosed = true
 
-	zlog.Ins().InfoF("Conn Stop()...ConnID = %d", c.connID)
+	zlog.Ins().InfoF("Conn Stop()...ConnID = %d property = %v", c.connID, c.property)
 }
 
 func (c *Connection) callOnConnStart() {

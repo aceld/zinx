@@ -119,7 +119,7 @@ func (g *Config) Reload() {
 		// (配置文件不存在也需要用默认参数初始化日志模块配置)
 		g.InitLogConfig()
 
-		zlog.Ins().ErrorF("Config File %s is not exist!!", confFilePath)
+		//zlog.Ins().ErrorF("Config File %s is not exist!!", confFilePath)
 		return
 	}
 
