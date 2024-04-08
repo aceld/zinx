@@ -89,6 +89,10 @@ func UserConfToGlobal(config *Config) {
 		GlobalObject.RouterSlicesMode = config.RouterSlicesMode
 	}
 
+	if config.RequestPoolMode {
+		GlobalObject.RequestPoolMode = config.RequestPoolMode
+	}
+
 	if config.KcpPort != 0 {
 		GlobalObject.KcpPort = config.KcpPort
 	}
