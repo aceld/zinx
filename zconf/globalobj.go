@@ -75,6 +75,8 @@ type Config struct {
 	// 路由模式 false为旧版本路由，true为启用新版本的路由 默认使用旧版本
 	RouterSlicesMode bool
 
+	// 是否开启 Request 对象池模式
+	RequestPoolMode bool
 	/*
 		logger
 	*/
@@ -226,6 +228,7 @@ func init() {
 		PrivateKeyFile:    "",
 		Mode:              ServerModeTcp,
 		RouterSlicesMode:  false,
+		RequestPoolMode:   false,
 		KcpACKNoDelay:     false,
 		KcpStreamMode:     true,
 		//Normal Mode: ikcp_nodelay(kcp, 0, 40, 0, 0);

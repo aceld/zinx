@@ -46,7 +46,8 @@ type Server struct {
 
 	// Routing mode (路由模式)
 	RouterSlicesMode bool
-
+	// Request 对象池模式
+	RequestPoolMode bool
 	// Current server's connection manager (当前Server的链接管理器)
 	ConnMgr ziface.IConnManager
 
@@ -127,6 +128,7 @@ func newServerWithConfig(config *zconf.Config, ipVersion string, opts ...Option)
 		KcpPort:          config.KcpPort,
 		msgHandler:       newMsgHandle(),
 		RouterSlicesMode: config.RouterSlicesMode,
+		RequestPoolMode:  config.RequestPoolMode,
 		ConnMgr:          newConnManager(),
 		exitChan:         nil,
 		// Default to using Zinx's TLV data pack format

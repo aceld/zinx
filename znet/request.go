@@ -60,15 +60,23 @@ func NewRequest(conn ziface.IConnection, msg ziface.IMessage) ziface.IRequest {
 }
 
 func GetRequest(conn ziface.IConnection, msg ziface.IMessage) ziface.IRequest {
-	// 从对象池中取得一个 Request 对象,如果池子中没有可用的 Request 对象则会调用 allocateRequest 函数构造一个新的对象分配
-	r := RequestPool.Get().(*Request)
-	// 因为取出的 Request 对象可能是已存在也可能是新构造的,无论是哪种情况都应该初始化再返回使用
-	r.Reset(conn, msg)
-	return r
+
+	// 根据当前模式判断是否使用对象池
+	if zconf.GlobalObject.RequestPoolMode {
+		// 从对象池中取得一个 Request 对象,如果池子中没有可用的 Request 对象则会调用 allocateRequest 函数构造一个新的对象分配
+		r := RequestPool.Get().(*Request)
+		// 因为取出的 Request 对象可能是已存在也可能是新构造的,无论是哪种情况都应该初始化再返回使用
+		r.Reset(conn, msg)
+		return r
+	}
+	return NewRequest(conn, msg)
 }
 
 func PutRequest(request ziface.IRequest) {
-	RequestPool.Put(request)
+	// 判断是否开启了对象池模式
+	if zconf.GlobalObject.RequestPoolMode {
+		RequestPool.Put(request)
+	}
 }
 
 func allocateRequest() ziface.IRequest {
@@ -90,9 +98,10 @@ func (r *Request) Reset(conn ziface.IConnection, msg ziface.IMessage) {
 }
 
 // Copy 在执行路由函数的时候可能会出现需要再起一个协程的需求,但是 Request 对象由对象池管理后无法保证新协程中的 Request 参数一致
-// 通过 Copy 方法复制一份 Request 对象保持创建协程时候的参数一致。但新开的协程不应该在对原始的执行过程有影响，所以不包含链接和路由对象。
+// 通过 Copy 方法复制一份 Request 对象保持创建协程时候的参数一致。但新开的协程不应该在对原始的执行过程有影响，所以不包含连接和路由对象。
+// 但如果一定对连接信息有所需要可以在 Copy 后手动 set 一份参数在 Request 对象中
 func (r *Request) Copy() ziface.IRequest {
-	// 构造一个新的 Request 对象，复制部分原始对象的参数,但是复制的 Request 不应该再对原始链接操作,所以不能含有链接参数
+	// 构造一个新的 Request 对象，复制部分原始对象的参数,但是复制的 Request 不应该再对原始连接操作,所以不含有连接参数
 	// 同理也不应该再执行路由方法,路由函数也不包含
 	newRequest := &Request{
 		conn:     nil,
@@ -110,6 +119,13 @@ func (r *Request) Copy() ziface.IRequest {
 		newRequest.keys[k] = v
 	}
 
+	// 复制一份原本的 icResp
+	copyResp := []ziface.IcResp{r.icResp}
+	newIcResp := make([]ziface.IcResp, 0, 1)
+	copy(newIcResp, copyResp)
+	for _, v := range newIcResp {
+		newRequest.icResp = v
+	}
 	// 复制一份原本的 msg 信息
 	newRequest.msg = zpack.NewMessageByMsgId(r.msg.GetMsgID(), r.msg.GetDataLen(), r.msg.GetRawData())
 
