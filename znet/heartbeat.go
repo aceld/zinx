@@ -33,12 +33,12 @@ type HeatBeatDefaultRouter struct {
 }
 
 func (r *HeatBeatDefaultRouter) Handle(req ziface.IRequest) {
-	zlog.Ins().InfoF("Recv Heartbeat from %s, MsgID = %+v, Data = %s",
+	zlog.Ins().DebugF("Recv Heartbeat from %s, MsgID = %+v, Data = %s",
 		req.GetConnection().RemoteAddr(), req.GetMsgID(), string(req.GetData()))
 }
 
 func HeatBeatDefaultHandle(req ziface.IRequest) {
-	zlog.Ins().InfoF("Recv Heartbeat from %s, MsgID = %+v, Data = %s",
+	zlog.Ins().DebugF("Recv Heartbeat from %s, MsgID = %+v, Data = %s",
 		req.GetConnection().RemoteAddr(), req.GetMsgID(), string(req.GetData()))
 }
 
