@@ -23,14 +23,14 @@ func (connMgr *ConnManager) Add(conn ziface.IConnection) {
 
 	connMgr.connections.Set(conn.GetConnIdStr(), conn) // 将conn连接添加到ConnManager中
 
-	zlog.Ins().InfoF("connection add to ConnManager successfully: conn num = %d", connMgr.Len())
+	zlog.Ins().DebugF("connection add to ConnManager successfully: conn num = %d", connMgr.Len())
 }
 
 func (connMgr *ConnManager) Remove(conn ziface.IConnection) {
 
 	connMgr.connections.Remove(conn.GetConnIdStr()) // 删除连接信息
 
-	zlog.Ins().InfoF("connection Remove ConnID=%d successfully: conn num = %d", conn.GetConnID(), connMgr.Len())
+	zlog.Ins().DebugF("connection Remove ConnID=%d successfully: conn num = %d", conn.GetConnID(), connMgr.Len())
 }
 
 func (connMgr *ConnManager) Get(connID uint64) (ziface.IConnection, error) {

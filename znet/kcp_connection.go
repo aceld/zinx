@@ -187,8 +187,8 @@ func newKcpClientConn(client ziface.IClient, conn *kcp.UDPSession) ziface.IConne
 // StartWriter is the goroutine that writes messages to the client
 // (写消息Goroutine， 用户将数据发送给客户端)
 func (c *KcpConnection) StartWriter() {
-	zlog.Ins().InfoF("Writer Goroutine is running")
-	defer zlog.Ins().InfoF("%s [conn Writer exit!]", c.RemoteAddr().String())
+	zlog.Ins().DebugF("Writer Goroutine is running")
+	defer zlog.Ins().DebugF("%s [conn Writer exit!]", c.RemoteAddr().String())
 
 	for {
 		select {
@@ -212,8 +212,8 @@ func (c *KcpConnection) StartWriter() {
 // StartReader is a goroutine that reads data from the client
 // (读消息Goroutine，用于从客户端中读取数据)
 func (c *KcpConnection) StartReader() {
-	zlog.Ins().InfoF("[Reader Goroutine is running]")
-	defer zlog.Ins().InfoF("%s [conn Reader exit!]", c.RemoteAddr().String())
+	zlog.Ins().DebugF("[Reader Goroutine is running]")
+	defer zlog.Ins().DebugF("%s [conn Reader exit!]", c.RemoteAddr().String())
 	defer c.Stop()
 	defer func() {
 		if err := recover(); err != nil {
@@ -529,19 +529,19 @@ func (c *KcpConnection) finalizer() {
 		c.InvokeCloseCallbacks()
 	}()
 
-	zlog.Ins().InfoF("Conn Stop()...ConnID = %d", c.connID)
+	zlog.Ins().DebugF("Conn Stop()...ConnID = %d", c.connID)
 }
 
 func (c *KcpConnection) callOnConnStart() {
 	if c.onConnStart != nil {
-		zlog.Ins().InfoF("ZINX CallOnConnStart....")
+		zlog.Ins().DebugF("ZINX CallOnConnStart....")
 		c.onConnStart(c)
 	}
 }
 
 func (c *KcpConnection) callOnConnStop() {
 	if c.onConnStop != nil {
-		zlog.Ins().InfoF("ZINX CallOnConnStop....")
+		zlog.Ins().DebugF("ZINX CallOnConnStop....")
 		c.onConnStop(c)
 	}
 }
