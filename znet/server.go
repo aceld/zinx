@@ -46,7 +46,8 @@ type Server struct {
 
 	// Routing mode (路由模式)
 	RouterSlicesMode bool
-
+	// Request 对象池模式
+	RequestPoolMode bool
 	// Current server's connection manager (当前Server的链接管理器)
 	ConnMgr ziface.IConnManager
 
@@ -97,6 +98,7 @@ func newServerWithConfig(config *zconf.Config, ipVersion string, opts ...Option)
 		KcpPort:          config.KcpPort,
 		msgHandler:       newMsgHandle(),
 		RouterSlicesMode: config.RouterSlicesMode,
+		RequestPoolMode:  config.RequestPoolMode,
 		ConnMgr:          newConnManager(),
 		exitChan:         nil,
 		// Default to using Zinx's TLV data pack format
@@ -117,7 +119,7 @@ func newServerWithConfig(config *zconf.Config, ipVersion string, opts ...Option)
 
 	// Display current configuration information
 	// (提示当前配置信息)
-	config.Show()
+	//config.Show()
 
 	return s
 }
@@ -247,7 +249,7 @@ func (s *Server) ListenTcpConn() {
 }
 
 func (s *Server) ListenWebsocketConn() {
-
+	zlog.Ins().InfoF("[START] WEBSOCKET Server name: %s,listener at IP: %s, Port %d is starting", s.Name, s.IP, s.WsPort)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// 1. Check if the server has reached the maximum allowed number of connections
 		// (设置服务器最大连接控制,如果超过最大连接，则等待)
