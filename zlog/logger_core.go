@@ -240,11 +240,7 @@ func (log *ZinxLoggerCore) OutPut(level int, s string) error {
 }
 
 func (log *ZinxLoggerCore) verifyLogIsolation(logLevel int) bool {
-	if log.isolationLevel > logLevel {
-		return true
-	} else {
-		return false
-	}
+	return log.isolationLevel > logLevel
 }
 
 func (log *ZinxLoggerCore) Debugf(format string, v ...interface{}) {

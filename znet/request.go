@@ -221,7 +221,7 @@ func (r *Request) Abort() {
 	}
 }
 
-// New version
+// BindRouterSlices New version
 func (r *Request) BindRouterSlices(handlers []ziface.RouterHandler) {
 	r.handlers = handlers
 }

@@ -52,4 +52,7 @@ type IConnection interface {
 	GetProperty(key string) (interface{}, error) // Get connection property
 	RemoveProperty(key string)                   // Remove connection property
 	IsAlive() bool                               // Check if the current connection is alive(判断当前连接是否存活)
+	AddCloseCallback(handler, key interface{}, callback func()) // Add a close callback function (添加关闭回调函数)
+	RemoveCloseCallback(handler, key interface{})               // Remove a close callback function (删除关闭回调函数)
+	InvokeCloseCallbacks()                                      // Trigger the close callback function (触发关闭回调函数，独立协程完成)
 }
