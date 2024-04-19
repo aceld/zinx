@@ -75,10 +75,6 @@ Of course, we hope that more people will join Zinx and provide us with valuable 
 
 
 
-#### Stargazers over time
-
-[![Stargazers over time](https://api.star-history.com/svg?repos=aceld/zinx&type=Date)](#zinx)
-
 
 ## II. Zinx architecture
 ![Zinx框架](https://user-images.githubusercontent.com/7778936/220058446-0ad45112-2225-4b71-b0d8-69a7f3cee5ca.jpg)
@@ -289,14 +285,14 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
 
 `LogIsolationLevel`: Log Isolation Level -0: Full On 1: Off debug 2: Off debug/info 3: Off debug/info/warn
 
-
 ---
+
 
 #### Developers
 
 |  **Zinx**   | **Authors**  |
 |  ----  | ----  | 
-|[zinx](https://github.com/aceld/zinx)|刘丹冰([@aceld](https://github.com/aceld)) 张超([@zhngcho](https://github.com/zhngcho)) 高智辉Roger([@adsian](https://github.com/adsian)) 胡贵建([@huguijian](https://github.com/huguijian)) 张继瑀([@kstwoak](https://github.com/kstwoak)) 夏小力([@xxl6097](https://github.com/xxl6097)) 李志成([@clukboy](https://github.com/clukboy)）姚承政([@hcraM41](https://github.com/hcraM41)）李国杰([@LI-GUOJIE](https://github.com/LI-GUOJIE)）|
+|[zinx](https://github.com/aceld/zinx)|刘丹冰([@aceld](https://github.com/aceld)) 张超([@zhngcho](https://github.com/zhngcho)) 高智辉Roger([@adsian](https://github.com/adsian)) 胡贵建([@huguijian](https://github.com/huguijian)) 张继瑀([@kstwoak](https://github.com/kstwoak)) 夏小力([@xxl6097](https://github.com/xxl6097)) 李志成([@clukboy](https://github.com/clukboy)）姚承政([@hcraM41](https://github.com/hcraM41)）李国杰([@LI-GUOJIE](https://github.com/LI-GUOJIE)）余喆宁([@YanHeDoki](https://github.com/YanHeDoki)）|
 |[zinx(C++)](https://github.com/marklion/zinx) |刘洋([@marklion](https://github.com/marklion))|
 |[zinx(Lua)](https://github.com/huqitt/zinx-lua)|胡琪([@huqitt](https://github.com/huqitt))|
 |[ginx(Java)](https://github.com/ModuleCode/ginx)|ModuleCode([@ModuleCode](https://github.com/ModuleCode))|

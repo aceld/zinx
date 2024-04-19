@@ -15,15 +15,15 @@ func main() {
 		Age:    16,
 		Emails: []string{"xiao_yu_er@sina.com", "yu_er@sina.cn"},
 		Phones: []*pb.PhoneNumber{
-			&pb.PhoneNumber{
+			{
 				Number: "13113111311",
 				Type:   pb.PhoneType_MOBILE,
 			},
-			&pb.PhoneNumber{
+			{
 				Number: "14141444144",
 				Type:   pb.PhoneType_HOME,
 			},
-			&pb.PhoneNumber{
+			{
 				Number: "19191919191",
 				Type:   pb.PhoneType_WORK,
 			},
