@@ -389,13 +389,10 @@ func (c *Connection) SendToQueue(data []byte) error {
 	select {
 	case <-c.ctx.Done():
 		return errors.New("connection closed when send buff msg")
-	default:
-		select {
-		case <-idleTimeout.C:
-			return errors.New("send buff msg timeout")
-		case c.msgBuffChan <- data:
-			return nil
-		}
+	case <-idleTimeout.C:
+		return errors.New("send buff msg timeout")
+	case c.msgBuffChan <- data:
+		return nil
 	}
 }
 
