@@ -3,9 +3,7 @@
 // @Author Aceld - Thu Mar 11 10:32:29 CST 2019
 package ziface
 
-/*
-IConnManager Connection Management Abstract Layer
-*/
+// IConnManager Connection Management Abstract Layer
 type IConnManager interface {
 	Add(IConnection)                                                        // Add connection
 	Remove(IConnection)                                                     // Remove connection
