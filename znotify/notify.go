@@ -13,9 +13,9 @@ import (
 // ConnIDMap Establish a structure that maps user-defined IDs to connections
 // Map will have concurrent access issues, as well as looping through large amounts of data
 // Use the map structure of shard and lock storage to minimize lock granularity and lock holding time
-// 建立一个用户自定义ID和连接映射的结构
+// (建立一个用户自定义ID和连接映射的结构
 // map会存在并发问题，大量数据循环读取问题
-// 使用分片加锁的map结构存储，尽量减少锁的粒度和锁的持有时间
+// 使用分片加锁的map结构存储，尽量减少锁的粒度和锁的持有时间)
 
 type notify struct {
 	connIdMap zutils.ShardLockMaps

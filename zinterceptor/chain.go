@@ -3,7 +3,6 @@
  * @date 15:56 2023/3/10
  * @description 责任链模式
  **/
-
 package zinterceptor
 
 import "github.com/aceld/zinx/ziface"
@@ -36,7 +35,7 @@ func (c *Chain) Proceed(request ziface.IcReq) ziface.IcResp {
 	return request
 }
 
-// GetIMessage  从Chain中获取IMessage
+// GetIMessage  Get IMessage from the Chain (从Chain中获取IMessage)
 func (c *Chain) GetIMessage() ziface.IMessage {
 
 	req := c.Request()
@@ -52,9 +51,8 @@ func (c *Chain) GetIMessage() ziface.IMessage {
 	return iRequest.GetMessage()
 }
 
-// Next 通过IMessage和解码后数据进入下一个责任链任务
-// iMessage 为解码后的IMessage
-// response 为解码后的数据
+// Next Enter the next chain task with IMessage and decoded data,iMessage is the decoded IMessage response is the decoded data
+// (Next 通过IMessage和解码后数据进入下一个责任链任务, iMessage 为解码后的IMessage, response 为解码后的数据)
 func (c *Chain) ProceedWithIMessage(iMessage ziface.IMessage, response ziface.IcReq) ziface.IcResp {
 	if iMessage == nil || response == nil {
 		return c.Proceed(c.Request())
@@ -70,13 +68,14 @@ func (c *Chain) ProceedWithIMessage(iMessage ziface.IMessage, response ziface.Ic
 		return c.Proceed(c.Request())
 	}
 
-	//设置chain的request下一次请求
+	// Set the request of chain for the next request
+	// (设置chain的request下一次请求)
 	iRequest.SetResponse(response)
 
 	return c.Proceed(iRequest)
 }
 
-// ShouldIRequest 判断是否是IRequest
+// ShouldIRequest Determine if it is IRequest(判断是否是IRequest)
 func (c *Chain) ShouldIRequest(icReq ziface.IcReq) ziface.IRequest {
 	if icReq == nil {
 		return nil

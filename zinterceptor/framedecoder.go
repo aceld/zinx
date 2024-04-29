@@ -305,15 +305,15 @@ import (
 // | 0xCA | 0x0010 | 0xFE | "HELLO, WORLD" |       | 0xFE | "HELLO, WORLD" |
 // +------+--------+------+----------------+       +------+----------------+
 
-// FrameDecoder 基于LengthField模式的解码器
+// FrameDecoder is a decoder based on the LengthField pattern.
 type FrameDecoder struct {
-	ziface.LengthField //从ILengthField集成的基础属性
+	ziface.LengthField // Basic properties inherited from ILengthField
 
-	LengthFieldEndOffset   int   //长度字段结束位置的偏移量  LengthFieldOffset+LengthFieldLength
-	failFast               bool  //快速失败
-	discardingTooLongFrame bool  //true 表示开启丢弃模式，false 正常工作模式
-	tooLongFrameLength     int64 //当某个数据包的长度超过maxLength，则开启丢弃模式，此字段记录需要丢弃的数据长度
-	bytesToDiscard         int64 //记录还剩余多少字节需要丢弃
+	LengthFieldEndOffset   int   // Offset of the end position of the length field (LengthFieldOffset+LengthFieldLength) (长度字段结束位置的偏移量)
+	failFast               bool  // Fast failure (快速失败)
+	discardingTooLongFrame bool  // true indicates discard mode is enabled, false indicates normal working mode (true 表示开启丢弃模式，false 正常工作模式)
+	tooLongFrameLength     int64 // When the length of a packet exceeds maxLength, discard mode is enabled, and this field records the length of the data to be discarded (当某个数据包的长度超过maxLength，则开启丢弃模式，此字段记录需要丢弃的数据长度)
+	bytesToDiscard         int64 // Records how many bytes still need to be discarded (记录还剩余多少字节需要丢弃)
 	in                     []byte
 	lock                   sync.Mutex
 }
@@ -322,7 +322,6 @@ func NewFrameDecoder(lf ziface.LengthField) ziface.IFrameDecoder {
 
 	frameDecoder := new(FrameDecoder)
 
-	//基础属性赋值
 	if lf.Order == nil {
 		frameDecoder.Order = binary.BigEndian
 	} else {
@@ -364,27 +363,35 @@ func (d *FrameDecoder) fail(frameLength int64) {
 }
 
 func (d *FrameDecoder) discardingTooLongFrameFunc(buffer *bytes.Buffer) {
-	//保存还需丢弃多少字节
+	// Save the number of bytes still to be discarded
+	// (保存还需丢弃多少字节)
 	bytesToDiscard := d.bytesToDiscard
-	//获取当前可以丢弃的字节数，有可能出现半包
+
+	// Get the number of bytes that can be discarded now, there may be a half package situation
+	// (获取当前可以丢弃的字节数，有可能出现半包)
 	localBytesToDiscard := math.Min(float64(bytesToDiscard), float64(buffer.Len()))
-	//fmt.Println("--->", bytesToDiscard, buffer.Len(), localBytesToDiscard)
-	//localBytesToDiscard = 2
-	//丢弃
+
+	// Discard (丢弃)
 	buffer.Next(int(localBytesToDiscard))
-	//更新还需丢弃的字节数
+
+	// Update the number of bytes still to be discarded (更新还需丢弃的字节数)
 	bytesToDiscard -= int64(localBytesToDiscard)
+
 	d.bytesToDiscard = bytesToDiscard
-	//是否需要快速失败，回到上面的逻辑
+
+	// Determine if fast failure is needed, go back to the logic above (是否需要快速失败，回到上面的逻辑)
 	d.failIfNecessary(false)
 }
 
 func (d *FrameDecoder) getUnadjustedFrameLength(buf *bytes.Buffer, offset int, length int, order binary.ByteOrder) int64 {
-	//长度字段的值
+	// Value of the length field (长度字段的值)
 	var frameLength int64
+
 	arr := buf.Bytes()
 	arr = arr[offset : offset+length]
+
 	buffer := bytes.NewBuffer(arr)
+
 	switch length {
 	case 1:
 		//byte
@@ -397,7 +404,8 @@ func (d *FrameDecoder) getUnadjustedFrameLength(buf *bytes.Buffer, offset int, l
 		binary.Read(buffer, order, &value)
 		frameLength = int64(value)
 	case 3:
-		//int占32位，这里取出后24位，返回int类型
+		// int occupies 32 bits, here take out the last 24 bits and return as int type
+		// (int占32位，这里取出后24位，返回int类型)
 		if order == binary.LittleEndian {
 			n := uint(arr[0]) | uint(arr[1])<<8 | uint(arr[2])<<16
 			frameLength = int64(n)
@@ -426,48 +434,58 @@ func (d *FrameDecoder) failOnNegativeLengthField(in *bytes.Buffer, frameLength i
 
 func (d *FrameDecoder) failIfNecessary(firstDetectionOfTooLongFrame bool) {
 	if d.bytesToDiscard == 0 {
-		//说明需要丢弃的数据已经丢弃完成
-		//保存一下被丢弃的数据包长度
+		// Indicates that the data to be discarded has been discarded (说明需要丢弃的数据已经丢弃完成)
+		// Save the length of the discarded data packet (保存一下被丢弃的数据包长度)
 		tooLongFrameLength := d.tooLongFrameLength
 		d.tooLongFrameLength = 0
-		//关闭丢弃模式
+
+		// Turn off discard mode (关闭丢弃模式)
 		d.discardingTooLongFrame = false
-		//failFast：默认true
-		//firstDetectionOfTooLongFrame：传入true
+
+		// failFast: Default is true (failFast：默认true)
+		// firstDetectionOfTooLongFrame: Passed in as true (firstDetectionOfTooLongFrame：传入true)
 		if !d.failFast || firstDetectionOfTooLongFrame {
-			//快速失败
+			// Fast failure (快速失败)
 			d.fail(tooLongFrameLength)
 		}
 	} else {
-		//说明还未丢弃完成
+		// Indicates that the discard has not been completed yet (说明还未丢弃完成)
 		if d.failFast && firstDetectionOfTooLongFrame {
-			//快速失败
+			// Fast failure (快速失败)
 			d.fail(d.tooLongFrameLength)
 		}
 	}
 }
 
-// frameLength：数据包的长度
+// exceededFrameLength
+// frameLength: Length of the data packet (frameLength：数据包的长度)
 func (d *FrameDecoder) exceededFrameLength(in *bytes.Buffer, frameLength int64) {
-	//数据包长度-可读的字节数  两种情况
-	//1. 数据包总长度为100，可读的字节数为50，说明还剩余50个字节需要丢弃但还未接收到
-	//2. 数据包总长度为100，可读的字节数为150，说明缓冲区已经包含了整个数据包
+	// Packet length - readable bytes (两种情况)
+	// 1. Total length of the data packet is 100, readable bytes is 50, indicating that there are still 50 bytes to be discarded but have not been received yet
+	// (数据包总长度为100，可读的字节数为50，说明还剩余50个字节需要丢弃但还未接收到)
+	// 2. Total length of the data packet is 100, readable bytes is 150, indicating that the buffer already contains the entire data packet
+	// (数据包总长度为100，可读的字节数为150，说明缓冲区已经包含了整个数据包)
 	discard := frameLength - int64(in.Len())
-	//记录一下最大的数据包的长度
+
+	// Record the maximum length of the data packet (记录一下最大的数据包的长度)
 	d.tooLongFrameLength = frameLength
+
 	if discard < 0 {
-		//说明是第二种情况，直接丢弃当前数据包
+		// Indicates the second case, directly discard the current data packet (说明是第2种情况，直接丢弃当前数据包)
 		in.Next(int(frameLength))
 	} else {
-		//说明是第一种情况，还有部分数据未接收到
-		//开启丢弃模式
+		// Indicates the first case, some data is still pending reception (说明是第1种情况，还有部分数据未接收到)
+		// Enable discard mode (开启丢弃模式)
 		d.discardingTooLongFrame = true
-		//记录下次还需丢弃多少字节
+
+		// Record how many bytes need to be discarded next time (记录下次还需丢弃多少字节)
 		d.bytesToDiscard = discard
-		//丢弃缓冲区所有数据
+
+		// Discard all data in the buffer (丢弃缓冲区所有数据)
 		in.Next(in.Len())
 	}
-	//跟进去
+
+	// Update the status and determine if there is an error. (更新状态，判断是否有误)
 	d.failIfNecessary(true)
 }
 
@@ -478,66 +496,84 @@ func (d *FrameDecoder) failOnFrameLengthLessThanInitialBytesToStrip(in *bytes.Bu
 
 func (d *FrameDecoder) decode(buf []byte) []byte {
 	in := bytes.NewBuffer(buf)
-	//丢弃模式
+
+	// Determine if it is in discard mode (判断是否为丢弃模式)
 	if d.discardingTooLongFrame {
 		d.discardingTooLongFrameFunc(in)
 	}
-	////判断缓冲区中可读的字节数是否小于长度字段的偏移量
+
+	// Determine if the number of readable bytes in the buffer is less than the offset of the length field
+	// (判断缓冲区中可读的字节数是否小于长度字段的偏移量)
 	if in.Len() < d.LengthFieldEndOffset {
-		//说明长度字段的包都还不完整，半包
+		// Indicates that the length field packets are incomplete, half package
+		// (说明长度字段的包都还不完整，半包)
 		return nil
 	}
-	//执行到这，说明可以解析出长度字段的值了
 
-	//计算出长度字段的开始偏移量
+	// --> If execution reaches here, it means that the value of the length field can be parsed <--
+	// (执行到这，说明可以解析出长度字段的值了)
+
+	// Calculate the offset of the length field
+	// (计算出长度字段的开始偏移量)
 	actualLengthFieldOffset := d.LengthFieldOffset
-	//获取长度字段的值，不包括lengthAdjustment的调整值
+
+	// Get the value of the length field, excluding the adjustment value of lengthAdjustment
+	// (获取长度字段的值，不包括lengthAdjustment的调整值)
 	frameLength := d.getUnadjustedFrameLength(in, actualLengthFieldOffset, d.LengthFieldLength, d.Order)
 
-	//如果数据帧长度小于0，说明是个错误的数据包
+	// If the data frame length is less than 0, it means it is an error data packet
+	// (如果数据帧长度小于0，说明是个错误的数据包)
 	if frameLength < 0 {
-		//内部会跳过这个数据包的字节数，并抛异常
+		// It will skip the number of bytes of this data packet and throw an exception
+		// (内部会跳过这个数据包的字节数，并抛异常)
 		d.failOnNegativeLengthField(in, frameLength, d.LengthFieldEndOffset)
 	}
 
-	//套用前面的公式：长度字段后的数据字节数=长度字段的值+lengthAdjustment
-	//frameLength就是长度字段的值，加上lengthAdjustment等于长度字段后的数据字节数
-	//lengthFieldEndOffset为lengthFieldOffset+lengthFieldLength
-	//那说明最后计算出的framLength就是整个数据包的长度
+	// Apply the formula: Number of bytes after the length field = value of the length field + lengthAdjustment (如果数据帧长度小于0，说明是个错误的数据包)
+	// frameLength is the value of the length field, plus lengthAdjustment equals the number of bytes after the length field (lengthFieldEndOffset is lengthFieldOffset+lengthFieldLength)
+	// So the frameLength calculated in the end is the length of the entire data packet (那说明最后计算出的frameLength就是整个数据包的长度)
 	frameLength += int64(d.LengthAdjustment) + int64(d.LengthFieldEndOffset)
-	//丢弃模式就是在这开启的
-	//如果数据包长度大于最大长度
+
+	// Discard mode is turned on here (丢弃模式就是在这开启的)
+	// If the data packet length is greater than the maximum length (如果数据包长度大于最大长度)
 	if uint64(frameLength) > d.MaxFrameLength {
-		//对超过的部分进行处理
+		// It has exceeded the maximum length of a single data frame, and the exceeded part is processed
+		// (已经超过单次数据帧最大长度，对超过的部分进行处理)
 		d.exceededFrameLength(in, frameLength)
 		return nil
 	}
 
-	//执行到这说明是正常模式
-	//数据包的大小
+	// --> If execution reaches here, it means normal mode <--
+	// (执行到这, 说明是正常模式)
+
+	// Size of the data packet (数据包的大小)
 	frameLengthInt := int(frameLength)
-	//判断缓冲区可读字节数是否小于数据包的字节数
+	// Determine if the number of readable bytes in the buffer is less than the size of the data packet (判断缓冲区可读字节数是否小于数据包的字节数)
 	if in.Len() < frameLengthInt {
-		//半包，等会再来解析
+		// Half package, will parse again later (半包，等会再来解析)
 		return nil
 	}
 
-	//执行到这说明缓冲区的数据已经包含了数据包
+	// --> If execution reaches here, it means that the buffer already contains the entire data packet <--
+	// (执行到这, 说明缓冲区的数据已经包含了数据包)
 
-	//跳过的字节数是否大于数据包长度
+	// Whether the number of bytes to be skipped is greater than the length of the data packet (跳过的字节数是否大于数据包长度)
 	if d.InitialBytesToStrip > frameLengthInt {
+		// Will throw an exception if the length of the data packet is less than the number of bytes to be skipped (如果数据包长度小于跳过的字节数，将抛出异常)
 		d.failOnFrameLengthLessThanInitialBytesToStrip(in, frameLength, d.InitialBytesToStrip)
 	}
-	//跳过initialBytesToStrip个字节
+
+	// Skip the initialBytesToStrip bytes (跳过initialBytesToStrip个字节)
 	in.Next(d.InitialBytesToStrip)
-	//解码
-	//获取跳过后的真实数据长度
+
+	// Decode (解码)
+	// Get the real data length after skipping (获取跳过后的真实数据长度)
 	actualFrameLength := frameLengthInt - d.InitialBytesToStrip
-	//提取真实的数据
+
+	// Extract the real data (提取真实的数据)
 	buff := make([]byte, actualFrameLength)
-	in.Read(buff)
-	//bytes.NewBuffer([]byte{})
-	//_in := bytes.NewBuffer(buff)
+	_, _ = in.Read(buff)
+
 	return buff
 }
 
@@ -552,11 +588,10 @@ func (d *FrameDecoder) Decode(buff []byte) [][]byte {
 		arr := d.decode(d.in)
 
 		if arr != nil {
-			//证明已经解析出一个完整包
+			// Indicates that a complete packet has been parsed
+			// (证明已经解析出一个完整包)
 			resp = append(resp, arr)
 			_size := len(arr) + d.InitialBytesToStrip
-			//_len := len(this.in)
-			//fmt.Println(_len)
 			if _size > 0 {
 				d.in = d.in[_size:]
 			}

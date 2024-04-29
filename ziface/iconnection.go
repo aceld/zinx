@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// // Define connection interface
+// IConnection Define connection interface
 type IConnection interface {
 	// Start the connection, make the current connection start working
 	// (启动连接，让当前连接开始工作)
