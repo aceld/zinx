@@ -81,7 +81,7 @@ func (hcd *HtlvCrcDecoder) GetLengthField() *ziface.LengthField {
 	//   initialBytesToStrip = 0   (这个0表示完整的协议内容，如果不想要A2，那么这里就是1) 从解码帧中第一次去除的字节数
 	//   maxFrameLength      = 255 + 4(起始码、功能码、CRC) (len是1个byte，所以最大长度是无符号1个byte的最大值)
 	return &ziface.LengthField{
-		MaxFrameLength:      math.MaxInt8 + 4,
+		MaxFrameLength:      math.MaxUint8 + 4,
 		LengthFieldOffset:   2,
 		LengthFieldLength:   1,
 		LengthAdjustment:    2,
