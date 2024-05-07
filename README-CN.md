@@ -2,7 +2,7 @@
 
 [English](README.md) | 简体中文
 
-[![License](https://img.shields.io/badge/License-GPL%203.0-black.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
 [![Discord](https://img.shields.io/badge/zinx-Discord在线社区-blue.svg)](https://discord.gg/xQ8Xxfyfcz)
 [![Gitter](https://img.shields.io/badge/zinx-Gitter在线交流-green.svg)](https://gitter.im/zinx_go/community)
 [![zinx tutorial](https://img.shields.io/badge/Zinx教程-YuQue-red.svg)](https://www.yuque.com/aceld/npyr8s/bgftov)
