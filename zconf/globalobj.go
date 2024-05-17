@@ -86,6 +86,11 @@ type Config struct {
 	*/
 	CertFile       string // The name of the certificate file. If it is empty, TLS encryption is not enabled.(证书文件名称 默认"")
 	PrivateKeyFile string // The name of the private key file. If it is empty, TLS encryption is not enabled.(私钥文件名称 默认"" --如果没有设置证书和私钥文件，则不启用TLS加密)
+
+	/**
+	  logo
+	*/
+	IsLogoShow bool
 }
 
 /*
@@ -198,7 +203,7 @@ func init() {
 		TCPPort:           8999,
 		WsPort:            9000,
 		Host:              "0.0.0.0",
-		MaxConn:           12000,
+		MaxConn:           120000,
 		MaxPacketSize:     4096,
 		WorkerPoolSize:    10,
 		MaxWorkerTaskLen:  1024,
@@ -212,6 +217,7 @@ func init() {
 		PrivateKeyFile:    "",
 		Mode:              ServerModeTcp,
 		RouterSlicesMode:  false,
+		IsLogoShow:        false,
 	}
 
 	// Note: Load some user-configured parameters from the configuration file.

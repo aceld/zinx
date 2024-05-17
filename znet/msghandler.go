@@ -203,7 +203,7 @@ func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest, workerID int) {
 // StartOneWorker starts a worker workflow
 // (启动一个Worker工作流程)
 func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest) {
-	zlog.Ins().InfoF("Worker ID = %d is started.", workerID)
+	//zlog.Ins().InfoF("Worker ID = %d is started.", workerID)
 	// Continuously wait for messages in the queue
 	// (不断地等待队列中的消息)
 	for {
@@ -245,4 +245,5 @@ func (mh *MsgHandle) StartWorkerPool() {
 		// (启动当前Worker，阻塞的等待对应的任务队列是否有消息传递进来)
 		go mh.StartOneWorker(i, mh.TaskQueue[i])
 	}
+	zlog.Ins().InfoF("%d Worker is started", int(mh.WorkerPoolSize))
 }

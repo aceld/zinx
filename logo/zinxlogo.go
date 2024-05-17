@@ -17,10 +17,9 @@ var zinxLogo = `
 var topLine = `┌──────────────────────────────────────────────────────┐`
 var borderLine = `│`
 var bottomLine = `└──────────────────────────────────────────────────────┘`
-var IsShowLogo = true
 
 func PrintLogo() {
-	if IsShowLogo {
+	if zconf.GlobalObject.IsLogoShow {
 		fmt.Println(zinxLogo)
 		fmt.Println(topLine)
 		fmt.Println(fmt.Sprintf("%s [Github] https://github.com/aceld                    %s", borderLine, borderLine))

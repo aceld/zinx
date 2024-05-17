@@ -84,4 +84,7 @@ func UserConfToGlobal(config *Config) {
 	if config.RouterSlicesMode {
 		GlobalObject.RouterSlicesMode = config.RouterSlicesMode
 	}
+
+	// LOGO
+	GlobalObject.IsLogoShow = config.IsLogoShow
 }
