@@ -217,7 +217,7 @@ func (c *Connection) StartReader() {
 			// (从conn的IO中读取数据到内存缓冲buffer中)
 			n, err := c.conn.Read(buffer)
 			if err != nil {
-				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err)
+				zlog.Ins().ErrorF("disconnect[%d] %v ,read datalen=%d, error = %s", c.connID, c.conn.RemoteAddr(), n, err)
 				return
 			}
 			zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer[0:n]))
@@ -498,7 +498,7 @@ func (c *Connection) finalizer() {
 
 func (c *Connection) callOnConnStart() {
 	if c.onConnStart != nil {
-		zlog.Ins().InfoF("ZINX CallOnConnStart....")
+		zlog.Ins().InfoF("ZINX CallOnConnStart....ConnID = %d property = %v", c.connID, c.property)
 		c.onConnStart(c)
 	}
 }
