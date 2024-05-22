@@ -10,11 +10,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/gorilla/websocket"
+
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zinterceptor"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/zpack"
-	"github.com/gorilla/websocket"
 
 	"github.com/aceld/zinx/ziface"
 )
@@ -388,6 +389,8 @@ func (c *Connection) SendToQueue(data []byte) error {
 	// Send timeout
 	select {
 	case <-c.ctx.Done():
+		// Close all channels associated with the connection
+		close(c.msgBuffChan)
 		return errors.New("connection closed when send buff msg")
 	case <-idleTimeout.C:
 		return errors.New("send buff msg timeout")
@@ -477,11 +480,6 @@ func (c *Connection) finalizer() {
 	// Remove the connection from the connection manager
 	if c.connManager != nil {
 		c.connManager.Remove(c)
-	}
-
-	// Close all channels associated with the connection
-	if c.msgBuffChan != nil {
-		close(c.msgBuffChan)
 	}
 
 	go func() {
