@@ -46,14 +46,16 @@ type Config struct {
 	/*
 		ServerConfig
 	*/
-	KcpACKNoDelay bool // changes ack flush option, set true to flush ack immediately,
-	KcpStreamMode bool // toggles the stream mode on/off
-	KcpNoDelay    int  // Whether nodelay mode is enabled, 0 is not enabled; 1 enabled.
-	KcpInterval   int  // Protocol internal work interval, in milliseconds, such as 10 ms or 20 ms.
-	KcpResend     int  // Fast retransmission mode, 0 represents off by default, 2 can be set (2 ACK spans will result in direct retransmission)
-	KcpNc         int  // Whether to turn off flow control, 0 represents “Do not turn off” by default, 1 represents “Turn off”.
-	KcpSendWindow int  // SND_BUF, this unit is the packet, default 32.
-	KcpRecvWindow int  // RCV_BUF, this unit is the packet, default 32.
+	KcpACKNoDelay      bool // changes ack flush option, set true to flush ack immediately,
+	KcpStreamMode      bool // toggles the stream mode on/off
+	KcpNoDelay         int  // Whether nodelay mode is enabled, 0 is not enabled; 1 enabled.
+	KcpInterval        int  // Protocol internal work interval, in milliseconds, such as 10 ms or 20 ms.
+	KcpResend          int  // Fast retransmission mode, 0 represents off by default, 2 can be set (2 ACK spans will result in direct retransmission)
+	KcpNc              int  // Whether to turn off flow control, 0 represents “Do not turn off” by default, 1 represents “Turn off”.
+	KcpSendWindow      int  // SND_BUF, this unit is the packet, default 32.
+	KcpRecvWindow      int  // RCV_BUF, this unit is the packet, default 32.
+	KcpFecDataShards   int  // The number of data shards in the FEC.(FEC数据分片), default 0.
+	KcpFecParityShards int  // The number of parity shards in the FEC.(FEC校验分片) default 0.
 
 	/*
 		Zinx
@@ -233,12 +235,14 @@ func init() {
 		KcpStreamMode:     true,
 		//Normal Mode: ikcp_nodelay(kcp, 0, 40, 0, 0);
 		//Turbo Mode： ikcp_nodelay(kcp, 1, 10, 2, 1);
-		KcpNoDelay:    1,
-		KcpInterval:   10,
-		KcpResend:     2,
-		KcpNc:         1,
-		KcpRecvWindow: 32,
-		KcpSendWindow: 32,
+		KcpNoDelay:         1,
+		KcpInterval:        10,
+		KcpResend:          2,
+		KcpNc:              1,
+		KcpRecvWindow:      32,
+		KcpSendWindow:      32,
+		KcpFecDataShards:   0,
+		KcpFecParityShards: 0,
 	}
 
 	// Note: Load some user-configured parameters from the configuration file.

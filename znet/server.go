@@ -112,6 +112,12 @@ type KcpConfig struct {
 	// RCV_BUF, this unit is the packet, default 32.
 	// (RCV_BUF接收缓冲区大小，单位是包，默认是32)
 	KcpRecvWindow int
+	// FEC data shards, default 0.
+	// (FEC数据分片,用于前向纠错比例配制) 默认是0
+	KcpFecDataShards int
+	// FEC parity shards, default 0.
+	// (FEC校验分片,用于前向纠错比例配制) 默认是0
+	KcpFecParityShards int
 }
 
 // newServerWithConfig creates a server handle based on config
@@ -142,14 +148,16 @@ func newServerWithConfig(config *zconf.Config, ipVersion string, opts ...Option)
 			},
 		},
 		kcpConfig: &KcpConfig{
-			KcpACKNoDelay: config.KcpACKNoDelay,
-			KcpStreamMode: config.KcpStreamMode,
-			KcpNoDelay:    config.KcpNoDelay,
-			KcpInterval:   config.KcpInterval,
-			KcpResend:     config.KcpResend,
-			KcpNc:         config.KcpNc,
-			KcpSendWindow: config.KcpSendWindow,
-			KcpRecvWindow: config.KcpRecvWindow,
+			KcpACKNoDelay:      config.KcpACKNoDelay,
+			KcpStreamMode:      config.KcpStreamMode,
+			KcpNoDelay:         config.KcpNoDelay,
+			KcpInterval:        config.KcpInterval,
+			KcpResend:          config.KcpResend,
+			KcpNc:              config.KcpNc,
+			KcpSendWindow:      config.KcpSendWindow,
+			KcpRecvWindow:      config.KcpRecvWindow,
+			KcpFecDataShards:   config.KcpFecDataShards,
+			KcpFecParityShards: config.KcpFecParityShards,
 		},
 	}
 
@@ -352,7 +360,7 @@ func (s *Server) ListenWebsocketConn() {
 func (s *Server) ListenKcpConn() {
 
 	// 1. Listen to the server address
-	listener, err := kcp.Listen(fmt.Sprintf("%s:%d", s.IP, s.KcpPort))
+	listener, err := kcp.ListenWithOptions(fmt.Sprintf("%s:%d", s.IP, s.KcpPort), nil, s.kcpConfig.KcpFecDataShards, s.kcpConfig.KcpFecParityShards)
 	if err != nil {
 		zlog.Ins().ErrorF("[START] resolve KCP addr err: %v\n", err)
 		return
