@@ -68,14 +68,16 @@ func Err() error {
 
 func main() {
 	s := znet.NewUserConfServer(&zconf.Config{
-		Mode:          "kcp",
-		KcpPort:       7777,
-		KcpRecvWindow: 128,
-		KcpSendWindow: 128,
-		KcpStreamMode: true,
-		KcpACKNoDelay: false,
-		LogDir:        "./",
-		LogFile:       "test.log",
+		Mode:               "kcp",
+		KcpPort:            7777,
+		KcpRecvWindow:      128,
+		KcpSendWindow:      128,
+		KcpStreamMode:      true,
+		KcpACKNoDelay:      false,
+		LogDir:             "./",
+		LogFile:            "test.log",
+		KcpFecDataShards:   10, //代表每10个原始数据块 发3个校验数据块
+		KcpFecParityShards: 3,
 	})
 	s.AddRouter(1, &TestRouter{})
 	s.SetOnConnStart(func(conn ziface.IConnection) {

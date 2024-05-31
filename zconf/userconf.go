@@ -129,4 +129,12 @@ func UserConfToGlobal(config *Config) {
 		GlobalObject.KcpRecvWindow = config.KcpRecvWindow
 	}
 
+	if config.KcpFecDataShards != 0 {
+		GlobalObject.KcpFecDataShards = config.KcpFecDataShards
+	}
+
+	if config.KcpFecParityShards != 0 {
+		GlobalObject.KcpFecParityShards = config.KcpFecParityShards
+	}
+
 }
