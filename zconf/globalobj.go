@@ -10,11 +10,9 @@ import (
 	"fmt"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/zutils/commandline/args"
-	"github.com/aceld/zinx/zutils/commandline/uflag"
 	"io/ioutil"
 	"os"
 	"reflect"
-	"testing"
 	"time"
 )
 
@@ -185,15 +183,15 @@ func init() {
 		pwd = "."
 	}
 
-	args.InitConfigFlag(pwd+"/conf/zinx.json", "The configuration file defaults to <exeDir>/conf/zinx.json if it is not set.")
+	//args.InitConfigFlag(pwd+"/conf/zinx.json", "The configuration file defaults to <exeDir>/conf/zinx.json if it is not set.")
 
 	// Note: Prevent errors like "flag provided but not defined: -test.paniconexit0" from occurring in go test.
 	// (防止 go test 出现"flag provided but not defined: -test.paniconexit0"等错误)
-	testing.Init()
-	uflag.Parse()
+	//testing.Init()
+	//uflag.Parse()
 
 	// after parsing
-	args.FlagHandle()
+	//args.FlagHandle()
 
 	// Initialize the GlobalObject variable and set some default values.
 	// (初始化GlobalObject变量，设置一些默认值)
