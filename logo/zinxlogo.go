@@ -26,9 +26,10 @@ func PrintLogo() {
 		fmt.Println(fmt.Sprintf("%s [tutorial] https://www.yuque.com/aceld/npyr8s/bgftov %s", borderLine, borderLine))
 		fmt.Println(fmt.Sprintf("%s [document] https://www.yuque.com/aceld/tsgooa        %s", borderLine, borderLine))
 		fmt.Println(bottomLine)
+		fmt.Printf("[Zinx] Version: %s, MaxConn: %d, MaxPacketSize: %d\n",
+			zconf.GlobalObject.Version,
+			zconf.GlobalObject.MaxConn,
+			zconf.GlobalObject.MaxPacketSize)
 	}
-	fmt.Printf("[Zinx] Version: %s, MaxConn: %d, MaxPacketSize: %d\n",
-		zconf.GlobalObject.Version,
-		zconf.GlobalObject.MaxConn,
-		zconf.GlobalObject.MaxPacketSize)
+
 }

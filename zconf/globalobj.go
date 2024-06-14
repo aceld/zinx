@@ -141,6 +141,9 @@ func (g *Config) Reload() {
 
 // Show Zinx Config Info
 func (g *Config) Show() {
+	if !GlobalObject.IsLogoShow {
+		return
+	}
 	objVal := reflect.ValueOf(g).Elem()
 	objType := reflect.TypeOf(*g)
 
