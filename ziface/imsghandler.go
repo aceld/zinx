@@ -22,4 +22,10 @@ type IMsgHandle interface {
 	// the order depends on the registration order
 	// (注册责任链任务入口，每个拦截器处理完后，数据都会传递至下一个拦截器，使得消息可以层层处理层层传递，顺序取决于注册顺序)
 	AddInterceptor(interceptor IInterceptor)
+
+	// SetHeadInterceptor sets the head interceptor of the responsibility chain, which is the first interceptor to be executed
+	// (SetHeadInterceptor 设置责任链的头拦截器，也就是第一个要执行的拦截器)
+	// 默认情况下，责任链的头拦截器是msg decoder
+	// this function will replace the head interceptor
+	SetHeadInterceptor(interceptor IInterceptor)
 }

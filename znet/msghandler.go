@@ -159,6 +159,15 @@ func (mh *MsgHandle) Intercept(chain ziface.IChain) ziface.IcResp {
 	return chain.Proceed(chain.Request())
 }
 
+// SetHeadInterceptor sets the head interceptor of the responsibility chain, which is the first interceptor to be executed
+// (SetHeadInterceptor 设置责任链的头拦截器，也就是第一个要执行的拦截器)
+// will replace the default head interceptor
+func (mh *MsgHandle) SetHeadInterceptor(interceptor ziface.IInterceptor) {
+	if mh.builder != nil {
+		mh.builder.Head(interceptor)
+	}
+}
+
 func (mh *MsgHandle) AddInterceptor(interceptor ziface.IInterceptor) {
 	if mh.builder != nil {
 		mh.builder.AddInterceptor(interceptor)

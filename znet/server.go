@@ -13,15 +13,17 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gorilla/websocket"
+
 	"github.com/aceld/zinx/logo"
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/zlog"
-	"github.com/gorilla/websocket"
+
+	"github.com/xtaci/kcp-go"
 
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zpack"
-	"github.com/xtaci/kcp-go"
 )
 
 // Server interface implementation, defines a Server service class
@@ -418,10 +420,10 @@ func (s *Server) Start() {
 	zlog.Ins().InfoF("[START] Server name: %s,listener at IP: %s, Port %d is starting", s.Name, s.IP, s.Port)
 	s.exitChan = make(chan struct{})
 
-	// Add decoder to interceptors
-	// (将解码器添加到拦截器)
+	// Add decoder to interceptors head
+	// (将解码器添加到拦截器最前面)
 	if s.decoder != nil {
-		s.msgHandler.AddInterceptor(s.decoder)
+		s.msgHandler.SetHeadInterceptor(s.decoder)
 	}
 	// Start worker pool mechanism
 	// (启动worker工作池机制)
