@@ -123,11 +123,11 @@ func (mh *MsgHandle) doFuncHandler(request ziface.IFuncRequest, workerId int) {
 // doMsgHandler immediately handles messages in a non-blocking manner
 // (立即以非阻塞方式处理消息)
 func (mh *MsgHandle) doMsgHandler(request ziface.IRequest, workerID int) {
-	defer func() {
-		if err := recover(); err != nil {
-			zlog.Ins().ErrorF("doMsgHandler panic: %v", err)
-		}
-	}()
+	//defer func() {
+	//	if err := recover(); err != nil {
+	//		zlog.Ins().ErrorF("doMsgHandler panic: %v", err)
+	//	}
+	//}()
 
 	msgId := request.GetMsgID()
 	handler, ok := mh.Apis[msgId]
