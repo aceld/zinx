@@ -118,6 +118,22 @@ func newServerWithConfig(config *zconf.Config, ipVersion string, opts ...Option)
 	return s
 }
 
+// newServerWithConfig creates a server handle based on config
+// (根据config创建一个服务器句柄)
+func NewTcpServer(opts ...Option) ziface.IServer {
+	s := &Server{
+		IPVersion:  "tcp4",
+		IP:         "0.0.0.0",
+		msgHandler: newMsgHandle(),
+		ConnMgr:    newConnManager(),
+		exitChan:   nil,
+	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
+}
+
 // NewServer creates a server handle
 // (创建一个服务器句柄)
 func NewServer(opts ...Option) ziface.IServer {
