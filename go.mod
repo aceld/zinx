@@ -7,7 +7,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/xtaci/kcp-go v5.4.20+incompatible
 	golang.org/x/net v0.23.0 // indirect
-	google.golang.org/protobuf v1.26.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 )
 
 require github.com/golang/protobuf v1.5.0
