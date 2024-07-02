@@ -6,6 +6,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/stretchr/testify v1.8.1
 	github.com/xtaci/kcp-go v5.4.20+incompatible
+	golang.org/x/net v0.23.0 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect
 )
 
@@ -21,8 +22,7 @@ require (
 	github.com/templexxx/xor v0.0.0-20191217153810-f85b25db303b // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
 	github.com/xtaci/lossyconn v0.0.0-20200209145036-adba10fffc37 // indirect
-	golang.org/x/crypto v0.11.0 // indirect
-	golang.org/x/net v0.12.0 // indirect
-	golang.org/x/sys v0.10.0 // indirect
+	golang.org/x/crypto v0.21.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
