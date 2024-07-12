@@ -544,8 +544,9 @@ func (c *Connection) GetMsgHandler() ziface.IMsgHandle {
 }
 
 func (c *Connection) isClosed() bool {
-	return c.ctx.Err() != nil
+	return c.ctx == nil || c.ctx.Err() != nil
 }
+
 
 func (c *Connection) setStartWriterFlag() bool {
 	return atomic.CompareAndSwapInt32(&c.startWriterFlag, 0, 1)
