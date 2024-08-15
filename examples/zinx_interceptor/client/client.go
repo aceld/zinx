@@ -1,9 +1,10 @@
 package main
 
 import (
+	"time"
+
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
-	"time"
 )
 
 func main() {

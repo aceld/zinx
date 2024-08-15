@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/znet"
 )
 
 // 如果不使用对象池模式则可以直接传递但是产生大量的 Request 对象
@@ -26,7 +28,6 @@ func NoPoll4(request ziface.IRequest) {
 	request.Set("num", 3)
 }
 
-/*
 func main() {
 
 	// 关闭 Request 对象池模式
@@ -35,4 +36,3 @@ func main() {
 	server.AddRouterSlices(2, NoPoll4)
 	server.Serve()
 }
-*/

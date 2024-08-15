@@ -4,12 +4,13 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/zlog"
-	"github.com/aceld/zinx/znet"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/zlog"
+	"github.com/aceld/zinx/znet"
 )
 
 // Use this method to generate mock data. (使用该方法生成模拟数据)

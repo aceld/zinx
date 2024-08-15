@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/aceld/zinx/znet"
 	"time"
+
+	"github.com/aceld/zinx/znet"
 )
 
 func main() {
