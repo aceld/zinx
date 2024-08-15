@@ -2,97 +2,79 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
 )
 
-func Test1(request ziface.IRequest) {
-	fmt.Println("test1")
-}
-func Test2(request ziface.IRequest) {
-	fmt.Println("Test2")
-}
-func Test3(request ziface.IRequest) {
-	fmt.Println("Test3")
-}
-func Test4(request ziface.IRequest) {
-	fmt.Println("Test4")
-}
-func Test5(request ziface.IRequest) {
-	fmt.Println("Test5")
-}
-func Test6(request ziface.IRequest) {
-	fmt.Println("Test6")
+func Auth1(request ziface.IRequest) {
+
+	// Verify business, default to pass. (验证业务 默认固定放行)
+	fmt.Println("I am the Auth1, I will always pass.")
+	// I am validation handler 1, and I must pass.
+	// Note that the next function will start executing and return here after all functions are executed.
+	// (注意是进入下一个函数开始执行，全部执行完后 回到此处)
+	request.RouterSlicesNext()
 }
 
-type router struct {
-	znet.BaseRouter
+func Auth2(request ziface.IRequest) {
+	// I am the validation handler 2, and by default, I do not allow the request to pass.(验证业务 默认固定不放行)
+
+	// Terminate execution function, no more handlers will be executed after this one.(终结执行函数，再这个处理器结束后不会在执行后面的处理器)
+	request.Abort()
+	fmt.Println("I am the Auth2, I will definitely not pass.")
+	fmt.Println("The business terminates here and the subsequent handlers will not be executed.")
 }
 
-func (r *router) PreHandle(req ziface.IRequest) {
-	fmt.Println(" hello router1")
+func Auth3(request ziface.IRequest) {
+
+	fmt.Println("I am the group validation function.")
 }
-func (r *router) Handle(req ziface.IRequest) {
-	req.Abort()
-	fmt.Println(" hello router2")
-}
-func (r *router) PostHandle(req ziface.IRequest) {
-	fmt.Println(" hello router3")
+
+// I am a business function.
+func TestFunc(request ziface.IRequest) {
+	fmt.Println("I am a business function.")
 }
 
 func main() {
 
-	// Old version router method (旧版本路由方法)
-	//{
-	//	server := znet.NewUserConfServer(&zconf.Config{TCPPort: 8999, Host: "127.0.0.1"})
-	//
-	//	// Even without manually calling the router mode, the default is 1 (old version) 即使不手动调路由模式也可以,默认是1（旧版本）
-	//	//server := znet.NewServer()
-	//
-	//	// Old version runs normally(旧版正常执行)
-	//	r := &router{}
-	//	server.AddRouter(1, r)
-	//	server.Serve()
-	//}
-	//{
+	// New version usage and explanation.(新版本使用方法以及说明)
+	server := znet.NewUserConfServer(&zconf.Config{RouterSlicesMode: true, TCPPort: 8999, Host: "127.0.0.1"})
 
-	// New version usage and explanation(新版本使用方法以及说明)
+	// Simulation scenario 1: A normal business that only executes a single operation function separately.
+	// 模拟场景 1，普通业务单独只执行一个操作函数
+	//server.AddRouterSlices(1, TestFunc)
+
+	// Simulated scenario 2: All operations below require verification of request permissions, so a verification function is needed.
+	// the verification component has been added to all the routes under the use method, such as 1 and 2.
+	// 模拟场景 2, 以下所有操作都需要验证请求权限，所以需要一个验证函数
+	// 将验证组件添加到了所有再use方法下的所有路由中了 如1,2 中都会带有
+	//routerSlices := server.Use(Auth1)
+	//routerSlices.AddHandler(1, TestFunc)
+	//routerSlices.AddHandler(2, TestFunc)
+
+	// Equivalent to the following:(等价于下面:)
+	//routerSlices.AddHandler(1, Auth1, TestFunc)
+
+	// Simulated scenario 3: Authorization is required, but some route operations require additional verification.
+	// 模拟场景3 需要权限，但是某些路由操作需要更多额外验证
+	server.Use(Auth1)
+	group1 := server.Group(1, 2, Auth3)
 	{
-		server := znet.NewUserConfServer(&zconf.Config{RouterSlicesMode: true, TCPPort: 8999, Host: "127.0.0.1"})
-		// Grouping(分组)
-		group := server.Group(3, 10, Test1)
+		// MsgId=1, there will be Auth3 and Auth1. (1中就会有Auth3和Auth1)
+		group1.AddHandler(1, TestFunc)
 
-		// Add router. Will panic if not within the group range.(添加路由 如果不在组范围会直接panic)
-		//group.AddHandler(11, Test2)
+		// More specific scenario: Some operations within the group require an additional validation process.
+		// 更特殊的情况，组内另一些操作还需要另一道校验处理
+		group1.Use(Auth2)
+		// MsgId=2, Auth3 and Auth1 will be added to all routes under the use method.
+		// 2中就会有Auth1和Auth3以及Auth2
+		group1.AddHandler(2, TestFunc)
 
-		// Within the group, not affected by Use, has processors 1 and 2.(在组中 不受Use影响 有 1 2 处理器)
-		group.AddHandler(3, Test2)
-
-		// Not within the group and before Use, only has its own processor 3.(既不在组里也在Use之前只会有自己的处理器 3)
-		server.AddRouterSlices(1, Test3)
-
-		// If you want the group processor to have priority, you should do the following before Use.
-		// You can manually add it via group.AddHandler(5, Test4, Test5,Test2, Test3, Test6)
-		// or use the Group's Use method as shown below, which would have the order of 1 4 5 6 and not be affected by Use.
-		// 如果希望group处理器优先，应当在Use之前如下操作
-		// 可以手动添加 入 group.AddHandler(5, Test4, Test5,Test2, Test3, Test6)
-		// 或者如下使用Group的Use方法 那么就是 1 4 5 6的顺序 不被use影响
-		group.Use(Test2, Test3)
-		group.AddHandler(5, Test4, Test5, Test6)
-
-		// Common components, but not affected by the groups or routers before Use. (公共组件，但是，在使用Use之前的组或者路由不会影响到)
-		router := server.Use(Test4, Test5)
-		// Add router. Not within the group but is affected by Use, has processors 4, 5, and 6.
-		// (添加路由 不在组中但是收Use影响 有4 5 6处理器)
-		router.AddHandler(2, Test6)
-
-		// Within the group and affected by Use, has all processors in the order of 4, 5, 1, 2, 3, 6 because the processors in Use are always at the forefront.
-		// (在组里也受到Use影响 有所有处理器 且顺序应该是 4 5 1 2 3 6 因为use中的处理器始终在最前端)
-		group.AddHandler(4, Test6)
-
-		server.Serve()
 	}
+	// MsgId=3, Auth3 will not be included. (3中就不会有Auth3)
+	server.AddRouterSlices(3, TestFunc)
+
+	server.Serve()
 
 }
