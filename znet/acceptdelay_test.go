@@ -2,6 +2,7 @@ package znet
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -32,6 +33,7 @@ func TestDelay(t *testing.T) {
 
 func TestMain(m *testing.M) {
 	setup()
-	m.Run()
+	code := m.Run()
 	teardown()
+	os.Exit(code)
 }
