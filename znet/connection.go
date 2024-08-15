@@ -10,14 +10,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gorilla/websocket"
-
 	"github.com/aceld/zinx/zconf"
+	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zinterceptor"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/zpack"
 
-	"github.com/aceld/zinx/ziface"
+	"github.com/gorilla/websocket"
 )
 
 // Connection TCP connection module
@@ -546,7 +545,6 @@ func (c *Connection) GetMsgHandler() ziface.IMsgHandle {
 func (c *Connection) isClosed() bool {
 	return c.ctx == nil || c.ctx.Err() != nil
 }
-
 
 func (c *Connection) setStartWriterFlag() bool {
 	return atomic.CompareAndSwapInt32(&c.startWriterFlag, 0, 1)
