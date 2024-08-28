@@ -110,9 +110,7 @@ type Config struct {
 	PrivateKeyFile string // The name of the private key file. If it is empty, TLS encryption is not enabled.(私钥文件名称 默认"" --如果没有设置证书和私钥文件，则不启用TLS加密)
 }
 
-/*
-Define a global object.(定义一个全局的对象)
-*/
+// GlobalObject Define a global object.(定义一个全局的对象)
 var GlobalObject *Config
 
 // PathExists Check if a file exists.(判断一个文件是否存在)
