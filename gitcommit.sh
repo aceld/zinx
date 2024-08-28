@@ -76,7 +76,7 @@ function m() {
     echo "1. 强制更新"
     echo "2. 普通更新"
     echo "3. 提交项目"
-    echo "4. 测试"
+    echo "4. tag"
     echo "请输入编号:"
     read index
 
@@ -84,7 +84,7 @@ function m() {
     [1]) (forcepull);;
     [2]) (pull);;
     [3]) (gitpush);;
-    [4]) (test);;
+    [4]) (tag);;
     *) echo "exit" ;;
   esac
 }

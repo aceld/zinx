@@ -337,7 +337,7 @@ func (s *Server) Start() {
 
 	// Add decoder to interceptors
 	// (将解码器添加到拦截器)
-	if s.decoder != nil {
+	if s.decoder != nil && s.frameDecoder == nil {
 		s.msgHandler.AddInterceptor(s.decoder)
 	}
 	// Start worker pool mechanism

@@ -200,7 +200,7 @@ func (c *Client) Restart() {
 func (c *Client) Start() {
 
 	// Add the decoder to the interceptor list (将解码器添加到拦截器)
-	if c.decoder != nil {
+	if c.decoder != nil && c.frameDecoder == nil {
 		c.msgHandler.AddInterceptor(c.decoder)
 	}
 
