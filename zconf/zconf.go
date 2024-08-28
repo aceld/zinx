@@ -111,7 +111,7 @@ type Config struct {
 }
 
 /*
-Define a global object.(定义一个全局的对象)
+	Define a global object.(定义一个全局的对象)
 */
 var GlobalObject *Config
 
