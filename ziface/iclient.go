@@ -49,6 +49,10 @@ type IClient interface {
 	// GetLengthField Get the length field of this Client
 	GetLengthField() *LengthField
 
+	GetFrameDecoder() IFrameDecoder
+
+	SetFrameDecoder(IFrameDecoder)
+
 	// SetDecoder Set the decoder for this Client 设置解码器
 	SetDecoder(IDecoder)
 

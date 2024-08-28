@@ -122,6 +122,10 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 	if lengthField != nil {
 		c.frameDecoder = zinterceptor.NewFrameDecoder(*lengthField)
 	}
+	frameDecoder := server.GetFrameDecoder()
+	if frameDecoder != nil {
+		c.frameDecoder = frameDecoder
+	}
 
 	// Inherited properties from server (从server继承过来的属性)
 	c.packet = server.GetPacket()
@@ -157,6 +161,11 @@ func newClientConn(client ziface.IClient, conn net.Conn) ziface.IConnection {
 	lengthField := client.GetLengthField()
 	if lengthField != nil {
 		c.frameDecoder = zinterceptor.NewFrameDecoder(*lengthField)
+	}
+
+	frameDecoder := client.GetFrameDecoder()
+	if frameDecoder != nil {
+		c.frameDecoder = frameDecoder
 	}
 
 	// Inherited properties from server (从client继承过来的属性)

@@ -70,7 +70,13 @@ type IServer interface {
 	GetHeartBeat() IHeartbeatChecker
 
 	GetLengthField() *LengthField
+
+	GetFrameDecoder() IFrameDecoder
+
+	SetFrameDecoder(IFrameDecoder)
+
 	SetDecoder(IDecoder)
+
 	AddInterceptor(IInterceptor)
 
 	// Add WebSocket authentication method

@@ -66,6 +66,8 @@ type Server struct {
 	// (断粘包解码器)
 	decoder ziface.IDecoder
 
+	frameDecoder ziface.IFrameDecoder
+
 	// Heartbeat checker
 	// (心跳检测器)
 	hc ziface.IHeartbeatChecker
@@ -78,6 +80,14 @@ type Server struct {
 
 	// connection id
 	cID uint64
+}
+
+func (s *Server) SetFrameDecoder(decoder ziface.IFrameDecoder) {
+	s.frameDecoder = decoder
+}
+
+func (s *Server) GetFrameDecoder() ziface.IFrameDecoder {
+	return s.frameDecoder
 }
 
 // newServerWithConfig creates a server handle based on config

@@ -37,7 +37,8 @@ type Client struct {
 	msgHandler ziface.IMsgHandle
 	// Disassembly and assembly decoder for resolving sticky and broken packages
 	//断粘包解码器
-	decoder ziface.IDecoder
+	decoder      ziface.IDecoder
+	frameDecoder ziface.IFrameDecoder
 	// Heartbeat checker 心跳检测器
 	hc ziface.IHeartbeatChecker
 	// Use TLS 使用TLS
@@ -46,6 +47,14 @@ type Client struct {
 	dialer *websocket.Dialer
 	// Error channel
 	ErrChan chan error
+}
+
+func (c *Client) GetFrameDecoder() ziface.IFrameDecoder {
+	return c.frameDecoder
+}
+
+func (c *Client) SetFrameDecoder(decoder ziface.IFrameDecoder) {
+	c.frameDecoder = decoder
 }
 
 func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
@@ -105,7 +114,6 @@ func NewTLSClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 
 	return c
 }
-
 
 // Start starts the client, sends requests and establishes a connection.
 // (重新启动客户端，发送请求且建立连接)
