@@ -233,6 +233,7 @@ func (s *Server) StartConn(conn ziface.IConnection) {
 }
 
 func (s *Server) ListenTcpConn() {
+	zlog.Ins().InfoF("[START] TCP Server name: %s,listener at IP: %s, Port %d is starting", s.Name, s.IP, s.Port)
 	// 1. Get a TCP address
 	addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 	if err != nil {
@@ -417,7 +418,6 @@ func (s *Server) ListenKcpConn() {
 // Start the network service
 // (开启网络服务)
 func (s *Server) Start() {
-	zlog.Ins().InfoF("[START] Server name: %s,listener at IP: %s, Port %d is starting", s.Name, s.IP, s.Port)
 	s.exitChan = make(chan struct{})
 
 	// Add decoder to interceptors head
