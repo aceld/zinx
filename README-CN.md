@@ -21,10 +21,13 @@ Zinx 是一个基于Golang的轻量级并发服务器框架
 ---
 ## zinx源码地址
 ### Github
-Git: https://github.com/aceld/zinx
+https://github.com/aceld/zinx
 
-### 码云(Gitee)
-Git: https://gitee.com/Aceld/zinx
+### GitCode
+https://gitcode.com/aceld/zinx
+
+### Gitee
+https://gitee.com/Aceld/zinx
 
 ### 官网
 http://zinx.me
@@ -62,13 +65,6 @@ Zinx框架的项目制作采用编码和学习教程同步进行，将开发的�
 
 当然，最后希望Zinx会有更多的人加入，给我们提出宝贵的意见，让Zinx成为真正的解决企业的服务器框架！在此感谢您的关注！
 
-### 来自chatGPT(AI)的回复
-![什么是zinx](https://user-images.githubusercontent.com/7778936/209745655-7463be0d-1450-4a70-b201-6d9279935aff.jpg)
-![zinx和其他库对比](https://user-images.githubusercontent.com/7778936/209745668-e6938534-113d-4465-a949-58328c4dca5c.jpg)
-
-### zinx荣誉
-#### 开源中国GVP年度最有价值开源项目
-![GVP-zinx](https://s2.ax1x.com/2019/10/13/uvYVBV.jpg)
 
 
 
