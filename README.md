@@ -22,14 +22,11 @@ Zinx is a lightweight concurrent server framework based on Golang.
 
 ---
 ## Source of Zinx
-### Github
-https://github.com/aceld/zinx
-
-### GitCode
-https://gitcode.com/aceld/zinx
-
-### Gitee(China)
-https://gitee.com/Aceld/zinx
+| platform | Entry | 
+| ---- | ---- | 
+|Github| https://github.com/aceld/zinx |
+|Gitcode|https://gitcode.com/aceld/zinx|
+|Gitee|https://gitee.com/Aceld/zinx|
 
 ### Website
 http://zinx.me
