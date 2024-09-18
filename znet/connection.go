@@ -88,7 +88,6 @@ func (c *Connection) StartWriter() {
 					c.ConnID,
 					c.RemoteAddr().String(),
 				)
-				break
 			}
 		case <-c.ctx.Done():
 			return
@@ -216,7 +215,7 @@ func (c *Connection) RemoteAddr() net.Addr {
 func (c *Connection) SendMsg(msgID, sn uint8, data []byte) error {
 	c.RLock()
 	defer c.RUnlock()
-	if c.isClosed == true {
+	if c.isClosed {
 		return errors.New("connection closed when send msg")
 	}
 
@@ -256,7 +255,7 @@ func (c *Connection) SendBuffMsg(msgID, sn uint8, data []byte) error {
 	idleTimeout := time.NewTimer(5 * time.Millisecond)
 	defer idleTimeout.Stop()
 
-	if c.isClosed == true {
+	if c.isClosed {
 		return errors.New("Connection closed when send buff msg")
 	}
 
@@ -283,8 +282,6 @@ func (c *Connection) SendBuffMsg(msgID, sn uint8, data []byte) error {
 	}
 	// 写回客户端
 	//c.msgBuffChan <- msg
-
-	return nil
 }
 
 // SetProperty 设置链接属性
@@ -331,7 +328,7 @@ func (c *Connection) finalizer() {
 	defer c.Unlock()
 
 	//如果当前链接已经关闭
-	if c.isClosed == true {
+	if c.isClosed {
 		return
 	}
 

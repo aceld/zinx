@@ -19,6 +19,11 @@ func NewMsgPackage(ID, Sn uint8, data []byte) *Message {
 	}
 }
 
+// GetMagicCode 获取魔数
+func (msg *Message) GetMagicCode() uint16 {
+	return msg.MagicCode
+}
+
 // GetDataLen 获取消息数据段长度
 func (msg *Message) GetDataLen() uint16 {
 	return msg.DataLen
@@ -44,12 +49,17 @@ func (msg *Message) SetDataLen(len uint16) {
 	msg.DataLen = len
 }
 
-// SetMsgID 设计消息ID
+// SetMsgID 设置消息ID
 func (msg *Message) SetMsgID(msgID uint8) {
 	msg.ID = msgID
 }
 
-// SetData 设计消息内容
+// SetData 设置消息内容
 func (msg *Message) SetData(data []byte) {
 	msg.Data = data
+}
+
+// SetMagicCode 设置魔数
+func (msg *Message) SetMagicCode(magicCode uint16) {
+	msg.MagicCode = magicCode
 }

@@ -104,5 +104,4 @@ func (connMgr *ConnManager) ClearOneConn(connID uint32) {
 		"[Zinx][ConnManager][ClearOneConn]Clear ConnID = %d Error, Conn ID Not Exist",
 		connID,
 	)
-	return
 }
