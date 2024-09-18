@@ -2,11 +2,12 @@ package znet
 
 // Message 消息
 type Message struct {
-	MagicCode uint16 // 魔数（小安必须）
-	ID        uint8  // 消息的ID（命令字，小安必须）
-	Sn        uint8  // 序列号（小安必须）
-	DataLen   uint16 // 消息的长度（小安必须）
-	Data      []byte // 消息的内容
+	MagicCode  uint16 // 魔数（小安必须）
+	ID         uint8  // 消息的ID（命令字，小安必须）
+	Sn         uint8  // 序列号（小安必须）
+	DataLen    uint16 // 消息的长度（小安必须）
+	Data       []byte // 消息的内容
+	ExtendData []byte // 扩展消息
 }
 
 // NewMsgPackage 创建一个Message消息包
@@ -44,6 +45,11 @@ func (msg *Message) GetData() []byte {
 	return msg.Data
 }
 
+// GetExtendData 获取扩展消息
+func (msg *Message) GetExtendData() []byte {
+	return msg.ExtendData
+}
+
 // SetDataLen 设置消息数据段长度
 func (msg *Message) SetDataLen(len uint16) {
 	msg.DataLen = len
@@ -62,4 +68,10 @@ func (msg *Message) SetData(data []byte) {
 // SetMagicCode 设置魔数
 func (msg *Message) SetMagicCode(magicCode uint16) {
 	msg.MagicCode = magicCode
+}
+
+// SetExtendData 设置扩展数据
+func (msg *Message) SetExtendData(extendData []byte) error {
+	msg.ExtendData = extendData
+	return nil
 }
