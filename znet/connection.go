@@ -213,6 +213,16 @@ func (c *Connection) RemoteAddr() net.Addr {
 
 // SendMsg 直接将Message数据发送数据给远程的TCP客户端
 func (c *Connection) SendMsg(msgID, sn uint8, data []byte) error {
+	err := c.SendMsgPackage(NewMsgPackage(msgID, sn, data))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SendMsgPackage 发送Message包
+func (c *Connection) SendMsgPackage(msgPackage ziface.IMessage) error {
 	c.RLock()
 	defer c.RUnlock()
 	if c.isClosed {
@@ -221,25 +231,25 @@ func (c *Connection) SendMsg(msgID, sn uint8, data []byte) error {
 
 	// 将data封包，并且发送
 	dp := c.TCPServer.Packet()
-	msg, err := dp.Pack(NewMsgPackage(msgID, sn, data))
+	msg, err := dp.Pack(msgPackage)
 	if err != nil {
 		logger.Errorf(
-			"[Zinx][Connection][SendMsg]Pack Error, ConnID: %d, Remote Addr: %s, Msg ID: %d, Error: %v",
+			"[Zinx][Connection][SendMsg]Pack Error, ConnID: %d, Remote Addr: %s, Msg Pkg: %+v, Error: %v",
 			c.ConnID,
 			c.RemoteAddr().String(),
-			msgID,
+			msgPackage,
 			err,
 		)
-		return errors.New("Pack error msg ")
+		return err
 	}
 
 	_, err = c.Conn.Write(msg)
 	if err != nil {
 		logger.Errorf(
-			"[Zinx][Connection][SendMsg]Send Data Error, ConnID: %d, Remote Addr: %s, Msg ID: %d, Error: %v",
+			"[Zinx][Connection][SendMsg]Write Data Error, ConnID: %d, Remote Addr: %s, Msg Pkg: %+v, Error: %v",
 			c.ConnID,
 			c.RemoteAddr().String(),
-			msgID,
+			msgPackage,
 			err,
 		)
 		return err
@@ -250,27 +260,36 @@ func (c *Connection) SendMsg(msgID, sn uint8, data []byte) error {
 
 // SendBuffMsg 发送BuffMsg
 func (c *Connection) SendBuffMsg(msgID, sn uint8, data []byte) error {
+	err := c.SendBuffMsgPackage(NewMsgPackage(msgID, sn, data))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SendBuffMsgPackage 发送BuffMsg包
+func (c *Connection) SendBuffMsgPackage(msgPackage ziface.IMessage) error {
 	c.RLock()
 	defer c.RUnlock()
 	idleTimeout := time.NewTimer(5 * time.Millisecond)
 	defer idleTimeout.Stop()
-
 	if c.isClosed {
-		return errors.New("Connection closed when send buff msg")
+		return errors.New("connection closed when send buff msg")
 	}
 
 	// 将data封包，并且发送
 	dp := c.TCPServer.Packet()
-	msg, err := dp.Pack(NewMsgPackage(msgID, sn, data))
+	msg, err := dp.Pack(msgPackage)
 	if err != nil {
 		logger.Errorf(
-			"[Zinx][Connection][SendBuffMsg]Pack Error, ConnID: %d, Msg ID: %d, Remote Addr: %s, Error: %v",
+			"[Zinx][Connection][SendBuffMsg]Pack Error, ConnID: %d, Msg Pkg: %+v, Remote Addr: %s, Error: %v",
 			c.ConnID,
-			msgID,
+			msgPackage,
 			c.RemoteAddr().String(),
 			err,
 		)
-		return errors.New("Pack error msg ")
+		return err
 	}
 
 	// 发送超时
@@ -280,8 +299,6 @@ func (c *Connection) SendBuffMsg(msgID, sn uint8, data []byte) error {
 	case c.msgBuffChan <- msg:
 		return nil
 	}
-	// 写回客户端
-	//c.msgBuffChan <- msg
 }
 
 // SetProperty 设置链接属性
