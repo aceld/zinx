@@ -213,7 +213,7 @@ func (c *Connection) RemoteAddr() net.Addr {
 
 // SendMsg 直接将Message数据发送数据给远程的TCP客户端
 func (c *Connection) SendMsg(msgID, sn uint8, data []byte) error {
-	err := c.SendMsgPackage(NewMsgPackage(msgID, sn, data))
+	_, err := c.SendMsgPackage(NewMsgPackage(msgID, sn, data))
 	if err != nil {
 		return err
 	}
@@ -222,11 +222,11 @@ func (c *Connection) SendMsg(msgID, sn uint8, data []byte) error {
 }
 
 // SendMsgPackage 发送Message包
-func (c *Connection) SendMsgPackage(msgPackage ziface.IMessage) error {
+func (c *Connection) SendMsgPackage(msgPackage ziface.IMessage) ([]byte, error) {
 	c.RLock()
 	defer c.RUnlock()
 	if c.isClosed {
-		return errors.New("connection closed when send msg")
+		return nil, errors.New("connection closed when send msg")
 	}
 
 	// 将data封包，并且发送
@@ -240,7 +240,7 @@ func (c *Connection) SendMsgPackage(msgPackage ziface.IMessage) error {
 			msgPackage,
 			err,
 		)
-		return err
+		return nil, err
 	}
 
 	_, err = c.Conn.Write(msg)
@@ -252,15 +252,15 @@ func (c *Connection) SendMsgPackage(msgPackage ziface.IMessage) error {
 			msgPackage,
 			err,
 		)
-		return err
+		return nil, err
 	}
 
-	return nil
+	return msg, nil
 }
 
 // SendBuffMsg 发送BuffMsg
 func (c *Connection) SendBuffMsg(msgID, sn uint8, data []byte) error {
-	err := c.SendBuffMsgPackage(NewMsgPackage(msgID, sn, data))
+	_, err := c.SendBuffMsgPackage(NewMsgPackage(msgID, sn, data))
 	if err != nil {
 		return err
 	}
@@ -269,13 +269,13 @@ func (c *Connection) SendBuffMsg(msgID, sn uint8, data []byte) error {
 }
 
 // SendBuffMsgPackage 发送BuffMsg包
-func (c *Connection) SendBuffMsgPackage(msgPackage ziface.IMessage) error {
+func (c *Connection) SendBuffMsgPackage(msgPackage ziface.IMessage) ([]byte, error) {
 	c.RLock()
 	defer c.RUnlock()
 	idleTimeout := time.NewTimer(5 * time.Millisecond)
 	defer idleTimeout.Stop()
 	if c.isClosed {
-		return errors.New("connection closed when send buff msg")
+		return nil, errors.New("connection closed when send buff msg")
 	}
 
 	// 将data封包，并且发送
@@ -289,15 +289,15 @@ func (c *Connection) SendBuffMsgPackage(msgPackage ziface.IMessage) error {
 			c.RemoteAddr().String(),
 			err,
 		)
-		return err
+		return nil, err
 	}
 
 	// 发送超时
 	select {
 	case <-idleTimeout.C:
-		return errors.New("send buff msg timeout")
+		return nil, errors.New("send buff msg timeout")
 	case c.msgBuffChan <- msg:
-		return nil
+		return msg, nil
 	}
 }
 
