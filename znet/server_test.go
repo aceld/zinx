@@ -11,7 +11,7 @@ import (
 )
 
 /*
-	模拟客户端
+模拟客户端
 */
 func ClientTest(i uint32) {
 
@@ -72,12 +72,12 @@ func ClientTest(i uint32) {
 	模拟服务器端
 */
 
-//ping test 自定义路由
+// ping test 自定义路由
 type PingRouter struct {
 	BaseRouter
 }
 
-//Test PreHandle
+// Test PreHandle
 func (this *PingRouter) PreHandle(request ziface.IRequest) {
 	fmt.Println("Call Router PreHandle")
 	err := request.GetConnection().SendMsg(1, 1, []byte("before ping ....\n"))
@@ -86,7 +86,7 @@ func (this *PingRouter) PreHandle(request ziface.IRequest) {
 	}
 }
 
-//Test Handle
+// Test Handle
 func (this *PingRouter) Handle(request ziface.IRequest) {
 	fmt.Println("Call PingRouter Handle")
 	//先读取客户端的数据，再回写ping...ping...ping
@@ -98,7 +98,7 @@ func (this *PingRouter) Handle(request ziface.IRequest) {
 	}
 }
 
-//Test PostHandle
+// Test PostHandle
 func (this *PingRouter) PostHandle(request ziface.IRequest) {
 	fmt.Println("Call Router PostHandle")
 	err := request.GetConnection().SendMsg(1, 1, []byte("After ping .....\n"))
@@ -129,7 +129,7 @@ func DoConnectionBegin(conn ziface.IConnection) {
 	}
 }
 
-//连接断开的时候执行
+// 连接断开的时候执行
 func DoConnectionLost(conn ziface.IConnection) {
 	fmt.Println("DoConnectionLost is Called ... ")
 }
@@ -153,10 +153,7 @@ func TestServer(t *testing.T) {
 	//2 开启服务
 	go s.Serve()
 
-	select {
-	case <-time.After(time.Second * 10):
-		return
-	}
+	<-time.After(time.Second * 10)
 }
 
 func TestServerDeadLock(t *testing.T) {

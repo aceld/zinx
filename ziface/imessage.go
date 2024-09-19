@@ -18,15 +18,17 @@ package ziface
 	将请求的一个消息封装到message中，定义抽象层接口
 */
 type IMessage interface {
-	GetMagicCode() uint16  // 获取魔数
-	GetDataLen() uint16    // 获取消息数据段长度
-	GetMsgID() uint8       // 获取消息ID（命令字）
-	GetSn() uint8          // 获取序列号
+	GetMagicCode() uint16 // 获取魔数
+	GetDataLen() uint16   // 获取消息数据段长度
+	GetMsgID() uint8      // 获取消息ID（命令字）
+	GetSn() uint8         // 获取序列号
+	GetHeaderData() []byte
 	GetData() []byte       // 获取消息内容
 	GetExtendData() []byte // 获取扩展内容
 
 	SetMagicCode(uint16)        // 设置魔数
 	SetMsgID(uint8)             // 设置消息ID
+	SetHeaderData(data []byte)  // 设置消息头内容
 	SetData([]byte)             // 设置消息内容
 	SetDataLen(uint16)          // 设置消息数据段长度
 	SetExtendData([]byte) error // 设置扩展数据

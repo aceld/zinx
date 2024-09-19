@@ -6,10 +6,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var (
-	logger          ziface.ILogger
-	defaultLogLevel LogLevel
-)
+var logger ziface.ILogger
 
 type LogLevel uint8
 
