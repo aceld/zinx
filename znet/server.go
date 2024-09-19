@@ -116,7 +116,6 @@ func (s *Server) Start() {
 		go func() {
 			// TODO：server.go 应该有一个自动生成ID的方法
 			var cID uint32
-			cID = 0
 
 			// 3：启动server网络连接业务
 			for {
@@ -144,12 +143,10 @@ func (s *Server) Start() {
 		}()
 
 		// 关闭TCP监听
-		select {
-		case <-s.exitChan:
-			err := listener.Close()
-			if err != nil {
-				logger.Errorf("[Zinx][Server][Start]Listener Close, Error: %v", err)
-			}
+		<-s.exitChan
+		err = listener.Close()
+		if err != nil {
+			logger.Errorf("[Zinx][Server][Start]Listener Close, Error: %v", err)
 		}
 	}()
 }
@@ -219,8 +216,8 @@ func (s *Server) Packet() ziface.Packet {
 func printLogo() {
 	fmt.Println(zinxLogo)
 	fmt.Println(topLine)
-	fmt.Println(fmt.Sprintf("%s [Github] https://github.com/aceld                 %s", borderLine, borderLine))
-	fmt.Println(fmt.Sprintf("%s [tutorial] https://www.kancloud.cn/aceld/zinx     %s", borderLine, borderLine))
+	fmt.Printf("%s [Github] https://github.com/aceld                 %s\n", borderLine, borderLine)
+	fmt.Printf("%s [tutorial] https://www.kancloud.cn/aceld/zinx     %s\n", borderLine, borderLine)
 	fmt.Println(bottomLine)
 	fmt.Printf("[Zinx] Version: %s, MaxConn: %d, MaxPacketSize: %d\n",
 		utils.GlobalObject.Version,

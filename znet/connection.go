@@ -115,7 +115,6 @@ func (c *Connection) StartReader() {
 		case <-c.ctx.Done():
 			return
 		default:
-
 			// 读取客户端的Msg head
 			headData := make([]byte, c.TCPServer.Packet().GetHeadLen())
 			if _, err := io.ReadFull(c.Conn, headData); err != nil {
@@ -127,9 +126,8 @@ func (c *Connection) StartReader() {
 				)
 				return
 			}
-			// fmt.Printf("read headData %+v\n", headData)
 
-			//拆包，得到msgID 和 datalen 放在msg中
+			// 拆包，得到msgID 和 datalen 放在msg中
 			msg, err := c.TCPServer.Packet().Unpack(headData)
 			if err != nil {
 				logger.Errorf(
@@ -155,8 +153,9 @@ func (c *Connection) StartReader() {
 					return
 				}
 			}
-			msg.SetData(data)
 
+			msg.SetHeaderData(headData)
+			msg.SetData(data)
 			// 得到当前客户端请求的Request数据
 			req := Request{
 				conn: c,
@@ -184,11 +183,8 @@ func (c *Connection) Start() {
 	// 按照用户传递进来的创建连接时需要处理的业务，执行钩子方法
 	c.TCPServer.CallOnConnStart(c)
 
-	select {
-	case <-c.ctx.Done():
-		c.finalizer()
-		return
-	}
+	<-c.ctx.Done()
+	c.finalizer()
 }
 
 // Stop 停止连接，结束当前连接状态M

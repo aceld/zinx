@@ -41,7 +41,6 @@ func (dp *DataPack) Pack(msg ziface.IMessage) ([]byte, error) {
 
 	// 写魔数
 	defaultMagicCodeByte, err := hex.DecodeString(defualtMagicCode)
-
 	if err != nil {
 		return nil, err
 	}

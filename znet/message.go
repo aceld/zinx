@@ -6,6 +6,7 @@ type Message struct {
 	ID         uint8  // 消息的ID（命令字，小安必须）
 	Sn         uint8  // 序列号（小安必须）
 	DataLen    uint16 // 消息的长度（小安必须）
+	HeaderData []byte // 消息头
 	Data       []byte // 消息的内容
 	ExtendData []byte // 扩展消息
 }
@@ -45,6 +46,11 @@ func (msg *Message) GetData() []byte {
 	return msg.Data
 }
 
+// GetHeaderData 获取消息头内容
+func (msg *Message) GetHeaderData() []byte {
+	return msg.HeaderData
+}
+
 // GetExtendData 获取扩展消息
 func (msg *Message) GetExtendData() []byte {
 	return msg.ExtendData
@@ -58,6 +64,11 @@ func (msg *Message) SetDataLen(len uint16) {
 // SetMsgID 设置消息ID
 func (msg *Message) SetMsgID(msgID uint8) {
 	msg.ID = msgID
+}
+
+// SetHeaderData 设置消息头内容
+func (msg *Message) SetHeaderData(data []byte) {
+	msg.HeaderData = data
 }
 
 // SetData 设置消息内容
