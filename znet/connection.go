@@ -102,6 +102,7 @@ func (c *Connection) StartReader() {
 		c.ConnID,
 		c.RemoteAddr().String(),
 	)
+
 	defer logger.Infof(
 		"[Zinx][Connection][StartReader]Conn Reader Exit! ConnID: %d, Remote Addr: %s",
 		c.ConnID,
@@ -230,7 +231,7 @@ func (c *Connection) SendMsgPackage(msgPackage ziface.IMessage) ([]byte, error) 
 	msg, err := dp.Pack(msgPackage)
 	if err != nil {
 		logger.Errorf(
-			"[Zinx][Connection][SendMsg]Pack Error, ConnID: %d, Remote Addr: %s, Msg Pkg: %+v, Error: %v",
+			"[Zinx][Connection][SendMsgPackage]Pack Error, ConnID: %d, Remote Addr: %s, Msg Pkg: %+v, Error: %v",
 			c.ConnID,
 			c.RemoteAddr().String(),
 			msgPackage,
@@ -242,7 +243,7 @@ func (c *Connection) SendMsgPackage(msgPackage ziface.IMessage) ([]byte, error) 
 	_, err = c.Conn.Write(msg)
 	if err != nil {
 		logger.Errorf(
-			"[Zinx][Connection][SendMsg]Write Data Error, ConnID: %d, Remote Addr: %s, Msg Pkg: %+v, Error: %v",
+			"[Zinx][Connection][SendMsgPackage]Write Data Error, ConnID: %d, Remote Addr: %s, Msg Pkg: %+v, Error: %v",
 			c.ConnID,
 			c.RemoteAddr().String(),
 			msgPackage,
@@ -279,7 +280,7 @@ func (c *Connection) SendBuffMsgPackage(msgPackage ziface.IMessage) ([]byte, err
 	msg, err := dp.Pack(msgPackage)
 	if err != nil {
 		logger.Errorf(
-			"[Zinx][Connection][SendBuffMsg]Pack Error, ConnID: %d, Msg Pkg: %+v, Remote Addr: %s, Error: %v",
+			"[Zinx][Connection][SendBuffMsgPackage]Pack Error, ConnID: %d, Msg Pkg: %+v, Remote Addr: %s, Error: %v",
 			c.ConnID,
 			msgPackage,
 			c.RemoteAddr().String(),
