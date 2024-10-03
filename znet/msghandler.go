@@ -363,7 +363,7 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 		// (有消息则取出队列的Request，并执行绑定的业务方法)
 		case request, ok := <-taskQueue:
 			if !ok {
-				// DynamicBind Mode, destory current worker by close the taskQueue
+				// DynamicBind Mode, destroy current worker by close the taskQueue
 				// (DynamicBind模式下，临时创建的worker, 是通过关闭taskQueue 来销毁当前worker)
 				zlog.Ins().ErrorF(" taskQueue is closed, Worker ID = %d quit", workerID)
 				return
