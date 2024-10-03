@@ -38,6 +38,11 @@ type MsgHandle struct {
 	// (Worker负责取任务的消息队列)
 	TaskQueue []chan ziface.IRequest
 
+	// A collection of extra workers, used for zconf.WorkerModeDynamicBind
+	// (池里的工作线程不够用的时候, 可临时额外分配workerID集合, 用于zconf.WorkerModeDynamicBind)
+	extraFreeWorkers  map[uint32]struct{}
+	extraFreeWorkerMu sync.Mutex
+
 	// Chain builder for the responsibility chain
 	// (责任链构造器)
 	builder      *chainBuilder
@@ -48,6 +53,8 @@ type MsgHandle struct {
 // zinxRole: IServer/IClient
 func newMsgHandle() *MsgHandle {
 	var freeWorkers map[uint32]struct{}
+	var extraFreeWorkers map[uint32]struct{}
+
 	if zconf.GlobalObject.WorkerMode == zconf.WorkerModeBind {
 		// Assign a workder to each link, avoid interactions when multiple links are processed by the same worker
 		// MaxWorkerTaskLen can also be reduced, for example, 50
@@ -60,14 +67,32 @@ func newMsgHandle() *MsgHandle {
 		}
 	}
 
+	TaskQueueLen := zconf.GlobalObject.WorkerPoolSize
+
+	if zconf.GlobalObject.WorkerMode == zconf.WorkerModeDynamicBind {
+		zlog.Ins().DebugF("WorkerMode = %s", zconf.WorkerModeDynamicBind)
+		freeWorkers = make(map[uint32]struct{}, zconf.GlobalObject.WorkerPoolSize)
+		for i := uint32(0); i < zconf.GlobalObject.WorkerPoolSize; i++ {
+			freeWorkers[i] = struct{}{}
+		}
+
+		extraFreeWorkers = make(map[uint32]struct{}, zconf.GlobalObject.MaxConn-int(zconf.GlobalObject.WorkerPoolSize))
+		for i := zconf.GlobalObject.WorkerPoolSize; i < uint32(zconf.GlobalObject.MaxConn); i++ {
+			extraFreeWorkers[i] = struct{}{}
+		}
+		TaskQueueLen = uint32(zconf.GlobalObject.MaxConn)
+	}
+
 	handle := &MsgHandle{
 		Apis:           make(map[uint32]ziface.IRouter),
 		RouterSlices:   NewRouterSlices(),
 		WorkerPoolSize: zconf.GlobalObject.WorkerPoolSize,
 		// One worker corresponds to one queue (一个worker对应一个queue)
-		TaskQueue:   make([]chan ziface.IRequest, zconf.GlobalObject.WorkerPoolSize),
+		TaskQueue:   make([]chan ziface.IRequest, TaskQueueLen),
 		freeWorkers: freeWorkers,
 		builder:     newChainBuilder(),
+		// 可额外临时分配的workerID集合
+		extraFreeWorkers: extraFreeWorkers,
 	}
 
 	// It is necessary to add the MsgHandle to the responsibility chain here, and it is the last link in the responsibility chain. After decoding in the MsgHandle, data distribution is done by router
@@ -94,6 +119,28 @@ func useWorker(conn ziface.IConnection) uint32 {
 		for k := range mh.freeWorkers {
 			delete(mh.freeWorkers, k)
 			return k
+		}
+	}
+
+	if zconf.GlobalObject.WorkerMode == zconf.WorkerModeDynamicBind {
+		mh.freeWorkerMu.Lock()
+		// try to get workerID from workerPool first
+		// 首先尝试从工作线程池里获取一个空闲的workerID
+		for workerID := range mh.freeWorkers {
+			delete(mh.freeWorkers, workerID)
+			mh.freeWorkerMu.Unlock()
+			return workerID
+		}
+		mh.freeWorkerMu.Unlock()
+
+		// 工作池的worker用完了，临时从extraFreeWorkers取一个额外的workerID, 并相应启动一个临时的worker
+		mh.extraFreeWorkerMu.Lock()
+		defer mh.extraFreeWorkerMu.Unlock()
+		for workerID := range mh.extraFreeWorkers {
+			zlog.Ins().DebugF("start extra worker, workerID=%d", workerID)
+			mh.TaskQueue[workerID] = make(chan ziface.IRequest, zconf.GlobalObject.MaxWorkerTaskLen)
+			go mh.StartOneWorker(int(workerID), mh.TaskQueue[workerID])
+			return workerID
 		}
 	}
 
@@ -127,6 +174,23 @@ func freeWorker(conn ziface.IConnection) {
 		defer mh.freeWorkerMu.Unlock()
 
 		mh.freeWorkers[conn.GetWorkerID()] = struct{}{}
+	}
+
+	if zconf.GlobalObject.WorkerMode == zconf.WorkerModeDynamicBind {
+		workerID := conn.GetWorkerID()
+		if workerID < mh.WorkerPoolSize {
+			// 说明这个是工作线程池里的workerID，回收这个workerID, workerID对应的worker不需要销毁
+			mh.freeWorkerMu.Lock()
+			mh.freeWorkers[workerID] = struct{}{}
+			mh.freeWorkerMu.Unlock()
+		} else {
+			// 说明这个worker是一个临时的worker，需要销毁这个worker
+			mh.StopOneWorker(int(workerID))
+			// 回收workerID, 放回额外workerID池里
+			mh.extraFreeWorkerMu.Lock()
+			mh.extraFreeWorkers[workerID] = struct{}{}
+			mh.extraFreeWorkerMu.Unlock()
+		}
 	}
 }
 
@@ -280,6 +344,13 @@ func (mh *MsgHandle) doMsgHandlerSlices(request ziface.IRequest, workerID int) {
 	PutRequest(request)
 }
 
+func (mh *MsgHandle) StopOneWorker(workerID int) {
+	zlog.Ins().DebugF("stop Worker ID = %d ", workerID)
+	// Stop the worker by closing the corresponding taskQueue
+	// (停止一个Worker，通过关闭对应的taskQueue)
+	close(mh.TaskQueue[workerID])
+}
+
 // StartOneWorker starts a worker workflow
 // (启动一个Worker工作流程)
 func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest) {
@@ -290,8 +361,13 @@ func (mh *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest
 		select {
 		// If there is a message, take out the Request from the queue and execute the bound business method
 		// (有消息则取出队列的Request，并执行绑定的业务方法)
-		case request := <-taskQueue:
-
+		case request, ok := <-taskQueue:
+			if !ok {
+				// DynamicBind Mode, destroy current worker by close the taskQueue
+				// (DynamicBind模式下，临时创建的worker, 是通过关闭taskQueue 来销毁当前worker)
+				zlog.Ins().ErrorF(" taskQueue is closed, Worker ID = %d quit", workerID)
+				return
+			}
 			switch req := request.(type) {
 
 			case ziface.IFuncRequest:
