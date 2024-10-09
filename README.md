@@ -16,14 +16,14 @@ Zinx is a lightweight concurrent server framework based on Golang.
 [ < Zinx 文档 : 简体中文> ](https://www.yuque.com/aceld/tsgooa/sbvzgczh3hqz8q3l)
 
 
-> **Note**: 
+> **Note**: LLLLLLLLLLLLLL+mmmmmm
 > Zinx has been widely used in many enterprises for development purposes, including message forwarding for backend modules, long-linked game servers, and message handling plugins for web frameworks. 
 > Zinx is positioned as a framework with concise code that allows developers to quickly understand the internal details of the framework and easily customize it based on their own enterprise scenarios.
 
 ---
 ## Source of Zinx
-| platform | Entry | 
-| ---- | ---- | 
+| platform | Entry |
+| ---- | ---- |
 |Github| https://github.com/aceld/zinx |
 |Gitcode|https://gitcode.com/aceld/zinx|
 |Gitee|https://gitee.com/Aceld/zinx|
@@ -34,19 +34,19 @@ http://zinx.me
 ---
 ## Online Tutorial
 
-| platform | Entry | 
-| ---- | ---- | 
-| <img src="https://user-images.githubusercontent.com/7778936/236784004-b6d99e26-b1ab-4bc3-988e-7a46108b85fe.png" width = "100" height = "100" alt="" align=center />| [Zinx Framework tutorial-Lightweight server based on Golang](https://dev.to/aceld/1building-basic-services-with-zinx-framework-296e)| 
+| platform | Entry |
+| ---- | ---- |
+| <img src="https://user-images.githubusercontent.com/7778936/236784004-b6d99e26-b1ab-4bc3-988e-7a46108b85fe.png" width = "100" height = "100" alt="" align=center />| [Zinx Framework tutorial-Lightweight server based on Golang](https://dev.to/aceld/1building-basic-services-with-zinx-framework-296e)|
 |<img src="https://user-images.githubusercontent.com/7778936/236784168-6528a9b8-d37b-4b02-a37c-b9988d7508d8.jpeg" width = "100" height = "100" alt="" align=center />|[《Golang轻量级并发服务器框架zinx》](https://www.yuque.com/aceld)|
 
 
 ## Online Tutorial Video
 
-| platform | online video | 
-| ---- | ---- | 
-| <img src="https://s1.ax1x.com/2022/09/22/xFePUK.png" width = "100" height = "100" alt="" align=center />| [![zinx-BiliBili](https://s2.ax1x.com/2019/10/13/uv340S.jpg)](https://www.bilibili.com/video/av71067087)| 
+| platform | online video |
+| ---- | ---- |
+| <img src="https://s1.ax1x.com/2022/09/22/xFePUK.png" width = "100" height = "100" alt="" align=center />| [![zinx-BiliBili](https://s2.ax1x.com/2019/10/13/uv340S.jpg)](https://www.bilibili.com/video/av71067087)|
 | <img src="https://s1.ax1x.com/2022/09/22/xFeRVx.png" width = "100" height = "100" alt="" align=center />  | [![zinx-BiliBili](https://s2.ax1x.com/2019/10/13/uv340S.jpg)](https://www.douyin.com/video/6983301202939333891) |
-| <img src="https://s1.ax1x.com/2022/09/23/xkQcng.png" width = "100" height = "100" alt="" align=center />| [![zinx-youtube](https://s2.ax1x.com/2019/10/14/KSurCR.jpg)](https://www.youtube.com/watch?v=U95iF-HMWsU&list=PL_GrAPKmuajzeNI8HBTi-k5NQO1g0rM-A)| 
+| <img src="https://s1.ax1x.com/2022/09/23/xkQcng.png" width = "100" height = "100" alt="" align=center />| [![zinx-youtube](https://s2.ax1x.com/2019/10/14/KSurCR.jpg)](https://www.youtube.com/watch?v=U95iF-HMWsU&list=PL_GrAPKmuajzeNI8HBTi-k5NQO1g0rM-A)|
 
 
 ## I. One word that has been said before
@@ -278,7 +278,7 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
 #### Developers
 
 | **Zinx**                                                       | **Authors**  |
-|----------------------------------------------------------------| ----  | 
+|----------------------------------------------------------------| ----  |
 | [zinx](https://github.com/aceld/zinx)                          |刘丹冰([@aceld](https://github.com/aceld)) 张超([@zhngcho](https://github.com/zhngcho)) 高智辉Roger([@adsian](https://github.com/adsian)) 胡贵建([@huguijian](https://github.com/huguijian)) 张继瑀([@kstwoak](https://github.com/kstwoak)) 夏小力([@xxl6097](https://github.com/xxl6097)) 李志成([@clukboy](https://github.com/clukboy)）姚承政([@hcraM41](https://github.com/hcraM41)）李国杰([@LI-GUOJIE](https://github.com/LI-GUOJIE)）余喆宁([@YanHeDoki](https://github.com/YanHeDoki)）|
 | [moke-kit(Microservices)](https://github.com/GStones/moke-kit) |GStones([@GStones](https://github.com/GStones))|
 | [zinx(C++)](https://github.com/marklion/zinx)                  |刘洋([@marklion](https://github.com/marklion))|
@@ -292,7 +292,6 @@ Thanks to all the developers who contributed to Zinx!
 <a href="https://github.com/aceld/zinx/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=aceld/zinx" />
 </a>    
-
 
 ---
 
@@ -311,9 +310,9 @@ Thanks to all the developers who contributed to Zinx!
 
 ### Join the Zinx community 
 
-| platform | Entry | 
-| ---- | ---- | 
-| <img src="https://user-images.githubusercontent.com/7778936/236775008-6bd488e3-249a-4d43-8885-7e3889e11e2d.png" width = "100" height = "100" alt="" align=center />| https://discord.gg/xQ8Xxfyfcz| 
+| platform | Entry |
+| ---- | ---- |
+| <img src="https://user-images.githubusercontent.com/7778936/236775008-6bd488e3-249a-4d43-8885-7e3889e11e2d.png" width = "100" height = "100" alt="" align=center />| https://discord.gg/xQ8Xxfyfcz|
 | <img src="https://user-images.githubusercontent.com/7778936/236775137-5381f8a6-f534-49c4-8628-e52bf245c3bc.jpeg" width = "100" height = "100" alt="" align=center />  | 加微信: `ace_ld`  或扫二维码，备注`zinx`即可。</br><img src="https://user-images.githubusercontent.com/7778936/236781258-2f0371bd-5797-49e8-a74c-680e9f15843d.png" width = "150" height = "150" alt="" align=center /> |
 |<img src="https://user-images.githubusercontent.com/7778936/236778547-9cdadfb6-0f62-48ac-851a-b940389038d0.jpeg" width = "100" height = "100" alt="" align=center />|<img src="https://s1.ax1x.com/2020/07/07/UFyUdx.th.jpg" height = "150"  alt="" align=center /> **WeChat Public Account** |
 |<img src="https://user-images.githubusercontent.com/7778936/236779000-70f16c8f-0eec-4b5f-9faa-e1d5229a43e0.png" width = "100" height = "100" alt="" align=center />|<img src="https://github.com/aceld/zinx/assets/7778936/461b409f-6337-48a8-826b-a7a746aaee31" width = "150" height = "150" alt="" align=center /> **QQ Group** |
