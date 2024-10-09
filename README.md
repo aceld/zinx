@@ -16,7 +16,7 @@ Zinx is a lightweight concurrent server framework based on Golang.
 [ < Zinx 文档 : 简体中文> ](https://www.yuque.com/aceld/tsgooa/sbvzgczh3hqz8q3l)
 
 
-> **Note**: LLLLLLLLLLLLLL
+> **Note**: LLLLLLLLLLLLLL+mmmmmm
 > Zinx has been widely used in many enterprises for development purposes, including message forwarding for backend modules, long-linked game servers, and message handling plugins for web frameworks. 
 > Zinx is positioned as a framework with concise code that allows developers to quickly understand the internal details of the framework and easily customize it based on their own enterprise scenarios.
 
