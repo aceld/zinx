@@ -25,6 +25,14 @@ const (
 const (
 	WorkerModeHash = "Hash" // By default, the round-robin average allocation rule is used.(默认使用取余的方式)
 	WorkerModeBind = "Bind" // Bind a worker to each connection.(为每个连接分配一个worker)
+
+	//Hash 模式有阻塞的问题(虽然有异步的方式可解决)。
+	//Bind 模式下，如果配置MaxConn值比较大的话 就会后台就会起很多worker在等着，当服务器接入连接较少时, 很多worker都是空闲; MaxConn 设置小的话，服务器能接入的连接就会受限。
+
+	//WorkerModeDynamicBind 也是一个连接对应一个worker, 给连接分配worker时, 如果工作池里初始化的worker已经用完了，就动态创建一个worker绑定到每个连接。这个临时创建的worker, 会在连接断开后销毁。
+	//跟WorkerModeHash的区别是，如果业务层回调有阻塞操作的话，也不影响其他连接的业务层处理。
+	//跟WorkerModeBind的区别是，不需要像Bind模式那样一开始就创建很多worker,而是根据连接数动态创建worker，这样可以避免闲置worker数量过多导致的资源浪费。
+	WorkerModeDynamicBind = "DynamicBind" // Dynamic binding of a worker to each connection when there is no worker in worker pool.(临时动态创建一个worker绑定到每个连接)
 )
 
 /*
