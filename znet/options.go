@@ -1,8 +1,9 @@
 package znet
 
 import (
-	"github.com/aceld/zinx/ziface"
 	"net/url"
+
+	"github.com/aceld/zinx/ziface"
 )
 
 // Options for Server
