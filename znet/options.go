@@ -1,6 +1,10 @@
 package znet
 
-import "github.com/aceld/zinx/ziface"
+import (
+	"net/url"
+
+	"github.com/aceld/zinx/ziface"
+)
 
 // Options for Server
 // (Server的服务Option)
@@ -30,5 +34,11 @@ func WithPacketClient(pack ziface.IDataPack) ClientOption {
 func WithNameClient(name string) ClientOption {
 	return func(c ziface.IClient) {
 		c.SetName(name)
+	}
+}
+
+func WithUrl(url *url.URL) ClientOption {
+	return func(c ziface.IClient) {
+		c.SetUrl(url)
 	}
 }

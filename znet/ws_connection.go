@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"net"
+	"net/http"
 	"strconv"
 	"sync"
 	"time"
@@ -16,6 +17,9 @@ import (
 	"github.com/aceld/zinx/zpack"
 	"github.com/gorilla/websocket"
 )
+
+// WsConnectionHttpReqCtxKey http请求上下文key
+type WsConnectionHttpReqCtxKey struct{}
 
 // WsConnection is a module for handling the read and write operations of a WebSocket connection.
 // (Websocket连接模块, 用于处理 Websocket 连接的读写业务 一个连接对应一个Connection)
@@ -112,9 +116,10 @@ type WsConnection struct {
 // Note: The name has been changed from NewConnection
 // (newServerConn :for Server, 创建一个Server服务端特性的连接的方法
 // Note: 名字由 NewConnection 更变)
-func newWebsocketConn(server ziface.IServer, conn *websocket.Conn, connID uint64) ziface.IConnection {
+func newWebsocketConn(server ziface.IServer, conn *websocket.Conn, connID uint64, r *http.Request) ziface.IConnection {
 	// Initialize Conn properties (初始化Conn属性)
 	c := &WsConnection{
+		ctx:         context.WithValue(context.Background(), WsConnectionHttpReqCtxKey{}, r.Context()), // websocketAuth可以在上下文中传递特殊的参数或信息;比如鉴权后，设置一些用户信息或房间id
 		conn:        conn,
 		connID:      connID,
 		connIdStr:   strconv.FormatUint(connID, 10),
@@ -269,7 +274,11 @@ func (c *WsConnection) StartReader() {
 // Start starts the connection and makes it work.
 // (Start 启动连接，让当前连接开始工作)
 func (c *WsConnection) Start() {
-	c.ctx, c.cancel = context.WithCancel(context.Background())
+	ctx := c.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	c.ctx, c.cancel = context.WithCancel(ctx)
 	// Execute the hook method according to the business needs of creating the connection passed in by the user.
 	// (按照用户传递进来的创建连接时需要处理的业务，执行钩子方法)
 	c.callOnConnStart()
