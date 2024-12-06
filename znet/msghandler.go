@@ -88,6 +88,8 @@ func newMsgHandle() *MsgHandle {
 		RouterSlices: NewRouterSlices(),
 		freeWorkers:  freeWorkers,
 		builder:      newChainBuilder(),
+		// 可额外临时分配的workerID集合
+		extraFreeWorkers: extraFreeWorkers,
 	}
 
 	// server
@@ -140,11 +142,12 @@ func newCliMsgHandle() *MsgHandle {
 		RouterSlices: NewRouterSlices(),
 		freeWorkers:  freeWorkers,
 		builder:      newChainBuilder(),
+		// 可额外临时分配的workerID集合
+		extraFreeWorkers: extraFreeWorkers,
 	}
 
 	// client: Set worker pool size to 0 to turn off the worker pool in the client (客户端将协程池关闭)
 	handle.WorkerPoolSize = 0
-	TaskQueueLen = 0
 	// One worker corresponds to one queue (一个worker对应一个queue)
 	handle.TaskQueue = make([]chan ziface.IRequest, TaskQueueLen)
 
