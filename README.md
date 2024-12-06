@@ -22,11 +22,11 @@ Zinx is a lightweight concurrent server framework based on Golang.
 
 ---
 ## Source of Zinx
-### Github
-Git: https://github.com/aceld/zinx
-
-### Gitee(China)
-Git: https://gitee.com/Aceld/zinx
+| platform | Entry | 
+| ---- | ---- | 
+|Github| https://github.com/aceld/zinx |
+|Gitcode|https://gitcode.com/aceld/zinx|
+|Gitee|https://gitee.com/Aceld/zinx|
 
 ### Website
 http://zinx.me
@@ -60,19 +60,6 @@ The development of the Zinx framework project is synchronized with the creation 
 The tutorials will be iterated version by version, with each version adding small increments of functionality, allowing a beginner to gradually and comprehensively learn about the field of server frameworks.
 
 Of course, we hope that more people will join Zinx and provide us with valuable feedback, enabling Zinx to become a truly enterprise-level server framework. Thank you for your attention!
-
-
-### Reply from chatGPT(AI)
-![what-is-zinx](https://user-images.githubusercontent.com/7778936/209745848-acfc14eb-74cd-4513-b386-8bc6e0bcc09f.png)
-
-![compare-zinx](https://user-images.githubusercontent.com/7778936/209745864-7d8984b0-bd73-4109-b4ec-aec152f8f8e8.png)
-
-
-### The honor of zinx
-#### GVP Most Valuable Open Source Project of the Year at OSCHINA
-
-![GVP-zinx](https://s2.ax1x.com/2019/10/13/uvYVBV.jpg)
-
 
 
 

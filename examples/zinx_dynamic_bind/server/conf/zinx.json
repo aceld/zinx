@@ -1,0 +1,9 @@
+{
+    "Name":"zinx server DynamicBind Mode Demo",
+    "Host":"127.0.0.1",
+    "TCPPort":8999,
+    "MaxConn":12000,
+    "WorkerPoolSize":1,
+    "MaxWorkerTaskLen":50,
+    "WorkerMode":"DynamicBind"
+  }

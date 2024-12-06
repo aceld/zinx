@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+	"net/url"
 	"time"
 
 	"github.com/aceld/zinx/zdecoder"
@@ -20,6 +21,7 @@ type Client struct {
 	Ip string
 	// Port of the target server to connect 目标链接服务器的端口
 	Port int
+	Url  *url.URL // 扩展，连接时带上其他参数
 	// Client version tcp,websocket,客户端版本 tcp,websocket
 	version string
 	// Connection instance 链接实例
@@ -122,6 +124,9 @@ func (c *Client) Restart() {
 		switch c.version {
 		case "websocket":
 			wsAddr := fmt.Sprintf("ws://%s:%d", c.Ip, c.Port)
+			if c.Url != nil {
+				wsAddr = c.Url.String()
+			}
 
 			// Create a raw socket and get net.Conn (创建原始Socket，得到net.Conn)
 			wsConn, _, err := c.dialer.Dial(wsAddr, nil)
@@ -299,4 +304,12 @@ func (c *Client) SetName(name string) {
 
 func (c *Client) GetName() string {
 	return c.Name
+}
+
+func (c *Client) SetUrl(url *url.URL) {
+	c.Url = url
+}
+
+func (c *Client) GetUrl() *url.URL {
+	return c.Url
 }

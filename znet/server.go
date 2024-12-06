@@ -349,7 +349,7 @@ func (s *Server) ListenWebsocketConn() {
 		// 5. Handle the business logic of the new connection, which should already be bound to a handler and conn
 		// 5. 处理该新连接请求的 业务 方法， 此时应该有 handler 和 conn是绑定的
 		newCid := atomic.AddUint64(&s.cID, 1)
-		wsConn := newWebsocketConn(s, conn, newCid)
+		wsConn := newWebsocketConn(s, conn, newCid, r)
 		go s.StartConn(wsConn)
 
 	})

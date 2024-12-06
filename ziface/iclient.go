@@ -4,7 +4,10 @@
 
 package ziface
 
-import "time"
+import (
+	"net/url"
+	"time"
+)
 
 type IClient interface {
 	Restart()
@@ -66,4 +69,8 @@ type IClient interface {
 	// Get the name of this Client
 	// 获取客户端Client名称
 	GetName() string
+
+	SetUrl(url *url.URL)
+
+	GetUrl() *url.URL
 }
