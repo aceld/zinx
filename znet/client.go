@@ -6,7 +6,6 @@ import (
 	"net"
 	"time"
 
-	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
@@ -57,7 +56,7 @@ func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 		Ip:   ip,
 		Port: port,
 
-		msgHandler: newMsgHandle(),
+		msgHandler: newCliMsgHandle(),
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack), // Default to using Zinx's TLV packet format(默认使用zinx的TLV封包方式)
 		decoder:    zdecoder.NewTLVDecoder(),                     // Default to using Zinx's TLV decoder(默认使用zinx的TLV解码器)
 		version:    "tcp",
@@ -81,7 +80,7 @@ func NewWsClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 		Ip:   ip,
 		Port: port,
 
-		msgHandler: newMsgHandle(),
+		msgHandler: newCliMsgHandle(),
 		packet:     zpack.Factory().NewPack(ziface.ZinxDataPack), // Default to using Zinx's TLV packet format(默认使用zinx的TLV封包方式)
 		decoder:    zdecoder.NewTLVDecoder(),                     // Default to using Zinx's TLV decoder(默认使用zinx的TLV解码器)
 		version:    "websocket",
@@ -110,9 +109,6 @@ func NewTLSClient(ip string, port int, opts ...ClientOption) ziface.IClient {
 // (重新启动客户端，发送请求且建立连接)
 func (c *Client) Restart() {
 	c.exitChan = make(chan struct{})
-
-	// Set worker pool size to 0 to turn off the worker pool in the client (客户端将协程池关闭)
-	zconf.GlobalObject.WorkerPoolSize = 0
 
 	go func() {
 
