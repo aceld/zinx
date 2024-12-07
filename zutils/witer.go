@@ -103,23 +103,17 @@ func (w *Writer) Write(p []byte) (n int, err error) {
 	}
 
 	t := time.Now()
-	var b []byte
-	year, month, day := t.Date()
-	b = appendInt(b, year, 4)
-	b = append(b, '-')
-	b = appendInt(b, int(month), 2)
-	b = append(b, '-')
-	b = appendInt(b, day, 2)
+	b := t.AppendFormat(nil, time.RFC3339)
 
 	// 按天切割
-	if !bytes.Equal(w.creates[:10], b) { //2023-04-05
+	if !bytes.Equal(w.creates[:10], b[:10]) { //2023-04-05
 		go w.delete() // 每天检测一次旧文件
 		if err := w.rotate(); err != nil {
 			return 0, err
 		}
 	}
-	// 按大小切割
-	if w.size+int64(len(p)) >= w.maxSize {
+	// 按大小切割,需要考虑bw缓冲区中未写入的数据
+	if w.size+int64(len(p))+int64(w.bw.Buffered()) >= w.maxSize {
 		if err := w.rotate(); err != nil {
 			return 0, err
 		}
@@ -194,13 +188,15 @@ func (w *Writer) delete() {
 		}
 	}
 }
+
 func (w *Writer) name2time(name string) (time.Time, error) {
 	name = strings.TrimPrefix(name, filepath.Base(w.fname))
 	name = strings.TrimSuffix(name, w.zipsuffix)
-	return time.Parse(".2006-01-02-150405", name)
+	// 改为微秒级别的文件后缀，避免1s内大量写入造成多次rotate，而覆盖丢失之前的日志文件
+	return time.Parse(".2006-01-02-150405.000000", name)
 }
 func (w *Writer) time2name(t time.Time) string {
-	return t.Format(".2006-01-02-150405")
+	return t.Format(".2006-01-02-150405.000000")
 }
 
 func (w *Writer) Close() error {
@@ -228,58 +224,6 @@ func (w *Writer) flush() error {
 		return nil
 	}
 	return w.bw.Flush()
-}
-
-// appendInt appends the decimal form of x to b and returns the result.
-// If the decimal form (excluding sign) is shorter than width, the result is padded with leading 0's.
-// Duplicates functionality in strconv, but avoids dependency.
-func appendInt(b []byte, x int, width int) []byte {
-	u := uint(x)
-	if x < 0 {
-		b = append(b, '-')
-		u = uint(-x)
-	}
-
-	// 2-digit and 4-digit fields are the most common in time formats.
-	utod := func(u uint) byte { return '0' + byte(u) }
-	switch {
-	case width == 2 && u < 1e2:
-		return append(b, utod(u/1e1), utod(u%1e1))
-	case width == 4 && u < 1e4:
-		return append(b, utod(u/1e3), utod(u/1e2%1e1), utod(u/1e1%1e1), utod(u%1e1))
-	}
-
-	// Compute the number of decimal digits.
-	var n int
-	if u == 0 {
-		n = 1
-	}
-	for u2 := u; u2 > 0; u2 /= 10 {
-		n++
-	}
-
-	// Add 0-padding.
-	for pad := width - n; pad > 0; pad-- {
-		b = append(b, '0')
-	}
-
-	// Ensure capacity.
-	if len(b)+n <= cap(b) {
-		b = b[:len(b)+n]
-	} else {
-		b = append(b, make([]byte, n)...)
-	}
-
-	// Assemble decimal in reverse order.
-	i := len(b) - 1
-	for u >= 10 && i > 0 {
-		q := u / 10
-		b[i] = utod(u - q*10)
-		u = q
-		i--
-	}
-	b[i] = utod(u)
-	return b
 }
 
 // ZipToFile 压缩至文件
