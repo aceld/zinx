@@ -529,8 +529,9 @@ func (d *FrameDecoder) decode(buf []byte) []byte {
 		d.failOnNegativeLengthField(in, frameLength, d.LengthFieldEndOffset)
 	}
 
-	// Apply the formula: Number of bytes after the length field = value of the length field + lengthAdjustment (如果数据帧长度小于0，说明是个错误的数据包)
+	// Apply the formula: Number of bytes after the length field = value of the length field + lengthAdjustment (应用公式:长度字段后的字节数=长度字段的值+长度调整值)
 	// frameLength is the value of the length field, plus lengthAdjustment equals the number of bytes after the length field (lengthFieldEndOffset is lengthFieldOffset+lengthFieldLength)
+	// (frameLength 是长度字段的值,加上长度调整值等于长度字段后的字节数,lengthFieldEndOffset 是长度字段的偏移量加上长度字段本身)
 	// So the frameLength calculated in the end is the length of the entire data packet (那说明最后计算出的frameLength就是整个数据包的长度)
 	frameLength += int64(d.LengthAdjustment) + int64(d.LengthFieldEndOffset)
 
