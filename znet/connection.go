@@ -30,9 +30,6 @@ type Connection struct {
 	// The buffer writer of the current connection(当前连接的写缓冲)
 	bufWriter *bufio.Writer
 
-	// The buffer writer mutex(用于写操作的互斥锁)
-	bufMu sync.Mutex
-
 	// The ID of the current connection, also known as SessionID, globally unique, used by server Connection
 	// uint64 range: 0~18,446,744,073,709,551,615
 	// This is the maximum number of connID theoretically supported by the process
@@ -204,16 +201,20 @@ func (c *Connection) StartWriter() {
 	for {
 		select {
 		case <-ticker.C:
-			c.Flush()
+			err := c.Flush()
+			if err != nil {
+				zlog.Ins().ErrorF("Flush Buff Data error: %v Conn Writer exit", err)
+				return
+			}
 		case data, ok := <-c.msgBuffChan:
 			if ok {
 				if err := c.SendBuf(data); err != nil {
 					zlog.Ins().ErrorF("Send Buff Data error:, %s Conn Writer exit", err)
-					break
+					return
 				}
 			} else {
 				zlog.Ins().ErrorF("msgBuffChan is Closed")
-				break
+				return
 			}
 		case <-c.ctx.Done():
 			return
@@ -366,8 +367,6 @@ func (c *Connection) Flush() error {
 	if c.isClosed() == true {
 		return errors.New("connection closed when flush data")
 	}
-	c.bufMu.Lock()
-	defer c.bufMu.Unlock()
 	return c.bufWriter.Flush()
 }
 
@@ -375,8 +374,6 @@ func (c *Connection) Send(data []byte) error {
 	if c.isClosed() == true {
 		return errors.New("connection closed when send msg")
 	}
-	c.bufMu.Lock()
-	defer c.bufMu.Unlock()
 	_, err := c.conn.Write(data)
 	if err != nil {
 		zlog.Ins().ErrorF("SendMsg err data = %+v, err = %+v", data, err)
@@ -389,8 +386,6 @@ func (c *Connection) SendBuf(data []byte) error {
 	if c.isClosed() == true {
 		return errors.New("connection closed when send msg")
 	}
-	c.bufMu.Lock()
-	defer c.bufMu.Unlock()
 	_, err := c.bufWriter.Write(data)
 	if err != nil {
 		zlog.Ins().ErrorF("SendMsg err data = %+v, err = %+v", data, err)
