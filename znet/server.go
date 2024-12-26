@@ -50,7 +50,7 @@ type Server struct {
 	RouterSlicesMode bool
 	// Request 对象池模式
 	RequestPoolMode bool
-	// Current server's connection manager (当前Server的链接管理器)
+	// Current server's connection manager (当前Server的连接管理器)
 	ConnMgr ziface.IConnManager
 
 	// Hook function called when a new connection is established
@@ -66,7 +66,7 @@ type Server struct {
 	packet ziface.IDataPack
 
 	// Asynchronous capture of connection closing status
-	// (异步捕获链接关闭状态)
+	// (异步捕获连接关闭状态)
 	exitChan chan struct{}
 
 	// Decoder for dealing with message fragmentation and reassembly

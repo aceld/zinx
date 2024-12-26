@@ -95,7 +95,7 @@ func business(conn ziface.IConnection) {
 }
 
 func DoClientConnectedBegin(conn ziface.IConnection) {
-	zlog.Debug("DoConnecionBegin is Called ... ")
+	zlog.Debug("DoConnectionBegin is Called ... ")
 	go business(conn)
 }
 

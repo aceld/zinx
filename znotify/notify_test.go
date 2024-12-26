@@ -52,7 +52,7 @@ func Clinet() {
 				return
 			}
 			defer conn.Close()
-			//链接调用write方法写入数据
+			//连接调用write方法写入数据
 			id := strconv.Itoa(i)
 			dp := zpack.NewDataPack()
 			msg, err := dp.Pack(zpack.NewMsgPackage(1, []byte(id)))

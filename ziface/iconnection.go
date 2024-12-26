@@ -32,8 +32,8 @@ type IConnection interface {
 	GetConnIdStr() string       // Get the current connection ID for string (获取当前字符串连接ID)
 	GetMsgHandler() IMsgHandle  // Get the message handler (获取消息处理器)
 	GetWorkerID() uint32        // Get Worker ID（获取workerid）
-	RemoteAddr() net.Addr       // Get the remote address information of the connection (获取链接远程地址信息)
-	LocalAddr() net.Addr        // Get the local address information of the connection (获取链接本地地址信息)
+	RemoteAddr() net.Addr       // Get the remote address information of the connection (获取连接远程地址信息)
+	LocalAddr() net.Addr        // Get the local address information of the connection (获取连接本地地址信息)
 	LocalAddrString() string    // Get the local address information of the connection as a string
 	RemoteAddrString() string   // Get the remote address information of the connection as a string
 

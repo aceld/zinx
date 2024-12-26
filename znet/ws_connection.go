@@ -40,7 +40,7 @@ type WsConnection struct {
 	connIdStr string
 
 	// The workerid responsible for handling the link
-	// 负责处理该链接的workerid
+	// 负责处理该连接的workerid
 	workerID uint32
 
 	// msgHandler is the message management module for MsgID and the corresponding message handling method.
@@ -48,7 +48,7 @@ type WsConnection struct {
 	msgHandler ziface.IMsgHandle
 
 	// ctx and cancel are used to notify that the connection has exited/stopped.
-	// (告知该链接已经退出/停止的channel)
+	// (告知该连接已经退出/停止的channel)
 	ctx    context.Context
 	cancel context.CancelFunc
 
@@ -60,7 +60,7 @@ type WsConnection struct {
 	// (用户收发消息的Lock)
 	msgLock sync.Mutex
 
-	// property is the connection attribute. (链接属性)
+	// property is the connection attribute. (连接属性)
 	property map[string]interface{}
 
 	// propertyLock protects the current property lock. (保护当前property的锁)
@@ -69,7 +69,7 @@ type WsConnection struct {
 	// isClosed is the current connection's closed state. (当前连接的关闭状态)
 	isClosed bool
 
-	// connManager is the Connection Manager to which the current connection belongs. (当前链接是属于哪个Connection Manager的)
+	// connManager is the Connection Manager to which the current connection belongs. (当前连接是属于哪个Connection Manager的)
 	connManager ziface.IConnManager
 
 	// onConnStart is the Hook function when the current connection is created.
@@ -96,13 +96,13 @@ type WsConnection struct {
 	hc ziface.IHeartbeatChecker
 
 	// name is the name of the connection and is the same as the Name of the Server/Client that created the connection.
-	// (链接名称，默认与创建链接的Server/Client的Name一致)
+	// (连接名称，默认与创建连接的Server/Client的Name一致)
 	name string
 
-	// localAddr is the local address of the current connection. (当前链接的本地地址)
+	// localAddr is the local address of the current connection. (当前连接的本地地址)
 	localAddr string
 
-	// remoteAddr is the remote address of the current connection. (当前链接的远程地址)
+	// remoteAddr is the remote address of the current connection. (当前连接的远程地址)
 	remoteAddr string
 
 	// Close callback
@@ -145,7 +145,7 @@ func newWebsocketConn(server ziface.IServer, conn *websocket.Conn, connID uint64
 	// Bind the current Connection to the Server's ConnManager (将当前的Connection与Server的ConnManager绑定)
 	c.connManager = server.GetConnMgr()
 
-	// Add the newly created Conn to the connection management (将新创建的Conn添加到链接管理中)
+	// Add the newly created Conn to the connection management (将新创建的Conn添加到连接管理中)
 	server.GetConnMgr().Add(c)
 
 	return c
@@ -496,36 +496,36 @@ func (c *WsConnection) Context() context.Context {
 
 func (c *WsConnection) finalizer() {
 	// If the user has registered a close callback for the connection, it should be called explicitly at this moment.
-	// (如果用户注册了该链接的	关闭回调业务，那么在此刻应该显示调用)
+	// (如果用户注册了该连接的	关闭回调业务，那么在此刻应该显示调用)
 	c.callOnConnStop()
 
 	c.msgLock.Lock()
 	defer c.msgLock.Unlock()
 
 	// If the current connection is already closed.
-	// (如果当前链接已经关闭)
+	// (如果当前连接已经关闭)
 	if c.isClosed == true {
 		return
 	}
 
 	// Stop the heartbeat detector bound to the connection.
-	// (关闭链接绑定的心跳检测器)
+	// (关闭连接绑定的心跳检测器)
 	if c.hc != nil {
 		c.hc.Stop()
 	}
 
 	// Close the socket connection.
-	// (关闭socket链接)
+	// (关闭socket连接)
 	_ = c.conn.Close()
 
 	// Remove the connection from the connection manager.
-	// (将链接从连接管理器中删除)
+	// (将连接从连接管理器中删除)
 	if c.connManager != nil {
 		c.connManager.Remove(c)
 	}
 
 	// Close all channels associated with this connection.
-	// (关闭该链接全部管道)
+	// (关闭该连接全部管道)
 	if c.msgBuffChan != nil {
 		close(c.msgBuffChan)
 	}

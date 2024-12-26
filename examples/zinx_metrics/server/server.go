@@ -8,7 +8,7 @@ import (
 )
 
 func DoConnectionBegin(conn ziface.IConnection) {
-	zlog.Ins().InfoF("DoConnecionBegin is Called ...")
+	zlog.Ins().InfoF("DoConnectionBegin is Called ...")
 
 	conn.SetProperty("Name", "Aceld")
 	conn.SetProperty("Home", "https://yuque.com/aceld")

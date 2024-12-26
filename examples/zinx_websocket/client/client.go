@@ -34,7 +34,7 @@ func business(conn ziface.IConnection) {
 
 // 创建连接的时候执行
 func DoClientConnectedBegin(conn ziface.IConnection) {
-	//设置两个链接属性，在连接创建之后
+	//设置两个连接属性，在连接创建之后
 	conn.SetProperty("Name", "刘丹冰")
 	conn.SetProperty("Home", "https://yuque.com/aceld")
 
@@ -52,7 +52,7 @@ func main() {
 	// Create a Client.
 	client := znet.NewWsClient("127.0.0.1", 9000)
 
-	// Add business logic for when the connection is first established.(添加首次建立链接时的业务)
+	// Add business logic for when the connection is first established.(添加首次建立连接时的业务)
 	client.SetOnConnStart(DoClientConnectedBegin)
 	// Register business routing for receiving messages from the server.(注册收到服务器消息业务路由)
 	client.AddRouter(2, &c_router.PingRouter{})

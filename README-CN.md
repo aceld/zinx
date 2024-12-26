@@ -16,7 +16,7 @@ Zinx 是一个基于Golang的轻量级并发服务器框架
 
 [ < Zinx 文档 : 简体中文> ](https://www.yuque.com/aceld/tsgooa/sbvzgczh3hqz8q3l)
 
-> **说明**:目前zinx已经在很多企业进行开发使用，具体使用领域包括:后端模块的消息中转、长链接游戏服务器、Web框架中的消息处理插件等。zinx的定位是代码简洁，让更多的开发者迅速的了解框架的内脏细节并且可以快速基于zinx DIY(二次开发)一款适合自己企业场景的模块。
+> **说明**:目前zinx已经在很多企业进行开发使用，具体使用领域包括:后端模块的消息中转、长连接游戏服务器、Web框架中的消息处理插件等。zinx的定位是代码简洁，让更多的开发者迅速的了解框架的内脏细节并且可以快速基于zinx DIY(二次开发)一款适合自己企业场景的模块。
 
 ---
 ## zinx源码地址
@@ -52,7 +52,7 @@ http://zinx.me
     
 ## 一、写在前面
 
-我们为什么要做Zinx，Golang目前在服务器的应用框架很多，但是应用在游戏领域或者其他长链接的领域的轻量级企业框架甚少。
+我们为什么要做Zinx，Golang目前在服务器的应用框架很多，但是应用在游戏领域或者其他长连接的领域的轻量级企业框架甚少。
 
 设计Zinx的目的是我们可以通过Zinx框架来了解基于Golang编写一个TCP服务器的整体轮廓，让更多的Golang爱好者能深入浅出的去学习和认识这个领域。
 
@@ -216,7 +216,7 @@ func main() {
 	//创建Client客户端
 	client := znet.NewClient("127.0.0.1", 8999)
 
-	//设置链接建立成功后的钩子函数
+	//设置连接建立成功后的钩子函数
 	client.SetOnConnStart(onClientStart)
 
 	//启动客户端
@@ -270,7 +270,7 @@ recv from client : msgId= 1 , data= Ping...Ping...Ping...[FromClient]
 
 `TcpPort`:服务器监听端口
 
-`MaxConn`:允许的客户端链接最大数量
+`MaxConn`:允许的客户端连接最大数量
 
 `WorkerPoolSize`:工作任务池最大工作Goroutine数量
 

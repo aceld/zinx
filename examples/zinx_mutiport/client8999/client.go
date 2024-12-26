@@ -26,9 +26,9 @@ func business(conn ziface.IConnection) {
 }
 
 func DoClientConnectedBegin(conn ziface.IConnection) {
-	zlog.Debug("DoConnecionBegin is Called ... ")
+	zlog.Debug("DoConnectionBegin is Called ... ")
 
-	//设置两个链接属性，在连接创建之后
+	//设置两个连接属性，在连接创建之后
 	conn.SetProperty("Name", "刘丹冰Aceld")
 	conn.SetProperty("Home", "https://yuque.com/aceld")
 

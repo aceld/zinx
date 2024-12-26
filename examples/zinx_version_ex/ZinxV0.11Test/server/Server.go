@@ -48,9 +48,9 @@ func (this *HelloZinxRouter) Handle(request ziface.IRequest) {
 
 // 创建连接的时候执行
 func DoConnectionBegin(conn ziface.IConnection) {
-	zlog.Debug("DoConnecionBegin is Called ... ")
+	zlog.Debug("DoConnectionBegin is Called ... ")
 
-	//设置两个链接属性，在连接创建之后
+	//设置两个连接属性，在连接创建之后
 	zlog.Debug("Set conn Name, Home done!")
 	conn.SetProperty("Name", "Aceld")
 	conn.SetProperty("Home", "https://www.jianshu.com/u/35261429b7f1")
@@ -79,7 +79,7 @@ func main() {
 	//创建一个server句柄
 	s := znet.NewServer()
 
-	//注册链接hook回调函数
+	//注册连接hook回调函数
 	s.SetOnConnStart(DoConnectionBegin)
 	s.SetOnConnStop(DoConnectionLost)
 
