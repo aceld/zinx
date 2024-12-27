@@ -35,9 +35,9 @@ func business(conn ziface.IConnection) {
 
 // Function to execute when the connection is created (创建连接的时候执行)
 func DoClientConnectedBegin(conn ziface.IConnection) {
-	zlog.Debug("DoConnecionBegin is Called ... ")
+	zlog.Debug("DoConnectionBegin is Called ... ")
 
-	// Set two connection properties after the connection is created (设置两个链接属性，在连接创建之后)
+	// Set two connection properties after the connection is created (设置两个连接属性，在连接创建之后)
 	conn.SetProperty("Name", "刘丹冰Aceld")
 	conn.SetProperty("Home", "https://yuque.com/aceld")
 
@@ -64,7 +64,7 @@ func main() {
 	client := znet.NewClient("127.0.0.1", 8999)
 
 	// Set the business logic to execute when the connection is created or lost
-	// (添加首次建立链接时的业务)
+	// (添加首次建立连接时的业务)
 	client.SetOnConnStart(DoClientConnectedBegin)
 	client.SetOnConnStop(DoClientConnectedLost)
 

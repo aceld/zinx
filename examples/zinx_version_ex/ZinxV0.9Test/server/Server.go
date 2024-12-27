@@ -41,7 +41,7 @@ func (this *HelloZinxRouter) Handle(request ziface.IRequest) {
 
 // 创建连接的时候执行
 func DoConnectionBegin(conn ziface.IConnection) {
-	fmt.Println("DoConnecionBegin is Called ... ")
+	fmt.Println("DoConnectionBegin is Called ... ")
 	err := conn.SendMsg(2, []byte("DoConnection BEGIN..."))
 	if err != nil {
 		fmt.Println(err)
@@ -57,7 +57,7 @@ func main() {
 	//创建一个server句柄
 	s := znet.NewServer()
 
-	//注册链接hook回调函数
+	//注册连接hook回调函数
 	s.SetOnConnStart(DoConnectionBegin)
 	s.SetOnConnStop(DoConnectionLost)
 

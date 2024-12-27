@@ -43,7 +43,7 @@ type Connection struct {
 	connIdStr string
 
 	// The workerid responsible for handling the link
-	// 负责处理该链接的workerid
+	// 负责处理该连接的workerid
 	workerID uint32
 
 	// The message management module that manages MsgID and the corresponding processing method
@@ -51,7 +51,7 @@ type Connection struct {
 	msgHandler ziface.IMsgHandle
 
 	// Channel to notify that the connection has exited/stopped
-	// (告知该链接已经退出/停止的channel)
+	// (告知该连接已经退出/停止的channel)
 	ctx    context.Context
 	cancel context.CancelFunc
 
@@ -64,7 +64,7 @@ type Connection struct {
 	startWriterFlag int32
 
 	// Connection properties
-	// (链接属性)
+	// (连接属性)
 	property map[string]interface{}
 
 	// Lock to protect the current property
@@ -72,7 +72,7 @@ type Connection struct {
 	propertyLock sync.Mutex
 
 	// Which Connection Manager the current connection belongs to
-	// (当前链接是属于哪个Connection Manager的)
+	// (当前连接是属于哪个Connection Manager的)
 	connManager ziface.IConnManager
 
 	// Hook function when the current connection is created
@@ -100,15 +100,15 @@ type Connection struct {
 	hc ziface.IHeartbeatChecker
 
 	// Connection name, default to be the same as the name of the Server/Client that created the connection
-	// (链接名称，默认与创建链接的Server/Client的Name一致)
+	// (连接名称，默认与创建连接的Server/Client的Name一致)
 	name string
 
 	// Local address of the current connection
-	// (当前链接的本地地址)
+	// (当前连接的本地地址)
 	localAddr string
 
 	// Remote address of the current connection
-	// (当前链接的远程地址)
+	// (当前连接的远程地址)
 	remoteAddr string
 
 	// Close callback
@@ -152,7 +152,7 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 	c.connManager = server.GetConnMgr()
 
 	// Add the newly created Conn to the connection manager
-	// (将新创建的Conn添加到链接管理中)
+	// (将新创建的Conn添加到连接管理中)
 	server.GetConnMgr().Add(c)
 
 	return c
@@ -497,7 +497,7 @@ func (c *Connection) Context() context.Context {
 
 func (c *Connection) finalizer() {
 	// Call the callback function registered by the user when closing the connection if it exists
-	// (如果用户注册了该链接的	关闭回调业务，那么在此刻应该显示调用)
+	// (如果用户注册了该连接的	关闭回调业务，那么在此刻应该显示调用)
 	c.callOnConnStop()
 
 	// Stop the heartbeat detector associated with the connection

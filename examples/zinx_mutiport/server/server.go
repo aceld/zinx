@@ -13,9 +13,9 @@ import (
 
 // Execute when creating a connection (创建连接的时候执行)
 func DoConnectionBegin(conn ziface.IConnection) {
-	zlog.Ins().InfoF("DoConnecionBegin is Called ...")
+	zlog.Ins().InfoF("DoConnectionBegin is Called ...")
 
-	//设置两个链接属性，在连接创建之后
+	//设置两个连接属性，在连接创建之后
 	conn.SetProperty("Name", "Aceld")
 	conn.SetProperty("Home", "https://yuque.com/@aceld")
 

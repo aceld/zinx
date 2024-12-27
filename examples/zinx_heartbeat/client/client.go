@@ -17,7 +17,7 @@ func myClientHeartBeatMsg(conn ziface.IConnection) []byte {
 // 用户自定义的远程连接不存活时的处理方法
 func myClientOnRemoteNotAlive(conn ziface.IConnection) {
 	fmt.Println("myClientOnRemoteNotAlive is Called, connID=", conn.GetConnID(), "remoteAddr = ", conn.RemoteAddr())
-	//关闭链接
+	//关闭连接
 	conn.Stop()
 }
 

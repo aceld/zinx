@@ -17,14 +17,14 @@ import (
 type Client struct {
 	// Client Name 客户端的名称
 	Name string
-	// IP of the target server to connect 目标链接服务器的IP
+	// IP of the target server to connect 目标连接服务器的IP
 	Ip string
-	// Port of the target server to connect 目标链接服务器的端口
+	// Port of the target server to connect 目标连接服务器的端口
 	Port int
 	Url  *url.URL // 扩展，连接时带上其他参数
 	// Client version tcp,websocket,客户端版本 tcp,websocket
 	version string
-	// Connection instance 链接实例
+	// Connection instance 连接实例
 	conn ziface.IConnection
 	// Hook function called on connection start 该client的连接创建时Hook函数
 	onConnStart func(conn ziface.IConnection)
@@ -32,7 +32,7 @@ type Client struct {
 	onConnStop func(conn ziface.IConnection)
 	// Data packet packer 数据报文封包方式
 	packet ziface.IDataPack
-	// Asynchronous channel for capturing connection close status 异步捕获链接关闭状态
+	// Asynchronous channel for capturing connection close status 异步捕获连接关闭状态
 	exitChan chan struct{}
 	// Message management module 消息管理模块
 	msgHandler ziface.IMsgHandle
@@ -173,7 +173,7 @@ func (c *Client) Restart() {
 		// HeartBeat detection
 		if c.hc != nil {
 			// Bind connection and heartbeat detector after connection is successfully established
-			// (创建链接成功，绑定链接与心跳检测器)
+			// (创建连接成功，绑定连接与心跳检测器)
 			c.hc.BindConn(c.conn)
 		}
 
@@ -188,7 +188,7 @@ func (c *Client) Restart() {
 }
 
 // Start starts the client, sends requests and establishes a connection.
-// (启动客户端，发送请求且建立链接)
+// (启动客户端，发送请求且建立连接)
 func (c *Client) Start() {
 
 	// Add the decoder to the interceptor list (将解码器添加到拦截器)

@@ -58,7 +58,7 @@ func newMsgHandle() *MsgHandle {
 	if zconf.GlobalObject.WorkerMode == zconf.WorkerModeBind {
 		// Assign a workder to each link, avoid interactions when multiple links are processed by the same worker
 		// MaxWorkerTaskLen can also be reduced, for example, 50
-		// 为每个链接分配一个workder，避免同一worker处理多个链接时的互相影响
+		// 为每个连接分配一个workder，避免同一worker处理多个连接时的互相影响
 		// 同时可以减小MaxWorkerTaskLen，比如50，因为每个worker的负担减轻了
 		zconf.GlobalObject.WorkerPoolSize = uint32(zconf.GlobalObject.MaxConn)
 		freeWorkers = make(map[uint32]struct{}, zconf.GlobalObject.WorkerPoolSize)
@@ -112,7 +112,7 @@ func newCliMsgHandle() *MsgHandle {
 	if zconf.GlobalObject.WorkerMode == zconf.WorkerModeBind {
 		// Assign a workder to each link, avoid interactions when multiple links are processed by the same worker
 		// MaxWorkerTaskLen can also be reduced, for example, 50
-		// 为每个链接分配一个workder，避免同一worker处理多个链接时的互相影响
+		// 为每个连接分配一个workder，避免同一worker处理多个连接时的互相影响
 		// 同时可以减小MaxWorkerTaskLen，比如50，因为每个worker的负担减轻了
 		zconf.GlobalObject.WorkerPoolSize = uint32(zconf.GlobalObject.MaxConn)
 		freeWorkers = make(map[uint32]struct{}, zconf.GlobalObject.WorkerPoolSize)

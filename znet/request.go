@@ -28,7 +28,7 @@ func init() {
 // Request 请求
 type Request struct {
 	ziface.BaseRequest
-	conn     ziface.IConnection     // the connection which has been established with the client(已经和客户端建立好的链接)
+	conn     ziface.IConnection     // the connection which has been established with the client(已经和客户端建立好的连接)
 	msg      ziface.IMessage        // the request data sent by the client(客户端请求的数据)
 	router   ziface.IRouter         // the router that handles this request(请求处理的函数)
 	steps    ziface.HandleStep      // used to control the execution of router functions(用来控制路由函数执行)

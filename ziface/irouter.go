@@ -7,8 +7,8 @@ package ziface
 // business method set by the framework user for this connection. The IRequest
 // in the route includes the connection information and the request data
 // information for this connection.
-// (路由接口， 这里面路由是 使用框架者给该链接自定的 处理业务方法
-// 路由里的IRequest 则包含用该链接的链接信息和该链接的请求数据信息)
+// (路由接口， 这里面路由是 使用框架者给该连接自定的 处理业务方法
+// 路由里的IRequest 则包含用该连接的连接信息和该连接的请求数据信息)
 type IRouter interface {
 	PreHandle(request IRequest)  //Hook method before processing conn business(在处理conn业务之前的钩子方法)
 	Handle(request IRequest)     //Method for processing conn business(处理conn业务的方法)

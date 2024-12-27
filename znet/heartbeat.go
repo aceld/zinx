@@ -19,7 +19,7 @@ type HeartbeatChecker struct {
 	msgID        uint32                 // Heartbeat message ID(心跳的消息ID)
 	router       ziface.IRouter         // User-defined heartbeat message business processing router(用户自定义的心跳检测消息业务处理路由)
 	routerSlices []ziface.RouterHandler //(用户自定义的心跳检测消息业务处理新路由)
-	conn         ziface.IConnection     // Bound connection(绑定的链接)
+	conn         ziface.IConnection     // Bound connection(绑定的连接)
 
 	beatFunc ziface.HeartBeatFunc // // User-defined heartbeat sending function(用户自定义心跳发送函数)
 }
@@ -162,7 +162,7 @@ func (h *HeartbeatChecker) BindConn(conn ziface.IConnection) {
 }
 
 // Clone clones to a specified connection
-// (克隆到一个指定的链接上)
+// (克隆到一个指定的连接上)
 func (h *HeartbeatChecker) Clone() ziface.IHeartbeatChecker {
 
 	heartbeat := &HeartbeatChecker{

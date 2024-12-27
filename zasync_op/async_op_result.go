@@ -14,7 +14,7 @@ import (
 )
 
 type AsyncOpResult struct {
-	// Player connection (玩家链接)
+	// Player connection (玩家连接)
 	conn ziface.IConnection
 	// Returned object (已返回对象)
 	returnedObj interface{}
