@@ -6,7 +6,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/stretchr/testify v1.8.1
 	github.com/xtaci/kcp-go v5.4.20+incompatible
-	golang.org/x/net v0.23.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 )
 
