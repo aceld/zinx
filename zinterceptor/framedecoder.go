@@ -10,10 +10,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"math"
-	"sync"
-
 	"github.com/aceld/zinx/ziface"
+	"math"
 )
 
 // FrameDecoder
@@ -315,7 +313,6 @@ type FrameDecoder struct {
 	tooLongFrameLength     int64 // When the length of a packet exceeds maxLength, discard mode is enabled, and this field records the length of the data to be discarded (当某个数据包的长度超过maxLength，则开启丢弃模式，此字段记录需要丢弃的数据长度)
 	bytesToDiscard         int64 // Records how many bytes still need to be discarded (记录还剩余多少字节需要丢弃)
 	in                     []byte
-	lock                   sync.Mutex
 }
 
 func NewFrameDecoder(lf ziface.LengthField) ziface.IFrameDecoder {
@@ -579,8 +576,6 @@ func (d *FrameDecoder) decode(buf []byte) []byte {
 }
 
 func (d *FrameDecoder) Decode(buff []byte) [][]byte {
-	d.lock.Lock()
-	defer d.lock.Unlock()
 
 	d.in = append(d.in, buff...)
 	resp := make([][]byte, 0)
