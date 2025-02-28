@@ -426,6 +426,10 @@ func (log *ZinxLoggerCore) SetLogLevel(logLevel int) {
 	log.isolationLevel = logLevel
 }
 
+func (log *ZinxLoggerCore) DebugEnabled() bool {
+	return log.isolationLevel == LogDebug
+}
+
 // Convert an integer to a fixed-length string, where the width of the string should be greater than 0
 // Ensure that the buffer has sufficient capacity
 // (将一个整形转换成一个固定长度的字符串，字符串宽度应该是大于0的

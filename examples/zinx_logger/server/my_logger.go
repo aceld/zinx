@@ -41,3 +41,7 @@ func (l *MyLogger) DebugFX(ctx context.Context, format string, v ...interface{})
 	fmt.Println(ctx)
 	fmt.Printf(format, v...)
 }
+
+func (l *MyLogger) DebugEnabled() bool {
+	return true
+}
