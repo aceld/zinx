@@ -173,6 +173,9 @@ func (c *Client) Restart() {
 			connect = newClientConn(c, conn)
 		}
 
+		// Set connection to the client
+		c.setConn(connect)
+
 		zlog.Ins().InfoF("[START] Zinx Client LocalAddr: %s, RemoteAddr: %s\n", connect.LocalAddr(), connect.RemoteAddr())
 		// HeartBeat detection
 		if c.hc != nil {
