@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/aceld/zinx/zdecoder"
@@ -26,6 +27,8 @@ type Client struct {
 	version string
 	// Connection instance 连接实例
 	conn ziface.IConnection
+	// Connection instance 连接实例的锁，保证可见性
+	connMux sync.Mutex
 	// Hook function called on connection start 该client的连接创建时Hook函数
 	onConnStart func(conn ziface.IConnection)
 	// Hook function called on connection stop 该client的连接断开时的Hook函数
@@ -121,6 +124,7 @@ func (c *Client) Restart() {
 		}
 
 		// Create a raw socket and get net.Conn (创建原始Socket，得到net.Conn)
+		var connect ziface.IConnection
 		switch c.version {
 		case "websocket":
 			wsAddr := fmt.Sprintf("ws://%s:%d", c.Ip, c.Port)
@@ -137,7 +141,7 @@ func (c *Client) Restart() {
 				return
 			}
 			// Create Connection object
-			c.conn = newWsClientConn(c, wsConn)
+			connect = newWsClientConn(c, wsConn)
 
 		default:
 			var conn net.Conn
@@ -166,19 +170,22 @@ func (c *Client) Restart() {
 				}
 			}
 			// Create Connection object
-			c.conn = newClientConn(c, conn)
+			connect = newClientConn(c, conn)
 		}
 
-		zlog.Ins().InfoF("[START] Zinx Client LocalAddr: %s, RemoteAddr: %s\n", c.conn.LocalAddr(), c.conn.RemoteAddr())
+		// Set connection to the client
+		c.setConn(connect)
+
+		zlog.Ins().InfoF("[START] Zinx Client LocalAddr: %s, RemoteAddr: %s\n", connect.LocalAddr(), connect.RemoteAddr())
 		// HeartBeat detection
 		if c.hc != nil {
 			// Bind connection and heartbeat detector after connection is successfully established
 			// (创建连接成功，绑定连接与心跳检测器)
-			c.hc.BindConn(c.conn)
+			c.hc.BindConn(connect)
 		}
 
 		// Start connection
-		go c.conn.Start()
+		go connect.Start()
 
 		select {
 		case <-c.exitChan:
@@ -237,8 +244,11 @@ func (c *Client) StartHeartBeatWithOption(interval time.Duration, option *ziface
 }
 
 func (c *Client) Stop() {
-	zlog.Ins().InfoF("[STOP] Zinx Client LocalAddr: %s, RemoteAddr: %s\n", c.conn.LocalAddr(), c.conn.RemoteAddr())
-	c.conn.Stop()
+	con := c.Conn()
+	if con != nil {
+		zlog.Ins().InfoF("[STOP] Zinx Client LocalAddr: %s, RemoteAddr: %s\n", con.LocalAddr(), con.RemoteAddr())
+		con.Stop()
+	}
 	c.exitChan <- struct{}{}
 	close(c.exitChan)
 	close(c.ErrChan)
@@ -249,7 +259,15 @@ func (c *Client) AddRouter(msgID uint32, router ziface.IRouter) {
 }
 
 func (c *Client) Conn() ziface.IConnection {
+	c.connMux.Lock()
+	defer c.connMux.Unlock()
 	return c.conn
+}
+
+func (c *Client) setConn(con ziface.IConnection) {
+	c.connMux.Lock()
+	defer c.connMux.Unlock()
+	c.conn = con
 }
 
 func (c *Client) SetOnConnStart(hookFunc func(ziface.IConnection)) {
