@@ -43,7 +43,7 @@ import (
 
 // Asynchronous worker group (异步worker组)
 var asyncWorkerArray = [2048]*AsyncWorker{}
-var initAsyncWorkerLocker = &sync.Mutex{}
+var onceArray = [2048]sync.Once{} // 每个元素对应一个 worker 的 Once
 
 func Process(opId int, asyncOp func()) {
 	if asyncOp == nil {
@@ -59,37 +59,29 @@ func Process(opId int, asyncOp func()) {
 }
 
 func getCurWorker(opId int) *AsyncWorker {
+	// If opId is less than 0, convert it to its absolute value to ensure opId is positive
+	// (如果 opId 小于 0，则取其绝对值，确保 opId 为正数)
 	if opId < 0 {
 		opId = -opId
 	}
 
+	// 使用 opId 对工作者数组长度取模，确保根据 opId 获取到一个有效的工作者索引
+	// (Use opId % len(asyncWorkerArray) to calculate a valid worker index)
 	workerIndex := opId % len(asyncWorkerArray)
-	curWorker := asyncWorkerArray[workerIndex]
 
-	if nil != curWorker {
-		return curWorker
-	}
+	// Use sync.Once to ensure initialization happens only once for each worker
+	// (使用 sync.Once 确保对每个工作者的初始化操作只会执行一次)
+	onceArray[workerIndex].Do(func() {
+		// Initialization: create a task queue for the worker at the current index and start a goroutine to execute tasks
+		// (初始化操作：为当前索引的工作者创建任务队列，并启动一个 goroutine 执行任务)
+		asyncWorkerArray[workerIndex] = &AsyncWorker{
+			taskQ: make(chan func(), 2048), // Create a task queue with a capacity of 2048
+		}
 
-	// Initialization (初始化)
-	initAsyncWorkerLocker.Lock()
-	defer initAsyncWorkerLocker.Unlock()
+		// Start a goroutine to repeatedly execute tasks for the worker
+		go asyncWorkerArray[workerIndex].loopExecTask()
+	})
 
-	// Re-acquire the worker who does the job (重新拿到这个干活的工人)
-	curWorker = asyncWorkerArray[workerIndex]
-
-	// And recheck for nil value (并重新进行空指针判断)
-	if curWorker != nil {
-		return curWorker
-	}
-
-	// If it is still nil after double checking, perform initialization operation
-	// (双重检查之后还是空值,进行初始化操作)
-	curWorker = &AsyncWorker{
-		taskQ: make(chan func(), 2048),
-	}
-
-	asyncWorkerArray[workerIndex] = curWorker
-	go curWorker.loopExecTask()
-
-	return curWorker
+	// Return the worker at the corresponding index
+	return asyncWorkerArray[workerIndex]
 }
