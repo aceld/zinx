@@ -48,6 +48,7 @@ type Config struct {
 	Host    string // The IP address of the current server. (当前服务器主机IP)
 	TCPPort int    // The port number on which the server listens for TCP connections.(当前服务器主机监听端口号)
 	WsPort  int    // The port number on which the server listens for WebSocket connections.(当前服务器主机websocket监听端口)
+	WsPath  string // The path of the WebSocket connection.(websocket连接路径)
 	Name    string // The name of the current server.(当前服务器名称)
 	KcpPort int    // he port number on which the server listens for KCP connections.(当前服务器主机监听端口号)
 
@@ -219,6 +220,7 @@ func init() {
 		Version:           "V1.0",
 		TCPPort:           8999,
 		WsPort:            9000,
+		WsPath:            "/",
 		KcpPort:           9001,
 		Host:              "0.0.0.0",
 		MaxConn:           12000,

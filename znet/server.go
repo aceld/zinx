@@ -39,6 +39,8 @@ type Server struct {
 	Port int
 	// 服务绑定的websocket 端口 (Websocket port the server is bound to)
 	WsPort int
+	// 服务绑定的websocket 路径 (Websocket path the server is bound to)
+	WsPath string
 	// 服务绑定的kcp 端口 (kcp port the server is bound to)
 	KcpPort int
 
@@ -133,6 +135,7 @@ func newServerWithConfig(config *zconf.Config, ipVersion string, opts ...Option)
 		IP:               config.Host,
 		Port:             config.TCPPort,
 		WsPort:           config.WsPort,
+		WsPath:           config.WsPath,
 		KcpPort:          config.KcpPort,
 		msgHandler:       newMsgHandle(),
 		RouterSlicesMode: config.RouterSlicesMode,
@@ -311,8 +314,8 @@ func (s *Server) ListenTcpConn() {
 }
 
 func (s *Server) ListenWebsocketConn() {
-	zlog.Ins().InfoF("[START] WEBSOCKET Server name: %s,listener at IP: %s, Port %d is starting", s.Name, s.IP, s.WsPort)
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	zlog.Ins().InfoF("[START] WEBSOCKET Server name: %s,listener at IP: %s, Port %d, Path %s is starting", s.Name, s.IP, s.WsPort, s.WsPath)
+	http.HandleFunc(s.WsPath, func(w http.ResponseWriter, r *http.Request) {
 		// 1. Check if the server has reached the maximum allowed number of connections
 		// (设置服务器最大连接控制,如果超过最大连接，则等待)
 		if s.ConnMgr.Len() >= zconf.GlobalObject.MaxConn {
