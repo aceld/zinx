@@ -84,6 +84,9 @@ func UserConfToGlobal(config *Config) {
 	if config.WsPort != 0 {
 		GlobalObject.WsPort = config.WsPort
 	}
+	if config.WsPath != "" {
+		GlobalObject.WsPath = config.WsPath
+	}
 
 	if config.RouterSlicesMode {
 		GlobalObject.RouterSlicesMode = config.RouterSlicesMode
