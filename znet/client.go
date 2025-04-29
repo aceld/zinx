@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+	"net/http"
 	"net/url"
 	"sync"
 	"time"
@@ -23,6 +24,8 @@ type Client struct {
 	// Port of the target server to connect 目标连接服务器的端口
 	Port int
 	Url  *url.URL // 扩展，连接时带上其他参数
+	// Custom headers for WebSocket connection WebSocket连接的自定义头信息
+	WsHeader http.Header
 	// Client version tcp,websocket,客户端版本 tcp,websocket
 	version string
 	// Connection instance 连接实例
@@ -133,7 +136,7 @@ func (c *Client) Restart() {
 			}
 
 			// Create a raw socket and get net.Conn (创建原始Socket，得到net.Conn)
-			wsConn, _, err := c.dialer.Dial(wsAddr, nil)
+			wsConn, _, err := c.dialer.Dial(wsAddr, c.WsHeader)
 			if err != nil {
 				// connection failed
 				zlog.Ins().ErrorF("WsClient connect to server failed, err:%v", err)
@@ -330,4 +333,12 @@ func (c *Client) SetUrl(url *url.URL) {
 
 func (c *Client) GetUrl() *url.URL {
 	return c.Url
+}
+
+func (c *Client) SetWsHeader(header http.Header) {
+	c.WsHeader = header
+}
+
+func (c *Client) GetWsHeader() http.Header {
+	return c.WsHeader
 }

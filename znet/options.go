@@ -1,6 +1,7 @@
 package znet
 
 import (
+	"net/http"
 	"net/url"
 
 	"github.com/aceld/zinx/ziface"
@@ -40,5 +41,12 @@ func WithNameClient(name string) ClientOption {
 func WithUrl(url *url.URL) ClientOption {
 	return func(c ziface.IClient) {
 		c.SetUrl(url)
+	}
+}
+
+// Set custom headers for WebSocket connection
+func WithWsHeader(header http.Header) ClientOption {
+	return func(c ziface.IClient) {
+		c.SetWsHeader(header)
 	}
 }
