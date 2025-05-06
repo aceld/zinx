@@ -5,6 +5,7 @@
 package ziface
 
 import (
+	"net/http"
 	"net/url"
 	"time"
 )
@@ -73,4 +74,12 @@ type IClient interface {
 	SetUrl(url *url.URL)
 
 	GetUrl() *url.URL
+
+	// Set custom headers for WebSocket connection
+	// 设置WebSocket连接的自定义请求头
+	SetWsHeader(http.Header)
+
+	// Get custom headers for WebSocket connection
+	// 获取WebSocket连接的自定义请求头
+	GetWsHeader() http.Header
 }
