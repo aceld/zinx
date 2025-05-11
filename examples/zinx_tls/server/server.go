@@ -7,13 +7,14 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"math/big"
+	"os"
+	"time"
+
 	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/znet"
-	"math/big"
-	"os"
-	"time"
 )
 
 // PingRouter ping test 自定义路由
@@ -27,7 +28,7 @@ func (this *PingRouter) Handle(request ziface.IRequest) {
 	zlog.Debug("Call PingRouter Handle")
 	zlog.Debug("recv from client : msgId=", request.GetMsgID(), ", data=", string(request.GetData()))
 
-	err := request.GetConnection().SendBuffMsg(2, []byte("Pong with TLS"))
+	err := request.GetConnection().SendBuffMsg(2, []byte("Pong with TLS"), ziface.WithSendMsgTimeout(time.Millisecond*10))
 	if err != nil {
 		zlog.Error(err)
 	}
