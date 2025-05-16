@@ -364,7 +364,7 @@ func (c *KcpConnection) Send(data []byte) error {
 	return nil
 }
 
-func (c *KcpConnection) SendToQueue(data []byte) error {
+func (c *KcpConnection) SendToQueue(data []byte, opts ...ziface.MsgSendOption) error {
 	c.msgLock.RLock()
 	defer c.msgLock.RUnlock()
 
@@ -377,7 +377,15 @@ func (c *KcpConnection) SendToQueue(data []byte) error {
 		go c.StartWriter()
 	}
 
-	idleTimeout := time.NewTimer(5 * time.Millisecond)
+	opt := ziface.MsgSendOptionObj{
+		Timeout: 5 * time.Millisecond,
+	}
+
+	for _, o := range opts {
+		o(&opt)
+	}
+
+	idleTimeout := time.NewTimer(opt.Timeout)
 	defer idleTimeout.Stop()
 
 	if c.isClosed() {
@@ -420,7 +428,7 @@ func (c *KcpConnection) SendMsg(msgID uint32, data []byte) error {
 	return nil
 }
 
-func (c *KcpConnection) SendBuffMsg(msgID uint32, data []byte) error {
+func (c *KcpConnection) SendBuffMsg(msgID uint32, data []byte, opts ...ziface.MsgSendOption) error {
 	if c.isClosed() {
 		return errors.New("connection closed when send buff msg")
 	}
@@ -433,7 +441,15 @@ func (c *KcpConnection) SendBuffMsg(msgID uint32, data []byte) error {
 		go c.StartWriter()
 	}
 
-	idleTimeout := time.NewTimer(5 * time.Millisecond)
+	opt := ziface.MsgSendOptionObj{
+		Timeout: 5 * time.Millisecond,
+	}
+
+	for _, o := range opts {
+		o(&opt)
+	}
+
+	idleTimeout := time.NewTimer(opt.Timeout)
 	defer idleTimeout.Stop()
 
 	msg, err := c.packet.Pack(zpack.NewMsgPackage(msgID, data))

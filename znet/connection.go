@@ -394,7 +394,7 @@ func (c *Connection) SendBuf(data []byte) error {
 	return nil
 }
 
-func (c *Connection) SendToQueue(data []byte) error {
+func (c *Connection) SendToQueue(data []byte, opts ...ziface.MsgSendOption) error {
 
 	if c.msgBuffChan == nil && c.setStartWriterFlag() {
 		c.msgBuffChan = make(chan []byte, zconf.GlobalObject.MaxMsgChanLen)
@@ -405,7 +405,15 @@ func (c *Connection) SendToQueue(data []byte) error {
 		go c.StartWriter()
 	}
 
-	idleTimeout := time.NewTimer(5 * time.Millisecond)
+	opt := ziface.MsgSendOptionObj{
+		Timeout: 5 * time.Millisecond,
+	}
+
+	for _, o := range opts {
+		o(&opt)
+	}
+
+	idleTimeout := time.NewTimer(opt.Timeout)
 	defer idleTimeout.Stop()
 
 	if c.isClosed() == true {
@@ -453,13 +461,13 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 	return nil
 }
 
-func (c *Connection) SendBuffMsg(msgID uint32, data []byte) error {
+func (c *Connection) SendBuffMsg(msgID uint32, data []byte, opts ...ziface.MsgSendOption) error {
 	msg, err := c.packet.Pack(zpack.NewMsgPackage(msgID, data))
 	if err != nil {
 		zlog.Ins().ErrorF("Pack error msg ID = %d", msgID)
 		return errors.New("Pack error msg ")
 	}
-	return c.SendToQueue(msg)
+	return c.SendToQueue(msg, opts...)
 
 }
 

@@ -362,7 +362,7 @@ func (c *WsConnection) Send(data []byte) error {
 	return nil
 }
 
-func (c *WsConnection) SendToQueue(data []byte) error {
+func (c *WsConnection) SendToQueue(data []byte, opts ...ziface.MsgSendOption) error {
 	c.msgLock.Lock()
 	defer c.msgLock.Unlock()
 
@@ -375,7 +375,15 @@ func (c *WsConnection) SendToQueue(data []byte) error {
 		go c.StartWriter()
 	}
 
-	idleTimeout := time.NewTimer(5 * time.Millisecond)
+	opt := ziface.MsgSendOptionObj{
+		Timeout: 5 * time.Millisecond,
+	}
+
+	for _, o := range opts {
+		o(&opt)
+	}
+
+	idleTimeout := time.NewTimer(opt.Timeout)
 	defer idleTimeout.Stop()
 
 	if c.isClosed == true {
@@ -423,7 +431,7 @@ func (c *WsConnection) SendMsg(msgID uint32, data []byte) error {
 }
 
 // SendBuffMsg sends BuffMsg
-func (c *WsConnection) SendBuffMsg(msgID uint32, data []byte) error {
+func (c *WsConnection) SendBuffMsg(msgID uint32, data []byte, opts ...ziface.MsgSendOption) error {
 	c.msgLock.Lock()
 	defer c.msgLock.Unlock()
 
@@ -436,7 +444,15 @@ func (c *WsConnection) SendBuffMsg(msgID uint32, data []byte) error {
 		go c.StartWriter()
 	}
 
-	idleTimeout := time.NewTimer(5 * time.Millisecond)
+	opt := ziface.MsgSendOptionObj{
+		Timeout: 5 * time.Millisecond,
+	}
+
+	for _, o := range opts {
+		o(&opt)
+	}
+
+	idleTimeout := time.NewTimer(opt.Timeout)
 	defer idleTimeout.Stop()
 
 	if c.isClosed == true {
