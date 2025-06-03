@@ -19,7 +19,7 @@ type AsyncOpResult struct {
 	// Returned object (已返回对象)
 	returnedObj interface{}
 	// Completion callback function(完成回调函数)
-	completeFunc func()
+	completeFunc atomic.Value
 	// Whether the return value has been set(是否已有返回值)
 	hasReturnedObj int32
 	// Whether the completion callback function has been set(是否已有回调函数)
@@ -49,7 +49,7 @@ func (aor *AsyncOpResult) SetReturnedObj(val interface{}) {
 // OnComplete sets the completion callback function(完成回调函数)
 func (aor *AsyncOpResult) OnComplete(val func()) {
 	if atomic.CompareAndSwapInt32(&aor.hasCompleteFunc, 0, 1) {
-		aor.completeFunc = val
+		aor.completeFunc.Store(val)
 
 		// **** 防止未调用回调函数问题:设置回调函数时，发现已经有处理结果了，直接调用 ****
 		// **** Prevent the problem of not calling the completion callback function:
@@ -64,16 +64,19 @@ func (aor *AsyncOpResult) OnComplete(val func()) {
 // doComplete executes the completion callback function, double-checking when setting the processing result and callback function to prevent the possibility of not calling the callback function
 // (执行完成回调,在设置处理结果和回调函数的时候双重检查，杜绝未调用回调函数的可能性)
 func (aor *AsyncOpResult) doComplete() {
-	if aor.completeFunc == nil {
+	v := aor.completeFunc.Load()
+	if v == nil {
 		return
 	}
+
+	cf := v.(func())
 
 	// Prevent re-entry problems (防止可重入问题)
 	if atomic.CompareAndSwapInt32(&aor.completeFuncHasAlreadyBeenCalled, 0, 1) {
 		// Prevent cross-thread calling problems,
 		// throw it to the corresponding business thread to execute
 		// (防止跨线程调用问题,扔到所属业务线程里去执行)
-		request := znet.NewFuncRequest(aor.conn, aor.completeFunc)
+		request := znet.NewFuncRequest(aor.conn, cf)
 		aor.conn.GetMsgHandler().SendMsgToTaskQueue(request)
 	}
 }
