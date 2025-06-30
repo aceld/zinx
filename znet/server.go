@@ -357,10 +357,18 @@ func (s *Server) ListenWebsocketConn() {
 
 	})
 
-	err := http.ListenAndServe(fmt.Sprintf("%s:%d", s.IP, s.WsPort), nil)
-	if err != nil {
-		panic(err)
+	if zconf.GlobalObject.CertFile != "" && zconf.GlobalObject.PrivateKeyFile != "" {
+		err := http.ListenAndServeTLS(fmt.Sprintf("%s:%d", s.IP, s.WsPort), zconf.GlobalObject.CertFile, zconf.GlobalObject.PrivateKeyFile, nil)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		err := http.ListenAndServe(fmt.Sprintf("%s:%d", s.IP, s.WsPort), nil)
+		if err != nil {
+			panic(err)
+		}
 	}
+
 }
 
 func (s *Server) ListenKcpConn() {
