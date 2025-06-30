@@ -121,6 +121,10 @@ func Stack(v ...interface{}) {
 	StdZinxLog.Stack(v...)
 }
 
+func DebugEnabled() bool {
+	return StdZinxLog.DebugEnabled()
+}
+
 func init() {
 	// Since the StdZinxLog object wraps all output methods with an extra layer, the call depth is one more than a normal logger object
 	// The call depth of a regular zinxLogger object is 2, and the call depth of StdZinxLog is 3
