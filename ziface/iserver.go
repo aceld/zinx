@@ -73,6 +73,13 @@ type IServer interface {
 	SetDecoder(IDecoder)
 	AddInterceptor(IInterceptor)
 
+	// Set the custom frame decoder for handling custom packet splitting
+	// (设置自定义帧解码器，用于处理自定义粘包)
+	SetFrameDecoder(IFrameDecoder)
+	// Get the custom frame decoder
+	// (获取自定义帧解码器)
+	GetFrameDecoder() IFrameDecoder
+
 	// Add WebSocket authentication method
 	// (添加websocket认证方法)
 	SetWebsocketAuth(func(r *http.Request) error)

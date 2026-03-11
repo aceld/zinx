@@ -59,6 +59,9 @@ type Client struct {
 	dialer *websocket.Dialer
 	// Error channel
 	errChan chan error
+	// Custom frame decoder for handling custom packet splitting
+	// (自定义帧解码器，用于处理自定义粘包)
+	frameDecoder ziface.IFrameDecoder
 }
 
 func NewClient(ip string, port int, opts ...ClientOption) ziface.IClient {
@@ -347,11 +350,24 @@ func (c *Client) AddInterceptor(interceptor ziface.IInterceptor) {
 func (c *Client) SetDecoder(decoder ziface.IDecoder) {
 	c.decoder = decoder
 }
+
 func (c *Client) GetLengthField() *ziface.LengthField {
 	if c.decoder != nil {
 		return c.decoder.GetLengthField()
 	}
 	return nil
+}
+
+// SetFrameDecoder sets the custom frame decoder for handling custom packet splitting
+// (设置自定义帧解码器，用于处理自定义粘包)
+func (c *Client) SetFrameDecoder(frameDecoder ziface.IFrameDecoder) {
+	c.frameDecoder = frameDecoder
+}
+
+// GetFrameDecoder gets the custom frame decoder
+// (获取自定义帧解码器)
+func (c *Client) GetFrameDecoder() ziface.IFrameDecoder {
+	return c.frameDecoder
 }
 
 func (c *Client) GetErrChan() <-chan error {

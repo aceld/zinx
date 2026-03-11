@@ -141,7 +141,10 @@ func newServerConn(server ziface.IServer, conn net.Conn, connID uint64) ziface.I
 	}
 
 	lengthField := server.GetLengthField()
-	if lengthField != nil {
+	// First check if there's a custom frame decoder
+	if server.GetFrameDecoder() != nil {
+		c.frameDecoder = server.GetFrameDecoder()
+	} else if lengthField != nil {
 		c.frameDecoder = zinterceptor.NewFrameDecoder(*lengthField)
 	}
 
@@ -179,7 +182,10 @@ func newClientConn(client ziface.IClient, conn net.Conn) ziface.IConnection {
 	}
 
 	lengthField := client.GetLengthField()
-	if lengthField != nil {
+	// First check if there's a custom frame decoder
+	if client.GetFrameDecoder() != nil {
+		c.frameDecoder = client.GetFrameDecoder()
+	} else if lengthField != nil {
 		c.frameDecoder = zinterceptor.NewFrameDecoder(*lengthField)
 	}
 

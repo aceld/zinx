@@ -135,7 +135,10 @@ func newKcpServerConn(server ziface.IServer, conn *kcp.UDPSession, connID uint64
 	}
 
 	lengthField := server.GetLengthField()
-	if lengthField != nil {
+	// First check if there's a custom frame decoder
+	if server.GetFrameDecoder() != nil {
+		c.frameDecoder = server.GetFrameDecoder()
+	} else if lengthField != nil {
 		c.frameDecoder = zinterceptor.NewFrameDecoder(*lengthField)
 	}
 
@@ -171,7 +174,10 @@ func newKcpClientConn(client ziface.IClient, conn *kcp.UDPSession) ziface.IConne
 	}
 
 	lengthField := client.GetLengthField()
-	if lengthField != nil {
+	// First check if there's a custom frame decoder
+	if client.GetFrameDecoder() != nil {
+		c.frameDecoder = client.GetFrameDecoder()
+	} else if lengthField != nil {
 		c.frameDecoder = zinterceptor.NewFrameDecoder(*lengthField)
 	}
 

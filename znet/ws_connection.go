@@ -132,7 +132,10 @@ func newWebsocketConn(server ziface.IServer, conn *websocket.Conn, connID uint64
 	}
 
 	lengthField := server.GetLengthField()
-	if lengthField != nil {
+	// First check if there's a custom frame decoder
+	if server.GetFrameDecoder() != nil {
+		c.frameDecoder = server.GetFrameDecoder()
+	} else if lengthField != nil {
 		c.frameDecoder = zinterceptor.NewFrameDecoder(*lengthField)
 	}
 
@@ -167,7 +170,10 @@ func newWsClientConn(client ziface.IClient, conn *websocket.Conn) ziface.IConnec
 	}
 
 	lengthField := client.GetLengthField()
-	if lengthField != nil {
+	// First check if there's a custom frame decoder
+	if client.GetFrameDecoder() != nil {
+		c.frameDecoder = client.GetFrameDecoder()
+	} else if lengthField != nil {
 		c.frameDecoder = zinterceptor.NewFrameDecoder(*lengthField)
 	}
 

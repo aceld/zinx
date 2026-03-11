@@ -57,6 +57,13 @@ type IClient interface {
 	// SetDecoder Set the decoder for this Client 设置解码器
 	SetDecoder(IDecoder)
 
+	// SetFrameDecoder Set the custom frame decoder for handling custom packet splitting
+	// (设置自定义帧解码器，用于处理自定义粘包)
+	SetFrameDecoder(IFrameDecoder)
+	// GetFrameDecoder Get the custom frame decoder
+	// (获取自定义帧解码器)
+	GetFrameDecoder() IFrameDecoder
+
 	// AddInterceptor Add an interceptor for this Client 添加拦截器
 	AddInterceptor(IInterceptor)
 

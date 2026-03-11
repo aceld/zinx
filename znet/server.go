@@ -89,6 +89,10 @@ type Server struct {
 
 	// connection id
 	cID uint64
+
+	// Custom frame decoder for handling custom packet splitting
+	// (自定义帧解码器，用于处理自定义粘包)
+	frameDecoder ziface.IFrameDecoder
 }
 
 type KcpConfig struct {
@@ -602,6 +606,18 @@ func (s *Server) GetLengthField() *ziface.LengthField {
 		return s.decoder.GetLengthField()
 	}
 	return nil
+}
+
+// SetFrameDecoder sets the custom frame decoder for handling custom packet splitting
+// (设置自定义帧解码器，用于处理自定义粘包)
+func (s *Server) SetFrameDecoder(frameDecoder ziface.IFrameDecoder) {
+	s.frameDecoder = frameDecoder
+}
+
+// GetFrameDecoder gets the custom frame decoder
+// (获取自定义帧解码器)
+func (s *Server) GetFrameDecoder() ziface.IFrameDecoder {
+	return s.frameDecoder
 }
 
 func (s *Server) AddInterceptor(interceptor ziface.IInterceptor) {
