@@ -73,6 +73,10 @@ func Debugf(format string, v ...interface{}) {
 	StdZinxLog.Debugf(format, v...)
 }
 
+func IsDebugEnabled() bool {
+	return StdZinxLog.IsDebugEnabled()
+}
+
 func Debug(v ...interface{}) {
 	StdZinxLog.Debug(v...)
 }

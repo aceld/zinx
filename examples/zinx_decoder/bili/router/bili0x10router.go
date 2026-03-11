@@ -14,7 +14,9 @@ type Data0x10Router struct {
 }
 
 func (this *Data0x10Router) Handle(request ziface.IRequest) {
-	zlog.Ins().DebugF("Data0x10Router Handle %s \n", hex.EncodeToString(request.GetMessage().GetData()))
+	if zlog.Ins().IsDebugEnabled() {
+		zlog.Ins().DebugF("Data0x10Router Handle %s \n", hex.EncodeToString(request.GetMessage().GetData()))
+	}
 	_response := request.GetResponse()
 	if _response != nil {
 		switch _response.(type) {

@@ -23,6 +23,10 @@ func (log *zinxDefaultLog) DebugF(format string, v ...interface{}) {
 	StdZinxLog.Debugf(format, v...)
 }
 
+func (log *zinxDefaultLog) IsDebugEnabled() bool {
+	return StdZinxLog.IsDebugEnabled()
+}
+
 func (log *zinxDefaultLog) InfoFX(ctx context.Context, format string, v ...interface{}) {
 	fmt.Println(ctx)
 	StdZinxLog.Infof(format, v...)

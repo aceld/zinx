@@ -7,6 +7,7 @@ type ILogger interface {
 	InfoF(format string, v ...interface{})
 	ErrorF(format string, v ...interface{})
 	DebugF(format string, v ...interface{})
+	IsDebugEnabled() bool
 
 	//with context
 	InfoFX(ctx context.Context, format string, v ...interface{})

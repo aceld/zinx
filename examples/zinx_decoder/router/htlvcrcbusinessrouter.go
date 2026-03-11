@@ -16,7 +16,9 @@ func (this *HtlvCrcBusinessRouter) Handle(request ziface.IRequest) {
 
 	//MsgID
 	msgID := request.GetMessage().GetMsgID()
-	zlog.Ins().DebugF("Call HtlvCrcBusinessRouter Handle %d %s\n", msgID, hex.EncodeToString(request.GetMessage().GetData()))
+	if zlog.Ins().IsDebugEnabled() {
+		zlog.Ins().DebugF("Call HtlvCrcBusinessRouter Handle %d %s\n", msgID, hex.EncodeToString(request.GetMessage().GetData()))
+	}
 
 	resp := request.GetResponse()
 	if resp == nil {

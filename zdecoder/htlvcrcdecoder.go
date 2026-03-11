@@ -105,7 +105,9 @@ func (hcd *HtlvCrcDecoder) decode(data []byte) *HtlvCrcDecoder {
 
 	// CRC
 	if !CheckCRC(data[:datasize-2], htlvData.Crc) {
-		zlog.Ins().DebugF("crc check error %s %s\n", hex.EncodeToString(data), hex.EncodeToString(htlvData.Crc))
+		if zlog.Ins().IsDebugEnabled() {
+			zlog.Ins().DebugF("crc check error %s %s\n", hex.EncodeToString(data), hex.EncodeToString(htlvData.Crc))
+		}
 		return nil
 	}
 

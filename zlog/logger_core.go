@@ -250,6 +250,10 @@ func (log *ZinxLoggerCore) Debugf(format string, v ...interface{}) {
 	_ = log.OutPut(LogDebug, fmt.Sprintf(format, v...))
 }
 
+func (log *ZinxLoggerCore) IsDebugEnabled() bool {
+	return !log.verifyLogIsolation(LogDebug)
+}
+
 func (log *ZinxLoggerCore) Debug(v ...interface{}) {
 	if log.verifyLogIsolation(LogDebug) {
 		return
