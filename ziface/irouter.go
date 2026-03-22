@@ -42,3 +42,35 @@ type IGroupRouterSlices interface {
 	// Add group routing components (添加业务处理器集合)
 	AddHandler(MsgId uint32, Handlers ...RouterHandler)
 }
+
+// IRouterSlicesContext is the interface for context-based router slices
+// (基于Context的路由切片接口)
+type IRouterSlicesContext interface {
+	// Use adds global middleware handlers
+	// (添加全局中间件处理程序)
+	Use(Handlers ...HandlerFunc)
+
+	// AddHandler adds route handlers for a specific message ID
+	// (为特定消息ID添加路由处理程序)
+	AddHandler(msgId uint32, handlers ...HandlerFunc)
+
+	// Group creates a route group
+	// (创建路由分组)
+	Group(start, end uint32, Handlers ...HandlerFunc) IGroupRouterSlicesContext
+
+	// GetHandlers returns the handlers for a specific message ID
+	// (返回特定消息ID的处理程序)
+	GetHandlers(MsgId uint32) ([]HandlerFunc, bool)
+}
+
+// IGroupRouterSlicesContext is the interface for context-based group router slices
+// (基于Context的路由分组切片接口)
+type IGroupRouterSlicesContext interface {
+	// Use adds global middleware handlers to the group
+	// (向组添加全局中间件处理程序)
+	Use(Handlers ...HandlerFunc)
+
+	// AddHandler adds route handlers for a specific message ID in the group
+	// (在组中为特定消息ID添加路由处理程序)
+	AddHandler(MsgId uint32, Handlers ...HandlerFunc)
+}

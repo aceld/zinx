@@ -20,7 +20,7 @@ import (
 	"github.com/aceld/zinx/zdecoder"
 	"github.com/aceld/zinx/zlog"
 
-	"github.com/xtaci/kcp-go"
+	"github.com/xtaci/kcp-go/v5"
 
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zpack"
@@ -614,6 +614,24 @@ func (s *Server) SetWebsocketAuth(f func(r *http.Request) error) {
 
 func (s *Server) ServerName() string {
 	return s.Name
+}
+
+// UseContext adds global middleware handlers for context-based routing
+// (为基于Context的路由添加全局中间件处理程序)
+func (s *Server) UseContext(Handlers ...ziface.HandlerFunc) ziface.IRouterSlicesContext {
+	return s.msgHandler.UseContext(Handlers...)
+}
+
+// AddRouterSlicesContext adds route handlers using context-based middleware
+// (使用基于Context的中间件添加路由处理程序)
+func (s *Server) AddRouterSlicesContext(msgID uint32, router ...ziface.HandlerFunc) ziface.IRouterSlicesContext {
+	return s.msgHandler.AddRouterSlicesContext(msgID, router...)
+}
+
+// GroupContext creates a route group for context-based routing
+// (为基于Context的路由创建路由分组)
+func (s *Server) GroupContext(start, end uint32, Handlers ...ziface.HandlerFunc) ziface.IGroupRouterSlicesContext {
+	return s.msgHandler.GroupContext(start, end, Handlers...)
 }
 
 func init() {}

@@ -12,6 +12,12 @@ type IMsgHandle interface {
 	Group(start, end uint32, Handlers ...RouterHandler) IGroupRouterSlices
 	Use(Handlers ...RouterHandler) IRouterSlices
 
+	// Context-based middleware support
+	// (基于Context的中间件支持)
+	UseContext(Handlers ...HandlerFunc) IRouterSlicesContext
+	AddRouterSlicesContext(msgId uint32, handler ...HandlerFunc) IRouterSlicesContext
+	GroupContext(start, end uint32, Handlers ...HandlerFunc) IGroupRouterSlicesContext
+
 	StartWorkerPool()                    //  Start the worker pool
 	SendMsgToTaskQueue(request IRequest) // Pass the message to the TaskQueue for processing by the worker(将消息交给TaskQueue,由worker进行处理)
 

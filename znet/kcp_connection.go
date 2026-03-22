@@ -17,7 +17,7 @@ import (
 	"github.com/aceld/zinx/zlog"
 	"github.com/aceld/zinx/zpack"
 	"github.com/gorilla/websocket"
-	"github.com/xtaci/kcp-go"
+	"github.com/xtaci/kcp-go/v5"
 )
 
 // Connection KCP connection module

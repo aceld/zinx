@@ -3,6 +3,8 @@
 // @Author Aceld - Thu Mar 11 10:32:29 CST 2019
 package ziface
 
+import "context"
+
 type HandleStep int
 
 // IFuncRequest function message interface (函数消息接口)
@@ -55,6 +57,15 @@ type IRequest interface {
 	Set(key string, value interface{})
 	//Get 从 Request 中获取一个上下文信息
 	Get(key string) (value interface{}, exists bool)
+
+	// Context returns the request's context. To change the context, use
+	// SetContext.
+	// (返回请求的context。要改变context，请使用SetContext)
+	Context() context.Context
+
+	// SetContext sets the request's context.
+	// (设置请求的context)
+	SetContext(ctx context.Context)
 }
 
 type BaseRequest struct{}
@@ -76,3 +87,7 @@ func (br *BaseRequest) Copy() IRequest                   { return nil }
 func (br *BaseRequest) Set(key string, value interface{}) {}
 
 func (br *BaseRequest) Get(key string) (value interface{}, exists bool) { return nil, false }
+
+func (br *BaseRequest) Context() context.Context { return context.Background() }
+
+func (br *BaseRequest) SetContext(ctx context.Context) {}

@@ -45,8 +45,9 @@ type MsgHandle struct {
 
 	// Chain builder for the responsibility chain
 	// (责任链构造器)
-	builder      *chainBuilder
-	RouterSlices *RouterSlices
+	builder             *chainBuilder
+	RouterSlices        *RouterSlices
+	RouterSlicesContext *RouterSlicesContext
 }
 
 // newMsgHandle creates MsgHandle
@@ -84,10 +85,11 @@ func newMsgHandle() *MsgHandle {
 	}
 
 	handle := &MsgHandle{
-		Apis:         make(map[uint32]ziface.IRouter),
-		RouterSlices: NewRouterSlices(),
-		freeWorkers:  freeWorkers,
-		builder:      newChainBuilder(),
+		Apis:                make(map[uint32]ziface.IRouter),
+		RouterSlices:        NewRouterSlices(),
+		RouterSlicesContext: NewRouterSlicesContext(),
+		freeWorkers:         freeWorkers,
+		builder:             newChainBuilder(),
 		// 可额外临时分配的workerID集合
 		extraFreeWorkers: extraFreeWorkers,
 	}
@@ -138,10 +140,11 @@ func newCliMsgHandle() *MsgHandle {
 	}
 
 	handle := &MsgHandle{
-		Apis:         make(map[uint32]ziface.IRouter),
-		RouterSlices: NewRouterSlices(),
-		freeWorkers:  freeWorkers,
-		builder:      newChainBuilder(),
+		Apis:                make(map[uint32]ziface.IRouter),
+		RouterSlices:        NewRouterSlices(),
+		RouterSlicesContext: NewRouterSlicesContext(),
+		freeWorkers:         freeWorkers,
+		builder:             newChainBuilder(),
 		// 可额外临时分配的workerID集合
 		extraFreeWorkers: extraFreeWorkers,
 	}
@@ -457,4 +460,52 @@ func (mh *MsgHandle) StartWorkerPool() {
 		// (启动当前Worker，阻塞的等待对应的任务队列是否有消息传递进来)
 		go mh.StartOneWorker(i, mh.TaskQueue[i])
 	}
+}
+
+// UseContext adds global middleware handlers for context-based routing
+// (为基于Context的路由添加全局中间件处理程序)
+func (mh *MsgHandle) UseContext(Handlers ...ziface.HandlerFunc) ziface.IRouterSlicesContext {
+	mh.RouterSlicesContext.Use(Handlers...)
+	return mh.RouterSlicesContext
+}
+
+// AddRouterSlicesContext adds route handlers using context-based middleware
+// (使用基于Context的中间件添加路由处理程序)
+func (mh *MsgHandle) AddRouterSlicesContext(msgId uint32, handler ...ziface.HandlerFunc) ziface.IRouterSlicesContext {
+	mh.RouterSlicesContext.AddHandler(msgId, handler...)
+	return mh.RouterSlicesContext
+}
+
+// GroupContext creates a route group for context-based routing
+// (为基于Context的路由创建路由分组)
+func (mh *MsgHandle) GroupContext(start, end uint32, Handlers ...ziface.HandlerFunc) ziface.IGroupRouterSlicesContext {
+	return mh.RouterSlicesContext.Group(start, end, Handlers...)
+}
+
+// doMsgHandlerSlicesContext handles messages using context-based middleware chain
+// (使用基于Context的中间件链处理消息)
+func (mh *MsgHandle) doMsgHandlerSlicesContext(request ziface.IRequest, workerID int) {
+	defer func() {
+		if err := recover(); err != nil {
+			zlog.Ins().ErrorF("workerID: %d doMsgHandlerSlicesContext panic: %v", workerID, err)
+		}
+	}()
+
+	msgId := request.GetMsgID()
+	handlers, ok := mh.RouterSlicesContext.GetHandlers(msgId)
+	if !ok {
+		zlog.Ins().ErrorF("api msgID = %d is not FOUND!", request.GetMsgID())
+		return
+	}
+
+	// Create a new context from the request
+	ctx := ziface.NewContext(request.GetConnection(), msgId, request.GetData())
+	ctx.Ctx = request.Context() // Use the request's context
+	ctx.SetHandlers(handlers)
+
+	// Execute the middleware chain
+	ctx.Next()
+
+	// 执行完成后回收 Request 对象回对象池
+	PutRequest(request)
 }

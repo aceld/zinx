@@ -1,6 +1,7 @@
 package znet
 
 import (
+	"context"
 	"math"
 	"sync"
 
@@ -38,6 +39,7 @@ type Request struct {
 	handlers []ziface.RouterHandler // router function slice(路由函数切片)
 	index    int8                   // router function slice index(路由函数切片索引)
 	keys     map[string]interface{} // keys 路由处理时可能会存取的上下文信息
+	ctx      context.Context        // request context (请求上下文)
 }
 
 func (r *Request) GetResponse() ziface.IcResp {
@@ -56,6 +58,7 @@ func NewRequest(conn ziface.IConnection, msg ziface.IMessage) ziface.IRequest {
 	req.stepLock = sync.RWMutex{}
 	req.needNext = true
 	req.index = -1
+	req.ctx = context.Background()
 	return req
 }
 
@@ -84,6 +87,7 @@ func allocateRequest() ziface.IRequest {
 	req.steps = PRE_HANDLE
 	req.needNext = true
 	req.index = -1
+	req.ctx = context.Background()
 	return req
 }
 
@@ -94,6 +98,7 @@ func (r *Request) Reset(conn ziface.IConnection, msg ziface.IMessage) {
 	r.needNext = true
 	r.index = -1
 	r.keys = nil
+	r.ctx = context.Background()
 
 }
 
@@ -232,4 +237,20 @@ func (r *Request) RouterSlicesNext() {
 		r.handlers[r.index](r)
 		r.index++
 	}
+}
+
+// Context returns the request's context. To change the context, use
+// SetContext.
+// (返回请求的context。要改变context，请使用SetContext)
+func (r *Request) Context() context.Context {
+	if r.ctx != nil {
+		return r.ctx
+	}
+	return context.Background()
+}
+
+// SetContext sets the request's context.
+// (设置请求的context)
+func (r *Request) SetContext(ctx context.Context) {
+	r.ctx = ctx
 }

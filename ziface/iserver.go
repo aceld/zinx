@@ -27,6 +27,12 @@ type IServer interface {
 	// Common component management (公共组件管理)
 	Use(Handlers ...RouterHandler) IRouterSlices
 
+	// Context-based middleware support
+	// (基于Context的中间件支持)
+	UseContext(Handlers ...HandlerFunc) IRouterSlicesContext
+	AddRouterSlicesContext(msgID uint32, router ...HandlerFunc) IRouterSlicesContext
+	GroupContext(start, end uint32, Handlers ...HandlerFunc) IGroupRouterSlicesContext
+
 	// Get connection management (得到连接管理)
 	GetConnMgr() IConnManager
 

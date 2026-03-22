@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zpack"
-	"github.com/xtaci/kcp-go"
+	"github.com/xtaci/kcp-go/v5"
 	"io"
 	"time"
 )

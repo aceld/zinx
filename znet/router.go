@@ -114,3 +114,99 @@ func (g *GroupRouter) AddHandler(MsgId uint32, Handlers ...ziface.RouterHandler)
 
 	g.router.AddHandler(MsgId, mergedHandlers...)
 }
+
+// RouterSlicesContext is the context-based router slices implementation
+// (基于Context的路由切片实现)
+type RouterSlicesContext struct {
+	Apis     map[uint32][]ziface.HandlerFunc
+	Handlers []ziface.HandlerFunc
+	sync.RWMutex
+}
+
+// NewRouterSlicesContext creates a new RouterSlicesContext
+// (创建一个新的RouterSlicesContext)
+func NewRouterSlicesContext() *RouterSlicesContext {
+	return &RouterSlicesContext{
+		Apis:     make(map[uint32][]ziface.HandlerFunc, 10),
+		Handlers: make([]ziface.HandlerFunc, 0, 6),
+	}
+}
+
+// Use adds global middleware handlers
+// (添加全局中间件处理程序)
+func (r *RouterSlicesContext) Use(handles ...ziface.HandlerFunc) {
+	r.Handlers = append(r.Handlers, handles...)
+}
+
+// AddHandler adds route handlers for a specific message ID
+// (为特定消息ID添加路由处理程序)
+func (r *RouterSlicesContext) AddHandler(msgId uint32, Handlers ...ziface.HandlerFunc) {
+	// 1. Check if the API handler method bound to the current msg already exists
+	if _, ok := r.Apis[msgId]; ok {
+		panic("repeated api , msgId = " + strconv.Itoa(int(msgId)))
+	}
+
+	finalSize := len(r.Handlers) + len(Handlers)
+	mergedHandlers := make([]ziface.HandlerFunc, finalSize)
+	copy(mergedHandlers, r.Handlers)
+	copy(mergedHandlers[len(r.Handlers):], Handlers)
+	r.Apis[msgId] = append(r.Apis[msgId], mergedHandlers...)
+}
+
+// GetHandlers returns the handlers for a specific message ID
+// (返回特定消息ID的处理程序)
+func (r *RouterSlicesContext) GetHandlers(MsgId uint32) ([]ziface.HandlerFunc, bool) {
+	r.RLock()
+	defer r.RUnlock()
+	handlers, ok := r.Apis[MsgId]
+	return handlers, ok
+}
+
+// Group creates a route group
+// (创建路由分组)
+func (r *RouterSlicesContext) Group(start, end uint32, Handlers ...ziface.HandlerFunc) ziface.IGroupRouterSlicesContext {
+	return NewGroupContext(start, end, r, Handlers...)
+}
+
+// GroupRouterContext is the context-based group router implementation
+// (基于Context的分组路由实现)
+type GroupRouterContext struct {
+	start    uint32
+	end      uint32
+	Handlers []ziface.HandlerFunc
+	router   ziface.IRouterSlicesContext
+}
+
+// NewGroupContext creates a new GroupRouterContext
+// (创建一个新的GroupRouterContext)
+func NewGroupContext(start, end uint32, router *RouterSlicesContext, Handlers ...ziface.HandlerFunc) *GroupRouterContext {
+	g := &GroupRouterContext{
+		start:    start,
+		end:      end,
+		Handlers: make([]ziface.HandlerFunc, 0, len(Handlers)),
+		router:   router,
+	}
+	g.Handlers = append(g.Handlers, Handlers...)
+	return g
+}
+
+// Use adds global middleware handlers to the group
+// (向组添加全局中间件处理程序)
+func (g *GroupRouterContext) Use(Handlers ...ziface.HandlerFunc) {
+	g.Handlers = append(g.Handlers, Handlers...)
+}
+
+// AddHandler adds route handlers for a specific message ID in the group
+// (在组中为特定消息ID添加路由处理程序)
+func (g *GroupRouterContext) AddHandler(MsgId uint32, Handlers ...ziface.HandlerFunc) {
+	if MsgId < g.start || MsgId > g.end {
+		panic("add router to group err in msgId:" + strconv.Itoa(int(MsgId)))
+	}
+
+	finalSize := len(g.Handlers) + len(Handlers)
+	mergedHandlers := make([]ziface.HandlerFunc, finalSize)
+	copy(mergedHandlers, g.Handlers)
+	copy(mergedHandlers[len(g.Handlers):], Handlers)
+
+	g.router.AddHandler(MsgId, mergedHandlers...)
+}
