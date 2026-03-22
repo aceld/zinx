@@ -4,10 +4,17 @@
 package znet
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"runtime/debug"
 	"time"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zlog"
@@ -174,5 +181,166 @@ func TimeoutMiddleware(timeout time.Duration) ziface.HandlerFunc {
 			zlog.Ins().ErrorF("Request timeout after %v", timeout)
 			c.Abort()
 		}
+	}
+}
+
+// OTelTraceMiddleware returns a middleware that integrates with OpenTelemetry
+// (返回一个与OpenTelemetry集成的中间件)
+func OTelTraceMiddleware() ziface.HandlerFunc {
+	return func(c *ziface.Context) {
+		// Get tracer
+		// (获取tracer)
+		tracer := otel.Tracer("zinx")
+
+		// Create span name based on message ID
+		// (基于消息ID创建span名称)
+		spanName := fmt.Sprintf("msg-%d", c.MsgID)
+
+		// Start span with context
+		// (启动span并关联context)
+		var ctx context.Context
+		var span trace.Span
+
+		if c.Ctx != nil {
+			ctx, span = tracer.Start(c.Ctx, spanName)
+		} else {
+			ctx, span = tracer.Start(context.Background(), spanName)
+		}
+		defer span.End()
+
+		// Add attributes to span
+		// (向span添加属性)
+		span.SetAttributes(
+			attribute.Int64("msg.id", int64(c.MsgID)),
+			attribute.Int64("conn.id", int64(c.Conn.GetConnID())),
+		)
+
+		// Update context with trace context
+		// (使用trace context更新context)
+		c.Ctx = ctx
+
+		// Store trace ID in context for later use
+		// (将trace ID存储在context中供后续使用)
+		if span.SpanContext().HasTraceID() {
+			traceID := span.SpanContext().TraceID().String()
+			c.Set("traceID", traceID)
+			c.Set("spanID", span.SpanContext().SpanID().String())
+		}
+
+		// Continue to next middleware
+		// (继续执行下一个中间件)
+		c.Next()
+
+		// Record error if any
+		// (如果有错误则记录)
+		if err, exists := c.Get("error"); exists {
+			if e, ok := err.(error); ok {
+				span.RecordError(e)
+				span.SetStatus(codes.Error, e.Error())
+			}
+		}
+	}
+}
+
+// OTelTraceMiddlewareWithName returns a middleware with custom tracer name
+// (返回一个使用自定义tracer名称的中间件)
+func OTelTraceMiddlewareWithName(tracerName string) ziface.HandlerFunc {
+	return func(c *ziface.Context) {
+		tracer := otel.Tracer(tracerName)
+		spanName := fmt.Sprintf("msg-%d", c.MsgID)
+
+		var ctx context.Context
+		var span trace.Span
+
+		if c.Ctx != nil {
+			ctx, span = tracer.Start(c.Ctx, spanName)
+		} else {
+			ctx, span = tracer.Start(context.Background(), spanName)
+		}
+		defer span.End()
+
+		span.SetAttributes(
+			attribute.Int64("msg.id", int64(c.MsgID)),
+			attribute.Int64("conn.id", int64(c.Conn.GetConnID())),
+		)
+
+		c.Ctx = ctx
+
+		if span.SpanContext().HasTraceID() {
+			traceID := span.SpanContext().TraceID().String()
+			c.Set("traceID", traceID)
+			c.Set("spanID", span.SpanContext().SpanID().String())
+		}
+
+		c.Next()
+
+		if err, exists := c.Get("error"); exists {
+			if e, ok := err.(error); ok {
+				span.RecordError(e)
+				span.SetStatus(codes.Error, e.Error())
+			}
+		}
+	}
+}
+
+// SlogLoggerMiddleware returns a middleware that logs request information using slog
+// (返回一个使用slog记录请求信息的中间件)
+func SlogLoggerMiddleware() ziface.HandlerFunc {
+	return func(c *ziface.Context) {
+		start := time.Now()
+
+		// Create logger with basic fields
+		// (创建带有基本字段的logger)
+		logger := slog.With(
+			"msgID", c.MsgID,
+			"connID", c.Conn.GetConnID(),
+		)
+
+		// Add trace ID if available
+		// (如果有trace ID则添加)
+		if traceID, exists := c.Get("traceID"); exists {
+			logger = logger.With("traceID", traceID)
+		}
+
+		// Store logger in context for handlers to use
+		// (将logger存储在context中供handler使用)
+		c.Set("logger", logger)
+
+		logger.Info("request started")
+
+		// Continue to next middleware
+		// (继续执行下一个中间件)
+		c.Next()
+
+		// Log completion with latency
+		// (记录完成时间和延迟)
+		latency := time.Since(start)
+		logger.Info("request completed", "latency", latency)
+	}
+}
+
+// SlogLoggerMiddlewareWithLevel returns a middleware with custom log level
+// (返回一个使用自定义日志级别的中间件)
+func SlogLoggerMiddlewareWithLevel(level slog.Level) ziface.HandlerFunc {
+	return func(c *ziface.Context) {
+		start := time.Now()
+
+		logger := slog.With(
+			"msgID", c.MsgID,
+			"connID", c.Conn.GetConnID(),
+		)
+
+		if traceID, exists := c.Get("traceID"); exists {
+			logger = logger.With("traceID", traceID)
+		}
+
+		c.Set("logger", logger)
+
+		logger.Log(context.Background(), level, "request started")
+
+		c.Next()
+
+		latency := time.Since(start)
+		logger.Log(context.Background(), level, "request completed", "latency", latency)
 	}
 }

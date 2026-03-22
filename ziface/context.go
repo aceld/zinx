@@ -6,11 +6,22 @@ package ziface
 import (
 	"context"
 	"math"
+	"sync"
 )
 
 // HandlerFunc defines the handler function used by the middleware chain
 // (定义中间件链使用的处理函数)
 type HandlerFunc func(*Context)
+
+// contextPool is a pool for Context objects to reduce memory allocations
+// (Context对象池，用于减少内存分配)
+var contextPool = sync.Pool{
+	New: func() interface{} {
+		return &Context{
+			Keys: make(map[string]interface{}),
+		}
+	},
+}
 
 // Context is a request context similar to Gin's Context, used for middleware chain
 // (类似于Gin的Context，用于中间件链)
@@ -42,19 +53,23 @@ type Context struct {
 	// Keys is a map for storing key-value pairs during request processing
 	// (用于在请求处理过程中存储键值对的map)
 	Keys map[string]interface{}
+
+	// keysLock protects the Keys map for concurrent access
+	// (保护Keys map的并发访问)
+	keysLock sync.RWMutex
 }
 
-// NewContext creates a new Context
-// (创建一个新的Context)
+// NewContext creates a new Context from the pool
+// (从对象池创建一个新的Context)
 func NewContext(conn IConnection, msgID uint32, data []byte) *Context {
-	return &Context{
-		Ctx:   context.Background(),
-		Conn:  conn,
-		MsgID: msgID,
-		Data:  data,
-		index: -1,
-		Keys:  make(map[string]interface{}),
-	}
+	c := contextPool.Get().(*Context)
+	c.Ctx = context.Background()
+	c.Conn = conn
+	c.MsgID = msgID
+	c.Data = data
+	c.index = -1
+	// Keys already initialized in pool
+	return c
 }
 
 // Next should be used only inside middleware.
@@ -82,8 +97,11 @@ func (c *Context) IsAborted() bool {
 }
 
 // Set is used to store a new key/value pair exclusively for this context.
-// (用于为此上下文专门存储一个新的键/值对)
+// Thread-safe: uses write lock to protect concurrent access.
+// (用于为此上下文专门存储一个新的键/值对，线程安全：使用写锁保护并发访问)
 func (c *Context) Set(key string, value interface{}) {
+	c.keysLock.Lock()
+	defer c.keysLock.Unlock()
 	if c.Keys == nil {
 		c.Keys = make(map[string]interface{})
 	}
@@ -91,8 +109,11 @@ func (c *Context) Set(key string, value interface{}) {
 }
 
 // Get returns the value for the given key, ie: (value, true).
-// (返回给定键的值)
+// Thread-safe: uses read lock to protect concurrent access.
+// (返回给定键的值，线程安全：使用读锁保护并发访问)
 func (c *Context) Get(key string) (value interface{}, exists bool) {
+	c.keysLock.RLock()
+	defer c.keysLock.RUnlock()
 	if c.Keys != nil {
 		value, exists = c.Keys[key]
 	}
@@ -111,22 +132,24 @@ func (c *Context) MustGet(key string) interface{} {
 // Copy returns a copy of the current Context that can be safely used outside the request's scope.
 // (返回当前Context的副本，可以在请求范围之外安全使用)
 func (c *Context) Copy() *Context {
-	cp := &Context{
-		Ctx:      c.Ctx,
-		Conn:     c.Conn,
-		MsgID:    c.MsgID,
-		Data:     c.Data,
-		handlers: c.handlers,
-		index:    c.index,
-	}
+	cp := contextPool.Get().(*Context)
+	cp.Ctx = c.Ctx
+	cp.Conn = c.Conn
+	cp.MsgID = c.MsgID
+	cp.Data = c.Data
+	cp.handlers = c.handlers
+	cp.index = c.index
 
-	// Copy keys
+	// Copy keys with lock protection
+	c.keysLock.RLock()
+	cp.keysLock.Lock()
 	if c.Keys != nil {
-		cp.Keys = make(map[string]interface{}, len(c.Keys))
 		for k, v := range c.Keys {
 			cp.Keys[k] = v
 		}
 	}
+	cp.keysLock.Unlock()
+	c.keysLock.RUnlock()
 
 	return cp
 }
@@ -143,14 +166,26 @@ func (c *Context) GetHandlers() []HandlerFunc {
 	return c.handlers
 }
 
-// Reset resets the context for reuse
-// (重置上下文以便重用)
+// Reset resets the context for reuse in the pool
+// (重置上下文以便在对象池中重用)
 func (c *Context) Reset() {
-	c.Ctx = context.Background()
+	c.Ctx = nil
 	c.Conn = nil
 	c.MsgID = 0
 	c.Data = nil
 	c.handlers = nil
 	c.index = -1
-	c.Keys = nil
+	// Clear Keys map while keeping the underlying memory
+	c.keysLock.Lock()
+	for k := range c.Keys {
+		delete(c.Keys, k)
+	}
+	c.keysLock.Unlock()
+}
+
+// Release returns the context to the pool for reuse
+// (将Context放回对象池以便重用)
+func (c *Context) Release() {
+	c.Reset()
+	contextPool.Put(c)
 }
