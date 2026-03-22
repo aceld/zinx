@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aceld/zinx/zlog"
+	"github.com/aceld/zinx/v3/zlog"
 )
 
 const (

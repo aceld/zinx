@@ -8,7 +8,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/aceld/zinx/zpack"
+	"github.com/aceld/zinx/v3/zpack"
 	"io"
 	"net"
 	"time"

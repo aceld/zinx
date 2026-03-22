@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/v3/ziface"
 	"github.com/gorilla/websocket"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/sdk/trace"

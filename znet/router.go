@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/v3/ziface"
 )
 
 // BaseRouter is used as the base class when implementing a router.

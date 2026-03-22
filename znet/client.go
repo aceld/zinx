@@ -10,10 +10,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aceld/zinx/zdecoder"
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/zlog"
-	"github.com/aceld/zinx/zpack"
+	"github.com/aceld/zinx/v3/zdecoder"
+	"github.com/aceld/zinx/v3/ziface"
+	"github.com/aceld/zinx/v3/zlog"
+	"github.com/aceld/zinx/v3/zpack"
 	"github.com/gorilla/websocket"
 )
 

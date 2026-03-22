@@ -1,6 +1,6 @@
 package zconf
 
-import "github.com/aceld/zinx/zlog"
+import "github.com/aceld/zinx/v3/zlog"
 
 // UserConfToGlobal, Note that if UserConf is used,
 // the method should be called to synchronize with GlobalConfObject

@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"github.com/aceld/zinx/znet"
+	"github.com/aceld/zinx/v3/znet"
 )
 
 func main() {

@@ -10,7 +10,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/v3/ziface"
 	"math"
 )
 

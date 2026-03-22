@@ -6,10 +6,10 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/aceld/zinx/examples/zinx_client/c_router"
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/zlog"
-	"github.com/aceld/zinx/znet"
+	"github.com/aceld/zinx/v3/examples/zinx_client/c_router"
+	"github.com/aceld/zinx/v3/ziface"
+	"github.com/aceld/zinx/v3/zlog"
+	"github.com/aceld/zinx/v3/znet"
 )
 
 // Custom business logic of the client (客户端自定义业务)

@@ -3,7 +3,7 @@ package zlog_test
 import (
 	"testing"
 
-	"github.com/aceld/zinx/zlog"
+	"github.com/aceld/zinx/v3/zlog"
 )
 
 func TestStdZLog(t *testing.T) {

@@ -6,7 +6,7 @@
 
 package zasync_op
 
-import "github.com/aceld/zinx/zlog"
+import "github.com/aceld/zinx/v3/zlog"
 
 type AsyncWorker struct {
 	taskQ chan func()

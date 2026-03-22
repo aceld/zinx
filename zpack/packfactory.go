@@ -3,7 +3,7 @@ package zpack
 import (
 	"sync"
 
-	"github.com/aceld/zinx/ziface"
+	"github.com/aceld/zinx/v3/ziface"
 )
 
 var pack_once sync.Once

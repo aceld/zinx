@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/znet"
+	"github.com/aceld/zinx/v3/ziface"
+	"github.com/aceld/zinx/v3/znet"
 )
 
 // CustomMiddleware is an example middleware that demonstrates context usage

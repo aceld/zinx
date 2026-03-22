@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/zlog"
+	"github.com/aceld/zinx/v3/ziface"
+	"github.com/aceld/zinx/v3/zlog"
 )
 
 type HeartbeatChecker struct {

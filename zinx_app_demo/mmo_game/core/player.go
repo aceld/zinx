@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/zinx_app_demo/mmo_game/pb"
+	"github.com/aceld/zinx/v3/ziface"
+	"github.com/aceld/zinx/v3/zinx_app_demo/mmo_game/pb"
 	"github.com/golang/protobuf/proto"
 )
 

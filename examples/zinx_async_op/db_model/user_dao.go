@@ -3,7 +3,7 @@ package db_model
 import (
 	"time"
 
-	"github.com/aceld/zinx/zlog"
+	"github.com/aceld/zinx/v3/zlog"
 )
 
 type UserModel struct {

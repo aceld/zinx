@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aceld/zinx/ziface"
-	"github.com/aceld/zinx/znet"
+	"github.com/aceld/zinx/v3/ziface"
+	"github.com/aceld/zinx/v3/znet"
 )
 
 func DefaultTest1(request ziface.IRequest) {

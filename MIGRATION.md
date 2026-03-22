@@ -2,13 +2,13 @@
 
 **文档版本：** 1.0  
 **更新日期：** 2026-03-22  
-**适用版本：** Zinx v2 → Zinx v3
+**适用版本：** Zinx v1 → Zinx v3
 
 ---
 
 ## 概述
 
-本指南帮助您将现有的 Zinx v2 应用迁移到 Zinx v3。Zinx v3 引入了基于 Context 的中间件机制，同时保持向后兼容性。
+本指南帮助您将现有的 Zinx v1 应用迁移到 Zinx v3。Zinx v3 引入了基于 Context 的中间件机制，同时保持向后兼容性。
 
 **重要说明：** Zinx v3 保持向后兼容，您的现有代码可以继续工作。但建议逐步迁移到新的 Context API 以获得更好的功能支持。
 
@@ -42,7 +42,7 @@
 ### 步骤 1：更新依赖
 
 ```bash
-go get -u github.com/aceld/zinx@latest
+go get -u github.com/aceld/zinx/v3@latest
 ```
 
 ### 步骤 2：路由迁移
@@ -50,7 +50,7 @@ go get -u github.com/aceld/zinx@latest
 #### 旧方式（IRouter）
 
 ```go
-// v2 方式
+// v1 方式
 type MyRouter struct {
     znet.BaseRouter
 }
@@ -88,7 +88,7 @@ s.AddRouterSlicesContext(1, func(c *ziface.Context) {
 #### 旧方式（无中间件）
 
 ```go
-// v2 方式 - 无中间件支持
+// v1 方式 - 无中间件支持
 // 需要在每个 Handle 中手动处理日志、错误等
 ```
 
@@ -112,7 +112,7 @@ s.AddRouterSlicesContext(1, func(c *ziface.Context) {
 #### 旧方式（无上下文）
 
 ```go
-// v2 方式 - 无 context 支持
+// v1 方式 - 无 context 支持
 // 无法传递 trace ID、超时等信息
 ```
 
@@ -148,8 +148,8 @@ package main
 import (
     "log/slog"
     
-    "github.com/aceld/zinx/ziface"
-    "github.com/aceld/zinx/znet"
+    "github.com/aceld/zinx/v3/ziface"
+    "github.com/aceld/zinx/v3/znet"
 )
 
 func main() {
@@ -280,7 +280,7 @@ s.UseContext(
 Zinx v3 保持向后兼容，以下代码仍然有效：
 
 ```go
-// v2 方式仍然支持
+// v1 方式仍然支持
 type MyRouter struct {
     znet.BaseRouter
 }
@@ -356,7 +356,7 @@ s.UseContext(znet.SlogLoggerMiddlewareWithLevel(slog.LevelDebug))
 
 ## 性能对比
 
-| 操作 | v2 | v3 | 改进 |
+| 操作 | v1 | v3 | 改进 |
 |------|----|----|------|
 | Context 创建 | 100 ns/op | 50 ns/op | 50% |
 | Set/Get | 200 ns/op | 47 ns/op | 76% |
@@ -366,7 +366,7 @@ s.UseContext(znet.SlogLoggerMiddlewareWithLevel(slog.LevelDebug))
 
 ## 参考资料
 
-- [Zinx 官方文档](https://github.com/aceld/zinx)
+- [Zinx 官方文档](https://github.com/aceld/zinx/v3)
 - [OpenTelemetry Go](https://opentelemetry.io/docs/instrumentation/go/)
 - [Go slog](https://pkg.go.dev/log/slog)
 
@@ -376,7 +376,7 @@ s.UseContext(znet.SlogLoggerMiddlewareWithLevel(slog.LevelDebug))
 
 如果您在迁移过程中遇到问题，请：
 
-1. 查看 [Zinx Issues](https://github.com/aceld/zinx/issues)
+1. 查看 [Zinx Issues](https://github.com/aceld/zinx/v3/issues)
 2. 提交新的 Issue
 3. 参考示例代码
 
