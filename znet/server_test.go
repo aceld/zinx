@@ -214,6 +214,38 @@ func TestCloseConnectionBeforeSendMsg(t *testing.T) {
 	s.Stop()
 }
 
+// waitForPort retries binding to addr until it succeeds (port released) or the
+// deadline is exceeded. It returns nil on success and an error otherwise.
+// (重试绑定端口直到成功或超时，成功返回 nil)
+func waitForPort(addr string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		ln, err := net.Listen("tcp", addr)
+		if err == nil {
+			_ = ln.Close()
+			return nil
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	return fmt.Errorf("port %s not released within %v", addr, timeout)
+}
+
+// waitForPortListening retries connecting to addr until a connection succeeds
+// (server is ready) or the deadline is exceeded.
+// (重试连接直到成功或超时，用于等待服务端就绪)
+func waitForPortListening(addr string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		conn, err := net.DialTimeout("tcp", addr, 50*time.Millisecond)
+		if err == nil {
+			_ = conn.Close()
+			return nil
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	return fmt.Errorf("port %s not listening within %v", addr, timeout)
+}
+
 // TestWebsocketServerGracefulStop verifies that calling Stop() on a WebSocket-only
 // server does not block, and that the HTTP listener port is released after Stop returns.
 // (验证 WebSocket-only 模式下 Stop() 不阻塞且端口被释放)
@@ -230,8 +262,11 @@ func TestWebsocketServerGracefulStop(t *testing.T) {
 	s := NewUserConfServer(config)
 	s.Start()
 
-	// Give the server time to start listening (给服务端启动监听的时间)
-	time.Sleep(200 * time.Millisecond)
+	// Wait until the server is actually listening (等待服务端真正开始监听)
+	addr := fmt.Sprintf("127.0.0.1:%d", wsPort)
+	if err := waitForPortListening(addr, 3*time.Second); err != nil {
+		t.Fatalf("server did not start listening: %v", err)
+	}
 
 	// Stop() must return promptly — if it blocks, the test will time out.
 	// (Stop() 必须及时返回，否则测试会超时)
@@ -248,15 +283,11 @@ func TestWebsocketServerGracefulStop(t *testing.T) {
 		t.Fatal("Stop() blocked for more than 3s in websocket-only mode")
 	}
 
-	// After Stop() returns, wait briefly for the background shutdown to complete,
-	// then verify the port has been released by binding to it.
-	// (Stop() 返回后等待后台关闭完成，然后验证端口已释放)
-	time.Sleep(200 * time.Millisecond)
-	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", wsPort))
-	if err != nil {
+	// Verify the port is released by retrying until the bind succeeds or timeout.
+	// (重试绑定端口，验证端口已被释放)
+	if err := waitForPort(addr, 3*time.Second); err != nil {
 		t.Fatalf("port %d not released after Stop(): %v", wsPort, err)
 	}
-	_ = ln.Close()
 }
 
 // TestWebsocketServerStopIdempotent verifies that calling Stop() multiple times
@@ -273,7 +304,12 @@ func TestWebsocketServerStopIdempotent(t *testing.T) {
 	}
 	s := NewUserConfServer(config)
 	s.Start()
-	time.Sleep(200 * time.Millisecond)
+
+	// Wait until the server is actually listening (等待服务端真正开始监听)
+	addr := fmt.Sprintf("127.0.0.1:%d", wsPort)
+	if err := waitForPortListening(addr, 3*time.Second); err != nil {
+		t.Fatalf("server did not start listening: %v", err)
+	}
 
 	// Calling Stop() twice must not panic.
 	// (两次调用 Stop() 不应 panic)
