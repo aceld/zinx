@@ -28,6 +28,11 @@ import (
 	"github.com/aceld/zinx/zpack"
 )
 
+// wsShutdownTimeout is the maximum time to wait for active WebSocket connections
+// to finish when stopping the server gracefully.
+// (wsShutdownTimeout 是优雅停服时等待活跃 WebSocket 连接完成的最长时间)
+const wsShutdownTimeout = 5 * time.Second
+
 // Server interface implementation, defines a Server service class
 // (接口实现，定义一个Server服务类)
 type Server struct {
@@ -401,7 +406,7 @@ func (s *Server) ListenWebsocketConn() {
 
 	// Gracefully shut down the WebSocket HTTP server with a timeout
 	// (带超时的优雅关闭 WebSocket HTTP Server)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), wsShutdownTimeout)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
 		zlog.Ins().ErrorF("websocket server shutdown err: %v", err)

@@ -13,6 +13,11 @@ import (
 	"github.com/aceld/zinx/zpack"
 )
 
+// retryInterval is the polling interval used by test helper functions that wait
+// for a port to become available or unavailable.
+// (retryInterval 是测试辅助函数轮询端口状态时的间隔时间)
+const retryInterval = 20 * time.Millisecond
+
 // run in terminal:
 // go test -v ./znet -run=TestServer
 
@@ -225,7 +230,7 @@ func waitForPort(addr string, timeout time.Duration) error {
 			_ = ln.Close()
 			return nil
 		}
-		time.Sleep(20 * time.Millisecond)
+		time.Sleep(retryInterval)
 	}
 	return fmt.Errorf("port %s not released within %v", addr, timeout)
 }
@@ -241,7 +246,7 @@ func waitForPortListening(addr string, timeout time.Duration) error {
 			_ = conn.Close()
 			return nil
 		}
-		time.Sleep(20 * time.Millisecond)
+		time.Sleep(retryInterval)
 	}
 	return fmt.Errorf("port %s not listening within %v", addr, timeout)
 }
