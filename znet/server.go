@@ -463,7 +463,6 @@ func (s *Server) Stop() {
 	// Clear other connection information or other information that needs to be cleaned up
 	// (将其他需要清理的连接信息或者其他信息 也要一并停止或者清理)
 	s.ConnMgr.ClearConn()
-	s.exitChan <- struct{}{}
 	close(s.exitChan)
 }
 
