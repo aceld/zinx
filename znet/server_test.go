@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zpack"
 )
@@ -210,5 +211,77 @@ func TestCloseConnectionBeforeSendMsg(t *testing.T) {
 		wg.Done()
 	}()
 	wg.Wait()
+	s.Stop()
+}
+
+// TestWebsocketServerGracefulStop verifies that calling Stop() on a WebSocket-only
+// server does not block, and that the HTTP listener port is released after Stop returns.
+// (验证 WebSocket-only 模式下 Stop() 不阻塞且端口被释放)
+func TestWebsocketServerGracefulStop(t *testing.T) {
+	// Use a dedicated port to avoid conflicts with TCP tests (使用独立端口避免冲突)
+	const wsPort = 19990
+
+	config := &zconf.Config{
+		Host:   "127.0.0.1",
+		WsPort: wsPort,
+		WsPath: "/ws",
+		Mode:   zconf.ServerModeWebsocket,
+	}
+	s := NewUserConfServer(config)
+	s.Start()
+
+	// Give the server time to start listening (给服务端启动监听的时间)
+	time.Sleep(200 * time.Millisecond)
+
+	// Stop() must return promptly — if it blocks, the test will time out.
+	// (Stop() 必须及时返回，否则测试会超时)
+	done := make(chan struct{})
+	go func() {
+		s.Stop()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		// Stop returned in time — good.
+	case <-time.After(3 * time.Second):
+		t.Fatal("Stop() blocked for more than 3s in websocket-only mode")
+	}
+
+	// After Stop() returns, wait briefly for the background shutdown to complete,
+	// then verify the port has been released by binding to it.
+	// (Stop() 返回后等待后台关闭完成，然后验证端口已释放)
+	time.Sleep(200 * time.Millisecond)
+	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", wsPort))
+	if err != nil {
+		t.Fatalf("port %d not released after Stop(): %v", wsPort, err)
+	}
+	_ = ln.Close()
+}
+
+// TestWebsocketServerStopIdempotent verifies that calling Stop() multiple times
+// does not panic (thanks to sync.Once protecting the exitChan close).
+// (验证多次调用 Stop() 不会 panic)
+func TestWebsocketServerStopIdempotent(t *testing.T) {
+	const wsPort = 19991
+
+	config := &zconf.Config{
+		Host:   "127.0.0.1",
+		WsPort: wsPort,
+		WsPath: "/ws",
+		Mode:   zconf.ServerModeWebsocket,
+	}
+	s := NewUserConfServer(config)
+	s.Start()
+	time.Sleep(200 * time.Millisecond)
+
+	// Calling Stop() twice must not panic.
+	// (两次调用 Stop() 不应 panic)
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Stop() panicked on second call: %v", r)
+		}
+	}()
+	s.Stop()
 	s.Stop()
 }

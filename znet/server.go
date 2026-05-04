@@ -1,6 +1,7 @@
 package znet
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/tls"
 	"errors"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -70,6 +72,14 @@ type Server struct {
 	// Asynchronous capture of connection closing status
 	// (异步捕获连接关闭状态)
 	exitChan chan struct{}
+
+	// stopOnce ensures Stop() is idempotent and exitChan is closed only once
+	// (stopOnce 保证 Stop() 幂等，exitChan 只被关闭一次)
+	stopOnce sync.Once
+
+	// WebSocket HTTP server instance, used for graceful shutdown
+	// (WebSocket HTTP 服务实例，用于优雅停服)
+	wsServer *http.Server
 
 	// Decoder for dealing with message fragmentation and reassembly
 	// (断粘包解码器)
@@ -315,7 +325,11 @@ func (s *Server) ListenTcpConn() {
 
 func (s *Server) ListenWebsocketConn() {
 	zlog.Ins().InfoF("[START] WEBSOCKET Server name: %s,listener at IP: %s, Port %d, Path %s is starting", s.Name, s.IP, s.WsPort, s.WsPath)
-	http.HandleFunc(s.WsPath, func(w http.ResponseWriter, r *http.Request) {
+
+	// Use a local ServeMux to avoid polluting the global http.DefaultServeMux
+	// (使用局部 ServeMux 避免污染全局 http.DefaultServeMux)
+	mux := http.NewServeMux()
+	mux.HandleFunc(s.WsPath, func(w http.ResponseWriter, r *http.Request) {
 		// 1. Check if the server has reached the maximum allowed number of connections
 		// (设置服务器最大连接控制,如果超过最大连接，则等待)
 		if s.ConnMgr.Len() >= zconf.GlobalObject.MaxConn {
@@ -357,18 +371,44 @@ func (s *Server) ListenWebsocketConn() {
 
 	})
 
-	if zconf.GlobalObject.CertFile != "" && zconf.GlobalObject.PrivateKeyFile != "" {
-		err := http.ListenAndServeTLS(fmt.Sprintf("%s:%d", s.IP, s.WsPort), zconf.GlobalObject.CertFile, zconf.GlobalObject.PrivateKeyFile, nil)
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		err := http.ListenAndServe(fmt.Sprintf("%s:%d", s.IP, s.WsPort), nil)
-		if err != nil {
-			panic(err)
-		}
+	// Create an explicit http.Server so we can shut it down gracefully later
+	// (显式创建 http.Server，以便后续能够优雅停服)
+	srv := &http.Server{
+		Addr:    fmt.Sprintf("%s:%d", s.IP, s.WsPort),
+		Handler: mux,
 	}
+	s.wsServer = srv
 
+	// Start the HTTP server in a background goroutine
+	// (在后台 goroutine 中启动 HTTP Server)
+	go func() {
+		var err error
+		if zconf.GlobalObject.CertFile != "" && zconf.GlobalObject.PrivateKeyFile != "" {
+			err = srv.ListenAndServeTLS(zconf.GlobalObject.CertFile, zconf.GlobalObject.PrivateKeyFile)
+		} else {
+			err = srv.ListenAndServe()
+		}
+		// http.ErrServerClosed is returned after a successful Shutdown/Close call —
+		// this is not an error. (http.ErrServerClosed 是正常关闭后的返回值，不视为错误)
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			zlog.Ins().ErrorF("websocket server ListenAndServe err: %v", err)
+		}
+	}()
+
+	// Block until Stop() signals exit via exitChan
+	// (阻塞等待 Stop() 通过 exitChan 发出退出信号)
+	<-s.exitChan
+
+	// Gracefully shut down the WebSocket HTTP server with a timeout
+	// (带超时的优雅关闭 WebSocket HTTP Server)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		zlog.Ins().ErrorF("websocket server shutdown err: %v", err)
+		// Fall back to forceful close if graceful shutdown fails
+		// (优雅关闭失败时兜底强制关闭)
+		_ = srv.Close()
+	}
 }
 
 func (s *Server) ListenKcpConn() {
@@ -463,7 +503,15 @@ func (s *Server) Stop() {
 	// Clear other connection information or other information that needs to be cleaned up
 	// (将其他需要清理的连接信息或者其他信息 也要一并停止或者清理)
 	s.ConnMgr.ClearConn()
-	close(s.exitChan)
+
+	// Use sync.Once to ensure exitChan is closed only once, making Stop() safe to call
+	// multiple times without panicking. Closing exitChan signals all listeners
+	// (including ListenWebsocketConn) to shut down gracefully.
+	// (使用 sync.Once 确保 exitChan 只被关闭一次，使 Stop() 可重复调用不 panic。
+	// 关闭 exitChan 会通知所有监听协程（包括 ListenWebsocketConn）执行优雅停服。)
+	s.stopOnce.Do(func() {
+		close(s.exitChan)
+	})
 }
 
 // Serve runs the server (运行服务)
