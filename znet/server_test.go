@@ -18,6 +18,11 @@ import (
 // (retryInterval 是测试辅助函数轮询端口状态时的间隔时间)
 const retryInterval = 20 * time.Millisecond
 
+// dialTimeout is the per-attempt TCP dial timeout used when checking if a port
+// is accepting connections.
+// (dialTimeout 是检测端口是否在监听时每次 TCP 拨号的超时时间)
+const dialTimeout = 50 * time.Millisecond
+
 // run in terminal:
 // go test -v ./znet -run=TestServer
 
@@ -241,7 +246,7 @@ func waitForPort(addr string, timeout time.Duration) error {
 func waitForPortListening(addr string, timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
-		conn, err := net.DialTimeout("tcp", addr, 50*time.Millisecond)
+		conn, err := net.DialTimeout("tcp", addr, dialTimeout)
 		if err == nil {
 			_ = conn.Close()
 			return nil
