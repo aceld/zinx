@@ -174,11 +174,8 @@ func (c *Client) Restart() {
 			var err error
 			if c.useTLS {
 				// TLS encryption
-				config := &tls.Config{
-					// Skip certificate verification here because the CA certificate of the certificate issuer is not authenticated
-					// (这里是跳过证书验证，因为证书签发机构的CA证书是不被认证的)
-					InsecureSkipVerify: true,
-				}
+				// Use default TLS verification (certificate chain + hostname verification enabled).
+				config := &tls.Config{}
 				d := &tls.Dialer{
 					Config: config,
 				}
