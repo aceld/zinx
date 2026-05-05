@@ -12,4 +12,7 @@ type ILogger interface {
 	InfoFX(ctx context.Context, format string, v ...interface{})
 	ErrorFX(ctx context.Context, format string, v ...interface{})
 	DebugFX(ctx context.Context, format string, v ...interface{})
+
+	// 此处增加了 interface 定义，可能会导致原有第三方实现无法通过编译
+	DebugEnabled() bool
 }
