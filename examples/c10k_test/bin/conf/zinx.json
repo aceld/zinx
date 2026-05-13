@@ -8,5 +8,6 @@
   "MaxWorkerTaskLen": 1024,
   "MaxPacketSize": 4096,
   "LogFile": "zinx.log",
+  "LogIsolationLevel": 3,
   "LogLevel": "error"
 }

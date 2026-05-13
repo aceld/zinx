@@ -80,10 +80,14 @@ func (c *CalculateRouter) Handle(request ziface.IRequest) {
 
 	// 计算 C = A + B
 	packet.C = packet.A + packet.B
-	// 使用 SendMsg 回复（异步方式）
-	err := conn.SendMsg(1, packet.Encode())
+	// 使用 SendBuffMsg 回复（异步方式）
+	err := conn.SendBuffMsg(1, packet.Encode())
 	if err != nil {
-		zlog.Ins().ErrorF("SendMsg error: %v", err)
+		zlog.Ins().ErrorF("SendBuffMsg error (first): %v, retrying...", err)
+		// err = conn.SendBuffMsg(1, packet.Encode())
+		// if err != nil {
+		// 	zlog.Ins().ErrorF("SendBuffMsg error (retry): %v", err)
+		// }
 	}
 }
 

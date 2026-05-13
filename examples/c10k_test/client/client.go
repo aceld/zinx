@@ -184,13 +184,18 @@ func runClient(clientID int, host string, port int, repeat int, sem chan struct{
 
 		sendTime := time.Now()
 
+		conn.SetWriteDeadline(time.Now().Add(15 * time.Second))
 		if err := sendMsg(conn, 1001, data[:]); err != nil {
-			stats.addFailed(1)
-			continue
+			fmt.Printf("[client %d] send failed at i=%d: %v\n", clientID, i, err)
+			stats.addFailed(int64(repeat - i))
+			break
 		}
 
+		conn.SetReadDeadline(time.Now().Add(15 * time.Second))
 		if _, _, err := recvMsg(conn); err != nil {
-			stats.addFailed(1)
+			fmt.Printf("[client %d] recv failed at i=%d: %v\n", clientID, i, err)
+			stats.addFailed(int64(repeat - i))
+			break
 		} else {
 			respTime := time.Since(sendTime).Seconds() * 1000
 			stats.addSuccess(1)
