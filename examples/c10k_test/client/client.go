@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"math"
@@ -174,22 +173,18 @@ func runClient(clientID int, host string, port int, repeat int, sem chan struct{
 	defer conn.Close()
 
 	for i := 0; i < repeat; i++ {
-		pkt := Packet{
-			A: int32(rand.Intn(99999) + 1),
-			B: int32(rand.Intn(99999) + 1),
-			C: 0,
-		}
+		a := int32(rand.Intn(99999) + 1)
+		b := int32(rand.Intn(99999) + 1)
+		c := int32(0)
 
-		var buf bytes.Buffer
-		if err := binary.Write(&buf, binary.BigEndian, pkt); err != nil {
-			stats.addFailed(1)
-			continue
-		}
-		data := buf.Bytes()
+		var data [12]byte
+		binary.BigEndian.PutUint32(data[0:4], uint32(a))
+		binary.BigEndian.PutUint32(data[4:8], uint32(b))
+		binary.BigEndian.PutUint32(data[8:12], uint32(c))
 
 		sendTime := time.Now()
 
-		if err := sendMsg(conn, 1001, data); err != nil {
+		if err := sendMsg(conn, 1001, data[:]); err != nil {
 			stats.addFailed(1)
 			continue
 		}
@@ -202,7 +197,7 @@ func runClient(clientID int, host string, port int, repeat int, sem chan struct{
 			stats.addRespTime(respTime)
 		}
 
-		//time.Sleep(time.Millisecond)
+		time.Sleep(time.Millisecond)
 	}
 }
 
