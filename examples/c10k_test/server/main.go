@@ -80,10 +80,6 @@ func (c *CalculateRouter) Handle(request ziface.IRequest) {
 
 	// 计算 C = A + B
 	packet.C = packet.A + packet.B
-
-	zlog.Ins().DebugF("Received from %s: A=%d, B=%d, Calculated C=%d",
-		conn.RemoteAddr().String(), packet.A, packet.B, packet.C)
-
 	// 使用 SendMsg 回复（异步方式）
 	err := conn.SendMsg(1, packet.Encode())
 	if err != nil {
