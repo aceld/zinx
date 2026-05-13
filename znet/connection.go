@@ -423,15 +423,6 @@ func (c *Connection) SendToQueue(data []byte, opts ...ziface.MsgSendOption) erro
 		go c.StartWriter()
 	}
 
-	opt := ziface.MsgSendOptionObj{
-		Timeout: 5 * time.Millisecond,
-	}
-
-	for _, o := range opts {
-		o(&opt)
-	}
-
-
 	if c.isClosed() == true {
 		return errors.New("Connection closed when send buff msg")
 	}
