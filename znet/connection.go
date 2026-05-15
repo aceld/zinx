@@ -245,7 +245,10 @@ func (c *Connection) StartWriter() {
 func (c *Connection) StartReader() {
 	zlog.Ins().InfoF("[Reader Goroutine is running]")
 	defer zlog.Ins().InfoF("%s [conn Reader exit!]", c.RemoteAddr().String())
-	defer c.Stop()
+	defer func() {
+		c.Stop()
+		c.doClose()
+	}()
 	defer func() {
 		if err := recover(); err != nil {
 			zlog.Ins().ErrorF("connID=%d, panic err=%v", c.GetConnID(), err)
@@ -266,7 +269,7 @@ func (c *Connection) StartReader() {
 			// (从conn的IO中读取数据到内存缓冲buffer中)
 			n, err := c.conn.Read(buffer)
 			if err != nil {
-				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err)  // 不需要发 Log,正常关闭
+				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err) // 不需要发 Log,正常关闭
 				return
 			}
 			zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer[0:n]))
@@ -332,14 +335,8 @@ func (c *Connection) Start() {
 	// (开启用户从客户端读取数据流程的Goroutine)
 	go c.StartReader()
 
-	select {
-	case <-c.ctx.Done():
-		c.finalizer()
+	// 直接退出，让 StartReader协程 来处理关闭逻辑
 
-		// 归还workerid
-		freeWorker(c)
-		return
-	}
 }
 
 // Stop stops the connection and ends the current connection state.
@@ -620,4 +617,10 @@ func (s *Connection) InvokeCloseCallbacks() {
 	s.closeCallbackMutex.RLock()
 	defer s.closeCallbackMutex.RUnlock()
 	s.closeCallback.Invoke()
+}
+
+func (s *Connection) doClose() {
+	s.finalizer()
+	// 归还workerid
+	freeWorker(s)
 }

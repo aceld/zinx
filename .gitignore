@@ -19,3 +19,7 @@ log
 /examples/zinx_websocket/minicode/miniprogram_npm
 
 rebase
+examples/c10k_test/bin/server
+examples/c10k_test/bin/client
+
+examples/c10k_test/bin/client_v2
