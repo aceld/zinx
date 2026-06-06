@@ -1,4 +1,5 @@
-# <img width="80px" src="https://s2.ax1x.com/2019/10/09/u4yHo9.png" />
+# <img width="80px" src="https://github.com/user-attachments/assets/a37bb985-a49f-47d8-a74a-c97e17287ec3" />
+
 English | [简体中文](README-CN.md)
 
 [![License](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
