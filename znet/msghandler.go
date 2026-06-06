@@ -47,6 +47,7 @@ type MsgHandle struct {
 	// (责任链构造器)
 	builder      *chainBuilder
 	RouterSlices *RouterSlices
+	clientMode   bool
 }
 
 // newMsgHandle creates MsgHandle
@@ -84,11 +85,11 @@ func newMsgHandle() *MsgHandle {
 	}
 
 	handle := &MsgHandle{
-		Apis:         make(map[uint32]ziface.IRouter),
-		RouterSlices: NewRouterSlices(),
-		freeWorkers:  freeWorkers,
-		builder:      newChainBuilder(),
-		// 可额外临时分配的workerID集合
+		Apis:             make(map[uint32]ziface.IRouter),
+		RouterSlices:     NewRouterSlices(),
+		freeWorkers:      freeWorkers,
+		builder:          newChainBuilder(),
+		clientMode:       false,
 		extraFreeWorkers: extraFreeWorkers,
 	}
 
@@ -142,6 +143,7 @@ func newCliMsgHandle() *MsgHandle {
 		RouterSlices: NewRouterSlices(),
 		freeWorkers:  freeWorkers,
 		builder:      newChainBuilder(),
+		clientMode:   true,
 		// 可额外临时分配的workerID集合
 		extraFreeWorkers: extraFreeWorkers,
 	}
@@ -266,10 +268,19 @@ func (mh *MsgHandle) Intercept(chain ziface.IChain) ziface.IcResp {
 
 				// Execute the corresponding Handle method from the bound message and its corresponding processing method
 				// (从绑定好的消息和对应的处理方法中执行对应的Handle方法)
-				if !zconf.GlobalObject.RouterSlicesMode {
-					go mh.doMsgHandler(iRequest, WorkerIDWithoutWorkerPool)
-				} else if zconf.GlobalObject.RouterSlicesMode {
-					go mh.doMsgHandlerSlices(iRequest, WorkerIDWithoutWorkerPool)
+				if mh.clientMode {
+					// Client mode requires decode->router order consistency when worker pool is disabled.
+					if !zconf.GlobalObject.RouterSlicesMode {
+						mh.doMsgHandler(iRequest, WorkerIDWithoutWorkerPool)
+					} else if zconf.GlobalObject.RouterSlicesMode {
+						mh.doMsgHandlerSlices(iRequest, WorkerIDWithoutWorkerPool)
+					}
+				} else {
+					if !zconf.GlobalObject.RouterSlicesMode {
+						go mh.doMsgHandler(iRequest, WorkerIDWithoutWorkerPool)
+					} else if zconf.GlobalObject.RouterSlicesMode {
+						go mh.doMsgHandlerSlices(iRequest, WorkerIDWithoutWorkerPool)
+					}
 				}
 
 			}
