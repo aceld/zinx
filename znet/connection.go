@@ -63,6 +63,8 @@ type Connection struct {
 	// (有缓冲管道，用于读、写两个goroutine之间的消息通信)
 	msgBuffChan chan []byte
 
+	closeOnce sync.Once
+
 	// Go StartWriter Flag
 	// (开始初始化写协程标志)
 	startWriterFlag int32
@@ -433,7 +435,10 @@ func (c *Connection) SendToQueue(data []byte, opts ...ziface.MsgSendOption) erro
 	select {
 	case <-c.ctx.Done():
 		// Close all channels associated with the connection
-		close(c.msgBuffChan)
+		// Close Once to avoid repeated closure
+		c.closeOnce.Do(func() {
+			close(c.msgBuffChan)
+		})
 		return errors.New("connection closed when send buff msg")
 	case <-idleTimeout.C:
 		return errors.New("send buff msg timeout")
