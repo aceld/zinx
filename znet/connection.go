@@ -198,28 +198,42 @@ func newClientConn(client ziface.IClient, conn net.Conn) ziface.IConnection {
 // (写消息Goroutine， 用户将数据发送给客户端)
 func (c *Connection) StartWriter() {
 	zlog.Ins().InfoF("Writer Goroutine is running")
-	ticker := time.NewTicker(10 * time.Millisecond)
 	defer func() {
 		zlog.Ins().InfoF("%s [conn Writer exit!]", c.RemoteAddr().String())
-		ticker.Stop()
 		c.Flush()
 	}()
 	for {
 		select {
-		case <-ticker.C:
-			err := c.Flush()
-			if err != nil {
-				zlog.Ins().ErrorF("Flush Buff Data error: %v Conn Writer exit", err)
+		case data, ok := <-c.msgBuffChan:
+			if !ok {
+				zlog.Ins().ErrorF("msgBuffChan is Closed")
 				return
 			}
-		case data, ok := <-c.msgBuffChan:
-			if ok {
-				if err := c.SendBuf(data); err != nil {
-					zlog.Ins().ErrorF("Send Buff Data error:, %s Conn Writer exit", err)
-					return
+
+			if err := c.SendBuf(data); err != nil {
+				zlog.Ins().ErrorF("Send Buff Data error:, %s Conn Writer exit", err)
+				return
+			}
+			// 一次性循环读出 msgBuffChan 中所有剩余数据
+		drainLoop:
+			for {
+				select {
+				case extra, ok2 := <-c.msgBuffChan:
+					if !ok2 {
+						zlog.Ins().ErrorF("msgBuffChan is Closed")
+						return
+					}
+					if err := c.SendBuf(extra); err != nil {
+						zlog.Ins().ErrorF("Send Buff Data error:, %s Conn Writer exit", err)
+						return
+					}
+				default:
+					break drainLoop
 				}
-			} else {
-				zlog.Ins().ErrorF("msgBuffChan is Closed")
+			}
+			// 批量写入完成后一次性 flush
+			if err := c.Flush(); err != nil {
+				zlog.Ins().ErrorF("Flush Buff Data error: %v Conn Writer exit", err)
 				return
 			}
 		case <-c.ctx.Done():
@@ -254,7 +268,7 @@ func (c *Connection) StartReader() {
 			// (从conn的IO中读取数据到内存缓冲buffer中)
 			n, err := c.conn.Read(buffer)
 			if err != nil {
-				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err)
+				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err)  // 不需要发 Log,正常关闭
 				return
 			}
 			zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer[0:n]))
@@ -411,17 +425,6 @@ func (c *Connection) SendToQueue(data []byte, opts ...ziface.MsgSendOption) erro
 		go c.StartWriter()
 	}
 
-	opt := ziface.MsgSendOptionObj{
-		Timeout: 5 * time.Millisecond,
-	}
-
-	for _, o := range opts {
-		o(&opt)
-	}
-
-	idleTimeout := time.NewTimer(opt.Timeout)
-	defer idleTimeout.Stop()
-
 	if c.isClosed() == true {
 		return errors.New("Connection closed when send buff msg")
 	}
@@ -440,10 +443,11 @@ func (c *Connection) SendToQueue(data []byte, opts ...ziface.MsgSendOption) erro
 			close(c.msgBuffChan)
 		})
 		return errors.New("connection closed when send buff msg")
-	case <-idleTimeout.C:
-		return errors.New("send buff msg timeout")
 	case c.msgBuffChan <- data:
 		return nil
+	default:
+		zlog.Ins().ErrorF("send buff msg channel is full")
+		return errors.New("send buff msg channel is full")
 	}
 }
 

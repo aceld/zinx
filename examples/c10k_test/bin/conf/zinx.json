@@ -1,0 +1,13 @@
+{
+  "Name": "Zinx-Standard-App",
+  "Mode": "tcp",
+  "Host": "0.0.0.0",
+  "TcpPort": 8888,
+  "MaxConn": 10000,
+  "WorkerPoolSize": 10,
+  "MaxWorkerTaskLen": 1024,
+  "MaxPacketSize": 4096,
+  "LogFile": "zinx.log",
+  "LogIsolationLevel": 3,
+  "LogLevel": "error"
+}
