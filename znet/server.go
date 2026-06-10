@@ -315,7 +315,8 @@ func (s *Server) ListenTcpConn() {
 
 func (s *Server) ListenWebsocketConn() {
 	zlog.Ins().InfoF("[START] WEBSOCKET Server name: %s,listener at IP: %s, Port %d, Path %s is starting", s.Name, s.IP, s.WsPort, s.WsPath)
-	http.HandleFunc(s.WsPath, func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+	mux.HandleFunc(s.WsPath, func(w http.ResponseWriter, r *http.Request) {
 		// 1. Check if the server has reached the maximum allowed number of connections
 		// (设置服务器最大连接控制,如果超过最大连接，则等待)
 		if s.ConnMgr.Len() >= zconf.GlobalObject.MaxConn {
@@ -358,12 +359,12 @@ func (s *Server) ListenWebsocketConn() {
 	})
 
 	if zconf.GlobalObject.CertFile != "" && zconf.GlobalObject.PrivateKeyFile != "" {
-		err := http.ListenAndServeTLS(fmt.Sprintf("%s:%d", s.IP, s.WsPort), zconf.GlobalObject.CertFile, zconf.GlobalObject.PrivateKeyFile, nil)
+		err := http.ListenAndServeTLS(fmt.Sprintf("%s:%d", s.IP, s.WsPort), zconf.GlobalObject.CertFile, zconf.GlobalObject.PrivateKeyFile, mux)
 		if err != nil {
 			panic(err)
 		}
 	} else {
-		err := http.ListenAndServe(fmt.Sprintf("%s:%d", s.IP, s.WsPort), nil)
+		err := http.ListenAndServe(fmt.Sprintf("%s:%d", s.IP, s.WsPort), mux)
 		if err != nil {
 			panic(err)
 		}
