@@ -8,9 +8,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aceld/zinx/zconf"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/zpack"
 )
+
+// retryInterval is the polling interval used by test helper functions that wait
+// for a port to become available or unavailable.
+// (retryInterval 是测试辅助函数轮询端口状态时的间隔时间)
+const retryInterval = 20 * time.Millisecond
+
+// dialTimeout is the per-attempt TCP dial timeout used when checking if a port
+// is accepting connections.
+// (dialTimeout 是检测端口是否在监听时每次 TCP 拨号的超时时间)
+const dialTimeout = 50 * time.Millisecond
 
 // run in terminal:
 // go test -v ./znet -run=TestServer
@@ -210,5 +221,113 @@ func TestCloseConnectionBeforeSendMsg(t *testing.T) {
 		wg.Done()
 	}()
 	wg.Wait()
+	s.Stop()
+}
+
+// waitForPort retries binding to addr until it succeeds (port released) or the
+// deadline is exceeded. It returns nil on success and an error otherwise.
+// (重试绑定端口直到成功或超时，成功返回 nil)
+func waitForPort(addr string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		ln, err := net.Listen("tcp", addr)
+		if err == nil {
+			_ = ln.Close()
+			return nil
+		}
+		time.Sleep(retryInterval)
+	}
+	return fmt.Errorf("port %s not released within %v", addr, timeout)
+}
+
+// waitForPortListening retries connecting to addr until a connection succeeds
+// (server is ready) or the deadline is exceeded.
+// (重试连接直到成功或超时，用于等待服务端就绪)
+func waitForPortListening(addr string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		conn, err := net.DialTimeout("tcp", addr, dialTimeout)
+		if err == nil {
+			_ = conn.Close()
+			return nil
+		}
+		time.Sleep(retryInterval)
+	}
+	return fmt.Errorf("port %s not listening within %v", addr, timeout)
+}
+
+// TestWebsocketServerGracefulStop verifies that calling Stop() on a WebSocket-only
+// server does not block, and that the HTTP listener port is released after Stop returns.
+// (验证 WebSocket-only 模式下 Stop() 不阻塞且端口被释放)
+func TestWebsocketServerGracefulStop(t *testing.T) {
+	// Use a dedicated port to avoid conflicts with TCP tests (使用独立端口避免冲突)
+	const wsPort = 19990
+
+	config := &zconf.Config{
+		Host:   "127.0.0.1",
+		WsPort: wsPort,
+		WsPath: "/ws",
+		Mode:   zconf.ServerModeWebsocket,
+	}
+	s := NewUserConfServer(config)
+	s.Start()
+
+	// Wait until the server is actually listening (等待服务端真正开始监听)
+	addr := fmt.Sprintf("127.0.0.1:%d", wsPort)
+	if err := waitForPortListening(addr, 3*time.Second); err != nil {
+		t.Fatalf("server did not start listening: %v", err)
+	}
+
+	// Stop() must return promptly — if it blocks, the test will time out.
+	// (Stop() 必须及时返回，否则测试会超时)
+	done := make(chan struct{})
+	go func() {
+		s.Stop()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		// Stop returned in time — good.
+	case <-time.After(3 * time.Second):
+		t.Fatal("Stop() blocked for more than 3s in websocket-only mode")
+	}
+
+	// Verify the port is released by retrying until the bind succeeds or timeout.
+	// (重试绑定端口，验证端口已被释放)
+	if err := waitForPort(addr, 3*time.Second); err != nil {
+		t.Fatalf("port %d not released after Stop(): %v", wsPort, err)
+	}
+}
+
+// TestWebsocketServerStopIdempotent verifies that calling Stop() multiple times
+// does not panic (thanks to sync.Once protecting the exitChan close).
+// (验证多次调用 Stop() 不会 panic)
+func TestWebsocketServerStopIdempotent(t *testing.T) {
+	const wsPort = 19991
+
+	config := &zconf.Config{
+		Host:   "127.0.0.1",
+		WsPort: wsPort,
+		WsPath: "/ws",
+		Mode:   zconf.ServerModeWebsocket,
+	}
+	s := NewUserConfServer(config)
+	s.Start()
+
+	// Wait until the server is actually listening (等待服务端真正开始监听)
+	addr := fmt.Sprintf("127.0.0.1:%d", wsPort)
+	if err := waitForPortListening(addr, 3*time.Second); err != nil {
+		t.Fatalf("server did not start listening: %v", err)
+	}
+
+	// Calling Stop() twice must not panic.
+	// (两次调用 Stop() 不应 panic)
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Stop() panicked on second call: %v", r)
+		}
+	}()
+	s.Stop()
 	s.Stop()
 }
