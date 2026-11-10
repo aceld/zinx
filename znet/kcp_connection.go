@@ -236,7 +236,9 @@ func (c *KcpConnection) StartReader() {
 				zlog.Ins().ErrorF("read msg head [read datalen=%d], error = %s", n, err)
 				return
 			}
-			zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer[0:n]))
+			if zlog.Ins().DebugEnabled() {
+				zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer[0:n]))
+			}
 
 			// If normal data is read from the peer, update the heartbeat detection Active state
 			// (正常读取到对端数据，更新心跳检测Active状态)
@@ -254,7 +256,9 @@ func (c *KcpConnection) StartReader() {
 					continue
 				}
 				for _, bytes := range bufArrays {
-					// zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(bytes))
+					//if zlog.Ins().DebugEnabled() {
+					//	zlog.Ins().DebugF("read buffer %s \n", hex.EncodeToString(buffer[0:n]))
+					//}
 					msg := zpack.NewMessage(uint32(len(bytes)), bytes)
 					// Get the current client's Request data
 					// (得到当前客户端请求的Request数据)

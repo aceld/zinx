@@ -38,6 +38,10 @@ func (log *zinxDefaultLog) DebugFX(ctx context.Context, format string, v ...inte
 	StdZinxLog.Debugf(format, v...)
 }
 
+func (log *zinxDefaultLog) DebugEnabled() bool {
+	return StdZinxLog.DebugEnabled()
+}
+
 func SetLogger(newlog ziface.ILogger) {
 	zLogInstance = newlog
 }
