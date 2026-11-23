@@ -491,20 +491,37 @@ func (d *FrameDecoder) failOnFrameLengthLessThanInitialBytesToStrip(in *bytes.Bu
 	panic(fmt.Sprintf("Adjusted frame length (%d) is less  than InitialBytesToStrip: %d", frameLength, initialBytesToStrip))
 }
 
-func (d *FrameDecoder) decode(buf []byte) []byte {
+// decode decodes at most one frame from the front of buf.
+// It returns the decoded frame, or nil when no complete frame is available yet,
+// together with the number of bytes of buf that were consumed. Bytes dropped
+// while skipping an oversized frame count as consumed as well, so the caller
+// can release them from its buffer.
+// (decode 从buf头部解析至多一个完整帧, 返回解析出的帧(尚未完整时为nil)以及从buf中
+// 消耗掉的字节数; 丢弃超长帧时跳过的字节同样计入消耗, 便于调用者清理缓冲)
+func (d *FrameDecoder) decode(buf []byte) ([]byte, int) {
 	in := bytes.NewBuffer(buf)
 
 	// Determine if it is in discard mode (判断是否为丢弃模式)
 	if d.discardingTooLongFrame {
 		d.discardingTooLongFrameFunc(in)
+
+		if d.discardingTooLongFrame {
+			// The oversized frame is still incomplete, every remaining byte belongs to it
+			// (超长帧还没有接收完整, 剩下的字节都属于它)
+			return nil, len(buf)
+		}
 	}
+
+	// Number of consumed bytes is the difference between buf and what is still readable
+	// (消耗的字节数通过 buf 与剩余可读字节数的差值得到)
+	consumed := func() int { return len(buf) - in.Len() }
 
 	// Determine if the number of readable bytes in the buffer is less than the offset of the length field
 	// (判断缓冲区中可读的字节数是否小于长度字段的偏移量)
 	if in.Len() < d.LengthFieldEndOffset {
 		// Indicates that the length field packets are incomplete, half package
 		// (说明长度字段的包都还不完整，半包)
-		return nil
+		return nil, consumed()
 	}
 
 	// --> If execution reaches here, it means that the value of the length field can be parsed <--
@@ -538,7 +555,7 @@ func (d *FrameDecoder) decode(buf []byte) []byte {
 		// It has exceeded the maximum length of a single data frame, and the exceeded part is processed
 		// (已经超过单次数据帧最大长度，对超过的部分进行处理)
 		d.exceededFrameLength(in, frameLength)
-		return nil
+		return nil, consumed()
 	}
 
 	// --> If execution reaches here, it means normal mode <--
@@ -549,7 +566,9 @@ func (d *FrameDecoder) decode(buf []byte) []byte {
 	// Determine if the number of readable bytes in the buffer is less than the size of the data packet (判断缓冲区可读字节数是否小于数据包的字节数)
 	if in.Len() < frameLengthInt {
 		// Half package, will parse again later (半包，等会再来解析)
-		return nil
+		// Bytes skipped while discarding an oversized frame are still released
+		// (丢弃超长帧时跳过的字节仍然需要释放)
+		return nil, consumed()
 	}
 
 	// --> If execution reaches here, it means that the buffer already contains the entire data packet <--
@@ -572,7 +591,10 @@ func (d *FrameDecoder) decode(buf []byte) []byte {
 	buff := make([]byte, actualFrameLength)
 	_, _ = in.Read(buff)
 
-	return buff
+	// The frame branch only releases the frame itself when nothing was discarded earlier
+	// in this call, so report the whole prefix that was consumed.
+	// (若本次调用前面丢弃过超长帧, 仅释放帧本身会留下已丢弃的字节, 因此报告整个已消耗前缀)
+	return buff, consumed()
 }
 
 func (d *FrameDecoder) Decode(buff []byte) [][]byte {
@@ -581,18 +603,22 @@ func (d *FrameDecoder) Decode(buff []byte) [][]byte {
 	resp := make([][]byte, 0)
 
 	for {
-		arr := d.decode(d.in)
+		arr, size := d.decode(d.in)
 
 		if arr != nil {
 			// Indicates that a complete packet has been parsed
 			// (证明已经解析出一个完整包)
 			resp = append(resp, arr)
-			_size := len(arr) + d.InitialBytesToStrip
-			if _size > 0 {
-				d.in = d.in[_size:]
-			}
-		} else {
+		} else if size == 0 {
+			// No complete packet yet, wait for the next read
+			// (还没有完整包, 等待下一次读取)
 			return resp
+		}
+
+		// Release the bytes this round consumed, including the ones dropped from an oversized frame
+		// (释放本轮消耗掉的字节, 其中包含丢弃超长帧时跳过的字节)
+		if size > 0 {
+			d.in = d.in[size:]
 		}
 	}
 }
